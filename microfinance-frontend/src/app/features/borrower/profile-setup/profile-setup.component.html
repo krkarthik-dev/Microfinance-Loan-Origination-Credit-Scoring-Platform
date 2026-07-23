@@ -16,7 +16,7 @@
     <p>Loading your profile...</p>
   </div>
 
-  <div *ngIf="!isLoading">
+  <div [hidden]="isLoading">
     <div class="alert alert-success" *ngIf="successMessage">
       {{ successMessage }}
     </div>
@@ -33,16 +33,16 @@
         <div class="form-row">
           <div class="form-group">
             <label for="firstName">First Name *</label>
-            <input id="firstName" type="text" formControlName="firstName" class="form-control" [class.is-invalid]="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+            <input id="firstName" type="text" formControlName="firstName" class="form-control" [class.is-invalid]="isInvalid('firstName')">
+            <div class="invalid-feedback" *ngIf="isInvalid('firstName')">
               First name is required.
             </div>
           </div>
           
           <div class="form-group">
             <label for="lastName">Last Name *</label>
-            <input id="lastName" type="text" formControlName="lastName" class="form-control" [class.is-invalid]="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+            <input id="lastName" type="text" formControlName="lastName" class="form-control" [class.is-invalid]="isInvalid('lastName')">
+            <div class="invalid-feedback" *ngIf="isInvalid('lastName')">
               Last name is required.
             </div>
           </div>
@@ -51,24 +51,24 @@
         <div class="form-row">
           <div class="form-group">
             <label for="dateOfBirth">Date of Birth *</label>
-            <input id="dateOfBirth" type="date" formControlName="dateOfBirth" class="form-control" [class.is-invalid]="profileForm.get('dateOfBirth')?.invalid && profileForm.get('dateOfBirth')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('dateOfBirth')?.errors?.['required'] && profileForm.get('dateOfBirth')?.touched">
+            <input id="dateOfBirth" type="date" formControlName="dateOfBirth" class="form-control" [class.is-invalid]="isInvalid('dateOfBirth')">
+            <div class="invalid-feedback" *ngIf="hasError('dateOfBirth', 'required')">
               Date of birth is required.
             </div>
-            <div class="invalid-feedback" *ngIf="profileForm.get('dateOfBirth')?.errors?.['minimumAge'] && profileForm.get('dateOfBirth')?.touched">
+            <div class="invalid-feedback" *ngIf="hasError('dateOfBirth', 'minimumAge')">
               You must be at least 18 years old.
             </div>
           </div>
           
           <div class="form-group">
             <label for="gender">Gender *</label>
-            <select id="gender" formControlName="gender" class="form-control" [class.is-invalid]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+            <select id="gender" formControlName="gender" class="form-control" [class.is-invalid]="isInvalid('gender')">
               <option value="">Select Gender</option>
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
               <option value="OTHER">Other</option>
             </select>
-            <div class="invalid-feedback" *ngIf="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+            <div class="invalid-feedback" *ngIf="isInvalid('gender')">
               Gender is required.
             </div>
           </div>
@@ -76,8 +76,8 @@
         
         <div class="form-group">
           <label for="phoneNumber">Phone Number *</label>
-          <input id="phoneNumber" type="tel" formControlName="phoneNumber" class="form-control" placeholder="+919876543210" [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
-          <div class="invalid-feedback" *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+          <input id="phoneNumber" type="tel" formControlName="phoneNumber" class="form-control" placeholder="+919876543210" [class.is-invalid]="isInvalid('phoneNumber')">
+          <div class="invalid-feedback" *ngIf="isInvalid('phoneNumber')">
             Valid phone number is required.
           </div>
         </div>
@@ -89,8 +89,8 @@
         
         <div class="form-group">
           <label for="addressLine1">Address Line 1 *</label>
-          <input id="addressLine1" type="text" formControlName="addressLine1" class="form-control" [class.is-invalid]="profileForm.get('addressLine1')?.invalid && profileForm.get('addressLine1')?.touched">
-          <div class="invalid-feedback" *ngIf="profileForm.get('addressLine1')?.invalid && profileForm.get('addressLine1')?.touched">
+          <input id="addressLine1" type="text" formControlName="addressLine1" class="form-control" [class.is-invalid]="isInvalid('addressLine1')">
+          <div class="invalid-feedback" *ngIf="isInvalid('addressLine1')">
             Address is required.
           </div>
         </div>
@@ -103,17 +103,17 @@
         <div class="form-row three-cols">
           <div class="form-group">
             <label for="city">City *</label>
-            <input id="city" type="text" formControlName="city" class="form-control" [class.is-invalid]="profileForm.get('city')?.invalid && profileForm.get('city')?.touched">
+            <input id="city" type="text" formControlName="city" class="form-control" [class.is-invalid]="isInvalid('city')">
           </div>
           
           <div class="form-group">
             <label for="state">State *</label>
-            <input id="state" type="text" formControlName="state" class="form-control" [class.is-invalid]="profileForm.get('state')?.invalid && profileForm.get('state')?.touched">
+            <input id="state" type="text" formControlName="state" class="form-control" [class.is-invalid]="isInvalid('state')">
           </div>
           
           <div class="form-group">
             <label for="pincode">Pincode *</label>
-            <input id="pincode" type="text" formControlName="pincode" class="form-control" [class.is-invalid]="profileForm.get('pincode')?.invalid && profileForm.get('pincode')?.touched">
+            <input id="pincode" type="text" formControlName="pincode" class="form-control" [class.is-invalid]="isInvalid('pincode')">
           </div>
         </div>
       </section>
@@ -125,16 +125,16 @@
         <div class="form-row">
           <div class="form-group">
             <label for="panNumber">PAN Number *</label>
-            <input id="panNumber" type="text" formControlName="panNumber" class="form-control text-uppercase" placeholder="ABCDE1234F" [class.is-invalid]="profileForm.get('panNumber')?.invalid && profileForm.get('panNumber')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('panNumber')?.invalid && profileForm.get('panNumber')?.touched">
+            <input id="panNumber" type="text" formControlName="panNumber" class="form-control text-uppercase" placeholder="ABCDE1234F" [class.is-invalid]="isInvalid('panNumber')">
+            <div class="invalid-feedback" *ngIf="isInvalid('panNumber')">
               Please enter a valid 10-character PAN number.
             </div>
           </div>
           
           <div class="form-group">
             <label for="aadhaarNumber">Aadhaar Number *</label>
-            <input id="aadhaarNumber" type="text" formControlName="aadhaarNumber" class="form-control" placeholder="123456789012" [class.is-invalid]="profileForm.get('aadhaarNumber')?.invalid && profileForm.get('aadhaarNumber')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('aadhaarNumber')?.invalid && profileForm.get('aadhaarNumber')?.touched">
+            <input id="aadhaarNumber" type="text" formControlName="aadhaarNumber" class="form-control" placeholder="123456789012" [class.is-invalid]="isInvalid('aadhaarNumber')">
+            <div class="invalid-feedback" *ngIf="isInvalid('aadhaarNumber')">
               Please enter a valid 12-digit Aadhaar number.
             </div>
           </div>
@@ -148,19 +148,19 @@
         <div class="form-row">
           <div class="form-group">
             <label for="employmentType">Employment Type *</label>
-            <select id="employmentType" formControlName="employmentType" class="form-control" [class.is-invalid]="profileForm.get('employmentType')?.invalid && profileForm.get('employmentType')?.touched">
+            <select id="employmentType" formControlName="employmentType" class="form-control" [class.is-invalid]="isInvalid('employmentType')">
               <option value="">Select Employment Type</option>
               <option *ngFor="let type of employmentTypes" [value]="type">{{ type }}</option>
             </select>
-            <div class="invalid-feedback" *ngIf="profileForm.get('employmentType')?.invalid && profileForm.get('employmentType')?.touched">
+            <div class="invalid-feedback" *ngIf="isInvalid('employmentType')">
               Employment type is required.
             </div>
           </div>
           
           <div class="form-group">
             <label for="monthlyIncome">Declared Monthly Income (₹) *</label>
-            <input id="monthlyIncome" type="number" formControlName="monthlyIncome" class="form-control" min="0" [class.is-invalid]="profileForm.get('monthlyIncome')?.invalid && profileForm.get('monthlyIncome')?.touched">
-            <div class="invalid-feedback" *ngIf="profileForm.get('monthlyIncome')?.invalid && profileForm.get('monthlyIncome')?.touched">
+            <input id="monthlyIncome" type="number" formControlName="monthlyIncome" class="form-control" min="0" [class.is-invalid]="isInvalid('monthlyIncome')">
+            <div class="invalid-feedback" *ngIf="isInvalid('monthlyIncome')">
               Please enter a valid positive amount.
             </div>
           </div>

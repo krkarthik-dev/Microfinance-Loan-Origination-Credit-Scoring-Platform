@@ -57,8 +57,29 @@ export class ProfileSetupComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initForm();
-    this.loadProfile();
+    try {
+      this.initForm();
+      this.loadProfile();
+    } catch (e) {
+      console.error('Error in ngOnInit ProfileSetup:', e);
+      this.errorMessage = 'An error occurred initializing the form.';
+      this.isLoading = false;
+    }
+  }
+
+  // Safe getters for template
+  getControl(name: string): AbstractControl | null {
+    return this.profileForm ? this.profileForm.get(name) : null;
+  }
+
+  isInvalid(name: string): boolean {
+    const ctrl = this.getControl(name);
+    return ctrl ? !!(ctrl.invalid && ctrl.touched) : false;
+  }
+
+  hasError(name: string, errorName: string): boolean {
+    const ctrl = this.getControl(name);
+    return ctrl ? !!(ctrl.errors?.[errorName] && ctrl.touched) : false;
   }
 
   private initForm(): void {
