@@ -1,0 +1,128 @@
+<div class="wizard-container">
+  <div class="wizard-card">
+    
+    <!-- Header & Stepper Progress -->
+    <div class="wizard-header">
+      <h2>Loan Application</h2>
+      
+      <div class="stepper">
+        <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Loan Requirements</div>
+        </div>
+        <div class="step-line" [class.active]="currentStep >= 2"></div>
+        
+        <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Income Verification</div>
+        </div>
+        <div class="step-line" [class.active]="currentStep >= 3"></div>
+        
+        <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Review & Submit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Loan Requirements -->
+    <div class="step-content" *ngIf="currentStep === 1">
+      <div class="step-title">
+        <h3>Step 1: What do you need?</h3>
+        <p>Tell us how much you want to borrow and why.</p>
+      </div>
+
+      <form [formGroup]="loanForm" (ngSubmit)="nextStep()">
+        
+        <div class="form-group">
+          <label for="principalAmount">Requested Principal Amount (₹) *</label>
+          <input type="number" id="principalAmount" formControlName="principalAmount" class="form-control" [class.is-invalid]="isInvalid('principalAmount')" placeholder="e.g. 10000">
+          <div class="invalid-feedback" *ngIf="isInvalid('principalAmount')">
+            <span *ngIf="f['principalAmount'].errors?.['required']">Amount is required.</span>
+            <span *ngIf="f['principalAmount'].errors?.['min']">Minimum amount is ₹1,000.</span>
+            <span *ngIf="f['principalAmount'].errors?.['max']">Maximum amount is ₹50,000.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tenureMonths">Loan Tenure (Months) *</label>
+          
+          <div class="slider-container">
+            <input type="range" id="tenureMonths" formControlName="tenureMonths" min="3" max="24" step="3" class="form-range">
+            <div class="slider-value">
+              <span>{{ loanForm.get('tenureMonths')?.value }} Months</span>
+            </div>
+          </div>
+          <div class="slider-labels">
+            <span>3m</span>
+            <span>24m</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="purpose">Loan Purpose *</label>
+          <select id="purpose" formControlName="purpose" class="form-control" [class.is-invalid]="isInvalid('purpose')">
+            <option value="">Select Purpose</option>
+            <option *ngFor="let purpose of purposes" [value]="purpose">{{ purpose }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isInvalid('purpose')">
+            Please select a loan purpose.
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Next Step</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 2: Placeholder Shell -->
+    <div class="step-content text-center" *ngIf="currentStep === 2">
+      <div class="step-title">
+        <h3>Step 2: Income Verification</h3>
+        <p>Connect your bank account to verify your income securely.</p>
+      </div>
+      
+      <div class="empty-state">
+        <div class="icon">🏦</div>
+        <h4>Bank Sync Integration Pending</h4>
+        <p>This step will securely pull your bank statements to assess your repayment capacity.</p>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="btn btn-secondary" (click)="prevStep()">Back</button>
+        <button type="button" class="btn btn-primary" (click)="nextStep()">Simulate Bank Sync & Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Placeholder Shell -->
+    <div class="step-content text-center" *ngIf="currentStep === 3">
+      <div class="step-title">
+        <h3>Step 3: Review & Submit</h3>
+        <p>Review your loan configuration and submit your application.</p>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Amount Requested:</span>
+          <strong>{{ loanForm.get('principalAmount')?.value | currency:'INR' }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Tenure:</span>
+          <strong>{{ loanForm.get('tenureMonths')?.value }} Months</strong>
+        </div>
+        <div class="summary-row">
+          <span>Purpose:</span>
+          <strong>{{ loanForm.get('purpose')?.value }}</strong>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="btn btn-secondary" (click)="prevStep()">Back</button>
+        <button type="button" class="btn btn-primary" (click)="cancel()">Save as Draft (End of US11)</button>
+      </div>
+    </div>
+
+  </div>
+</div>

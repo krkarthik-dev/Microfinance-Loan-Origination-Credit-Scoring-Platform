@@ -241,15 +241,15 @@ export class ProfileSetupComponent implements OnInit {
 
   async handleFileSelect(file: File, type: 'PAN' | 'AADHAAR') {
     // 1. Validation
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      this.setUploadError(type, 'Only JPEG, PNG, and WEBP images are allowed.');
+      this.setUploadError(type, 'Only JPEG, PNG, WEBP, and PDF files are allowed.');
       return;
     }
     
-    // Strict 5MB initial limit before compression
+    // Strict 5MB limit
     if (file.size > 5 * 1024 * 1024) {
-      this.setUploadError(type, 'Image must be smaller than 5MB.');
+      this.setUploadError(type, 'File must be smaller than 5MB.');
       return;
     }
 
@@ -259,12 +259,15 @@ export class ProfileSetupComponent implements OnInit {
     if (type === 'AADHAAR') this.isUploadingAadhaar = true;
 
     try {
-      // 2. Compress Image
-      const compressedFile = await this.compressImage(file);
+      // 2. Compress Image (Bypass for PDF)
+      let fileToUpload = file;
+      if (file.type !== 'application/pdf') {
+        fileToUpload = await this.compressImage(file);
+      }
       
       // 3. Upload to backend
       const docTypeString = type === 'PAN' ? 'PAN' : 'AADHAAR';
-      this.borrowerService.uploadKycDocument(compressedFile, docTypeString).subscribe({
+      this.borrowerService.uploadKycDocument(fileToUpload, docTypeString).subscribe({
         next: (res) => {
           if (type === 'PAN') {
             this.panDocument = res;
@@ -345,5 +348,16 @@ export class ProfileSetupComponent implements OnInit {
   getPreviewUrl(documentType: string): string {
     // Generate unique URL with timestamp to bust cache after re-upload
     return `${this.apiUrl}/applicant/kyc/${documentType}/view?t=${new Date().getTime()}`;
+  }
+
+  isPdf(doc: KycUploadResponse | null): boolean {
+    if (!doc) return false;
+    return doc.fileName.toLowerCase().endsWith('.pdf');
+  }
+
+  onSaveAndVerify(): void {
+    // In the future, this can call an API to mark KYC as "pending officer review".
+    // For now, it just acts as a confirmation and closes the popup.
+    this.closePopup.emit();
   }
 }
