@@ -7,6 +7,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
 import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
 import { ProfileSetupComponent } from './features/borrower/profile-setup/profile-setup.component';
+import { ForceChangePasswordComponent } from './features/auth/force-change-password/force-change-password.component';
 
 /**
  * Application routing configuration.
@@ -26,6 +27,11 @@ const routes: Routes = [
     path: 'login',
     component: LoginComponent,
     title: 'Sign In | Microfinance Platform'
+  },
+  {
+    path: 'force-change-password',
+    component: ForceChangePasswordComponent,
+    title: 'Change Password | Microfinance Platform'
   },
   {
     path: 'unauthorized',

@@ -41,9 +41,13 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
+      next: (response: any) => {
         this.isLoading = false;
-        this.redirectBasedOnRole();
+        if (response.mustChangePassword) {
+          this.router.navigate(['/force-change-password'], { state: { loginResponse: response } });
+        } else {
+          this.redirectBasedOnRole();
+        }
       },
       error: (error) => {
         this.isLoading = false;

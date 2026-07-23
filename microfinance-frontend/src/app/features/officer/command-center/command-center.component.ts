@@ -1,14 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { OfficerService, ApplicationSummary, PendingKyc } from '../officer.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { TokenService } from '../../../core/services/token.service';
 
 @Component({
   selector: 'app-command-center',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './command-center.component.html',
   styleUrls: ['./command-center.component.scss']
 })
@@ -31,11 +33,30 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
 
   private queueSub?: Subscription;
 
+  // Direct Application Modal
+  showDirectApplicationModal = false;
+  directAppForm: FormGroup;
+  isSubmittingDirectApp = false;
+  directAppError = '';
+  directAppSuccess = false;
+
   constructor(
     private officerService: OfficerService,
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private tokenService: TokenService,
+    private fb: FormBuilder
+  ) {
+    this.directAppForm = this.fb.group({
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      temporaryPassword: ['', Validators.required],
+      dateOfBirth: ['', Validators.required],
+      employmentType: ['SALARIED', Validators.required],
+      monthlyIncome: ['', [Validators.required, Validators.min(0)]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadQueue();
@@ -132,6 +153,41 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   viewKycDetails(userId: number): void {
     // We will route to a new component for KYC review
     this.router.navigate(['/officer/kyc', userId]);
+  }
+
+  // --- Walk-in Application Logic ---
+  
+  openDirectApplicationModal(): void {
+    this.showDirectApplicationModal = true;
+    this.directAppSuccess = false;
+    this.directAppError = '';
+    this.directAppForm.reset({
+      employmentType: 'SALARIED'
+    });
+  }
+
+  closeDirectApplicationModal(): void {
+    this.showDirectApplicationModal = false;
+  }
+
+  submitDirectApplication(): void {
+    if (this.directAppForm.invalid) return;
+
+    this.isSubmittingDirectApp = true;
+    this.directAppError = '';
+    this.directAppSuccess = false;
+
+    this.officerService.createDirectApplication(this.directAppForm.value).subscribe({
+      next: () => {
+        this.isSubmittingDirectApp = false;
+        this.directAppSuccess = true;
+        setTimeout(() => this.closeDirectApplicationModal(), 2000);
+      },
+      error: (err) => {
+        this.isSubmittingDirectApp = false;
+        this.directAppError = err.error || 'Failed to create application.';
+      }
+    });
   }
 
   logout(): void {

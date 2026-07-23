@@ -10,7 +10,10 @@
       <button class="tab-btn" [ngClass]="{'active': activeTab === 'KYC'}" (click)="activeTab = 'KYC'">Pending KYC <span class="badge" *ngIf="pendingKyc.length">{{pendingKyc.length}}</span></button>
     </div>
 
-    <button class="btn btn-outline" (click)="logout()">Logout</button>
+    <div class="actions-area">
+      <button class="btn btn-primary" (click)="openDirectApplicationModal()">+ Create Direct Application</button>
+      <button class="btn btn-outline" (click)="logout()">Logout</button>
+    </div>
       </div>
     </div>
   </header>
@@ -117,4 +120,68 @@
   </div>
 
   </main>
+
+  <!-- Walk-In Application Modal -->
+  <div class="modal-overlay" *ngIf="showDirectApplicationModal">
+    <div class="modal-content direct-application-modal">
+      <div class="modal-header">
+        <h3>Create Walk-In Application</h3>
+        <button class="close-btn" (click)="closeDirectApplicationModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="directAppForm" (ngSubmit)="submitDirectApplication()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" formControlName="firstName" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" formControlName="lastName" class="form-control" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email / Phone (Username)</label>
+              <input type="text" formControlName="email" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>Temporary Password</label>
+              <input type="text" formControlName="temporaryPassword" class="form-control" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="date" formControlName="dateOfBirth" class="form-control" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Employment Type</label>
+              <select formControlName="employmentType" class="form-control">
+                <option value="SALARIED">Salaried</option>
+                <option value="SELF_EMPLOYED">Self Employed</option>
+                <option value="BUSINESS">Business</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Monthly Income</label>
+              <input type="number" formControlName="monthlyIncome" class="form-control" />
+            </div>
+          </div>
+          
+          <div class="alert alert-danger" *ngIf="directAppError">{{ directAppError }}</div>
+          <div class="alert alert-success" *ngIf="directAppSuccess">Application created successfully!</div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="closeDirectApplicationModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="directAppForm.invalid || isSubmittingDirectApp">
+              {{ isSubmittingDirectApp ? 'Creating...' : 'Create Account' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>

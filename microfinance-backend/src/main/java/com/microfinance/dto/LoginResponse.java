@@ -15,4 +15,5 @@ public class LoginResponse {
     private String type = "Bearer";
     private String email;
     private String role;
+    private boolean mustChangePassword;
 }

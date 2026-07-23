@@ -8,6 +8,7 @@ export interface LoginResponse {
   type: string;
   email: string;
   role: string;
+  mustChangePassword?: boolean;
 }
 
 export interface UserClaims {

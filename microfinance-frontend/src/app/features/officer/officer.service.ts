@@ -92,4 +92,11 @@ export class OfficerService {
   submitKycDecision(userId: number, payload: { decision: string, rejectionReason?: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/kyc/${userId}/decision`, payload);
   }
+
+  /**
+   * US22: Walk-In Account Generation
+   */
+  createDirectApplication(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/direct-application`, payload);
+  }
 }

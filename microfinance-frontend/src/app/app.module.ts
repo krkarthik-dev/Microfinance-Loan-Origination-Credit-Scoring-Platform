@@ -12,6 +12,7 @@ import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.compone
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
 import { ProfileSetupComponent } from './features/borrower/profile-setup/profile-setup.component';
+import { ForceChangePasswordComponent } from './features/auth/force-change-password/force-change-password.component';
 
 /**
  * Root application module for the Microfinance Loan Origination Platform.
@@ -28,7 +29,8 @@ import { ProfileSetupComponent } from './features/borrower/profile-setup/profile
     HealthCheckComponent,
     LoginComponent,
     UnauthorizedComponent,
-    DashboardComponent
+    DashboardComponent,
+    ForceChangePasswordComponent
   ],
   imports: [
     BrowserModule,

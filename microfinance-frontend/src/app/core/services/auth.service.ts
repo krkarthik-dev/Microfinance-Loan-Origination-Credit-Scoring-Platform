@@ -25,11 +25,21 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => {
-        if (response && response.token) {
+        if (response && response.token && !response.mustChangePassword) {
           this.tokenService.setToken(response.token);
         }
       })
     );
+  }
+
+  changePassword(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password`, payload);
+  }
+
+  saveSession(response: LoginResponse): void {
+    if (response && response.token) {
+      this.tokenService.setToken(response.token);
+    }
   }
 
   /**

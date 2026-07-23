@@ -1,5 +1,6 @@
 package com.microfinance.controller;
 
+import com.microfinance.dto.ChangePasswordRequestDTO;
 import com.microfinance.dto.LoginRequest;
 import com.microfinance.dto.LoginResponse;
 import com.microfinance.service.AuthService;
@@ -25,5 +26,14 @@ public class AuthController {
     public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         LoginResponse jwtResponse = authService.login(loginRequest);
         return ResponseEntity.ok(jwtResponse);
+    }
+
+    /**
+     * US22: Mandatory password change for temp passwords.
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok().build();
     }
 }

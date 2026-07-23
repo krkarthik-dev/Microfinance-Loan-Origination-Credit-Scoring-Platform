@@ -30,8 +30,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +58,7 @@ public class OfficerDashboardController {
     private final LoanDocumentRepository loanDocumentRepository;
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * US16: Returns a list of all applications currently in the UNDER_REVIEW state.
@@ -331,6 +334,61 @@ public class OfficerDashboardController {
                 .newValue("{\"kycVerified\":" + isApproved + ", \"details\":\"" + noteDetails + "\"}")
                 .build();
         
+        auditLogRepository.save(audit);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * US22: Walk-In Account Generation
+     */
+    @PostMapping("/direct-application")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<?> createDirectApplication(@RequestBody com.microfinance.dto.DirectApplicationRequestDTO request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Email is already registered.");
+        }
+
+        // 1. Create User
+        User user = User.builder()
+                .username(request.getEmail())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getTemporaryPassword()))
+                .role(com.microfinance.enums.UserRole.ROLE_APPLICANT)
+                .mustChangePassword(true) // Force password change on first login
+                .build();
+        userRepository.save(user);
+
+        // 2. Create UserProfile
+        UserProfile profile = UserProfile.builder()
+                .user(user)
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .dateOfBirth(request.getDateOfBirth())
+                .employmentType(request.getEmploymentType())
+                .monthlyIncome(request.getMonthlyIncome())
+                // Set default/dummy values for required fields not captured in basic form
+                .phoneNumber(request.getEmail()) // placeholder since it's unique
+                .gender("UNKNOWN")
+                .addressLine1("Direct Application")
+                .city("Unknown")
+                .state("Unknown")
+                .pincode("000000")
+                .kycVerified(false)
+                .build();
+        
+        userProfileRepository.save(profile);
+
+        // Log action
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User officer = userRepository.findByEmail(auth.getName()).orElse(null);
+        AuditLog audit = AuditLog.builder()
+                .entityType("USER")
+                .entityId(user.getId())
+                .action("DIRECT_ACCOUNT_CREATED")
+                .performedBy(officer)
+                .newValue("{\"email\":\"" + user.getEmail() + "\", \"mustChangePassword\":true}")
+                .build();
         auditLogRepository.save(audit);
 
         return ResponseEntity.ok().build();
