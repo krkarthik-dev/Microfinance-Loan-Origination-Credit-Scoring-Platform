@@ -66,6 +66,39 @@ public class LoanApplication {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String purpose;
 
+    // ── Guarantor Details ──────────────────────────────────────────────────────
+    @Column(name = "guarantor_name", length = 200)
+    private String guarantorName;
+
+    @Column(name = "guarantor_address", columnDefinition = "TEXT")
+    private String guarantorAddress;
+
+    @Column(name = "guarantor_city", length = 100)
+    private String guarantorCity;
+
+    @Column(name = "guarantor_zip", length = 10)
+    private String guarantorZip;
+
+    @Column(name = "guarantor_aadhaar", length = 12)
+    private String guarantorAadhaar;
+
+    @Column(name = "guarantor_pan", length = 10)
+    private String guarantorPan;
+
+    // ── Signature & PDF ────────────────────────────────────────────────────────
+    @Column(name = "signature_image", columnDefinition = "BYTEA")
+    private byte[] signatureImage;
+
+    @Column(name = "signature_content_type", length = 50)
+    private String signatureContentType;
+
+    @Column(name = "application_pdf", columnDefinition = "BYTEA")
+    private byte[] applicationPdf;
+
+    @Column(name = "terms_accepted", nullable = false)
+    @Builder.Default
+    private boolean termsAccepted = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     @Builder.Default

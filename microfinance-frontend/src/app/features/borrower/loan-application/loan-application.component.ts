@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { BorrowerService } from '../borrower.service';
 
 export interface UploadedFile {
   file: File;
@@ -14,7 +15,7 @@ export interface UploadedFile {
 @Component({
   selector: 'app-loan-application',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './loan-application.component.html',
   styleUrls: ['./loan-application.component.scss']
 })
@@ -24,44 +25,51 @@ export class LoanApplicationComponent implements OnInit {
 
   // Step 1 Form
   loanRequirementsForm!: FormGroup;
-
   // Step 2 Form
   guarantorForm!: FormGroup;
 
-  // Step 3: Document Upload State
+  // Step 3 — Document upload state
   incomeFile: UploadedFile | null = null;
   photoFile: UploadedFile | null = null;
   guarantorIdFile: UploadedFile | null = null;
   otherFiles: UploadedFile[] = [];
-
-  // Drag-over states
   isDragOverIncome = false;
   isDragOverPhoto = false;
   isDragOverGuarantorId = false;
   isDragOverOther = false;
-
-  // Upload errors
   incomeError: string | null = null;
   photoError: string | null = null;
   guarantorIdError: string | null = null;
   otherError: string | null = null;
 
+  // Step 4 — Review, signature & submission
+  termsAccepted = false;
+  signatureFile: UploadedFile | null = null;
+  isDragOverSignature = false;
+  signatureError: string | null = null;
+  isSubmitting = false;
+  submissionError: string | null = null;
+
+  // Success state
+  submittedAppNumber: string | null = null;
+  pdfBlobUrl: string | null = null;
+
   purposes = [
-    'Agriculture',
-    'Small Business Setup',
-    'Medical Emergency',
-    'Education',
-    'Home Repair'
+    'Agriculture', 'Small Business Setup', 'Medical Emergency',
+    'Education', 'Home Repair'
   ];
+
+  private readonly DOC_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  private readonly IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  private readonly MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private borrowerService: BorrowerService
   ) {}
 
-  ngOnInit(): void {
-    this.initForms();
-  }
+  ngOnInit(): void { this.initForms(); }
 
   private initForms(): void {
     this.loanRequirementsForm = this.fb.group({
@@ -69,7 +77,6 @@ export class LoanApplicationComponent implements OnInit {
       tenureMonths: [12, [Validators.required]],
       purpose: ['', Validators.required]
     });
-
     this.guarantorForm = this.fb.group({
       name:          ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z\s]+$/)]],
       address:       ['', [Validators.required, Validators.minLength(10), Validators.maxLength(255)]],
@@ -80,100 +87,83 @@ export class LoanApplicationComponent implements OnInit {
     });
   }
 
-  // ── Step 1 helpers ──
+  // ── Step 1 ──
   get reqF() { return this.loanRequirementsForm.controls; }
-  isReqInvalid(field: string): boolean {
-    const c = this.loanRequirementsForm.get(field);
+  isReqInvalid(f: string): boolean {
+    const c = this.loanRequirementsForm.get(f);
     return !!(c && c.invalid && (c.dirty || c.touched));
   }
 
-  // ── Step 2 helpers ──
+  // ── Step 2 ──
   get guarF() { return this.guarantorForm.controls; }
-  isGuarInvalid(field: string): boolean {
-    const c = this.guarantorForm.get(field);
+  isGuarInvalid(f: string): boolean {
+    const c = this.guarantorForm.get(f);
     return !!(c && c.invalid && (c.dirty || c.touched));
   }
   get isGuarantorValid(): boolean { return this.guarantorForm.valid; }
 
-  // ── Step 3: Mandatory doc check ──
+  // ── Step 3 ──
   get isDocsStepValid(): boolean {
     return !!this.incomeFile && !!this.photoFile && !!this.guarantorIdFile;
   }
 
-  // ── File Handling ──
-  private readonly DOC_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-  private readonly IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-  private readonly MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+  // ── Step 4 ──
+  get isSubmitEnabled(): boolean {
+    return this.termsAccepted && !!this.signatureFile && !this.isSubmitting;
+  }
 
+  // ── File Handling ──
   onDragOver(e: DragEvent, zone: string) {
     e.preventDefault();
     if (zone === 'income')      this.isDragOverIncome = true;
     if (zone === 'photo')       this.isDragOverPhoto = true;
     if (zone === 'guarantorId') this.isDragOverGuarantorId = true;
     if (zone === 'other')       this.isDragOverOther = true;
+    if (zone === 'signature')   this.isDragOverSignature = true;
   }
 
   onDragLeave(e: DragEvent, zone: string) {
     e.preventDefault();
-    if (zone === 'income')      this.isDragOverIncome = false;
-    if (zone === 'photo')       this.isDragOverPhoto = false;
-    if (zone === 'guarantorId') this.isDragOverGuarantorId = false;
-    if (zone === 'other')       this.isDragOverOther = false;
+    this.resetDragStates();
   }
 
   onDrop(e: DragEvent, zone: string) {
     e.preventDefault();
     this.resetDragStates();
-    if (e.dataTransfer?.files?.length) {
-      this.handleFile(e.dataTransfer.files[0], zone);
-    }
+    if (e.dataTransfer?.files?.length) this.handleFile(e.dataTransfer.files[0], zone);
   }
 
   onFileChange(e: Event, zone: string) {
     const input = e.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.handleFile(input.files[0], zone);
-      input.value = '';
-    }
+    if (input.files?.length) { this.handleFile(input.files[0], zone); input.value = ''; }
   }
 
   private handleFile(file: File, zone: string) {
-    // Choose accepted types
-    const allowed = zone === 'photo' ? this.IMG_TYPES : this.DOC_TYPES;
+    const allowed = (zone === 'photo' || zone === 'signature') ? this.IMG_TYPES : this.DOC_TYPES;
+    const label   = (zone === 'photo' || zone === 'signature') ? 'image files (JPG, PNG, WEBP)' : 'PDF, JPG, PNG, or WEBP files';
 
-    if (!allowed.includes(file.type)) {
-      const msg = zone === 'photo'
-        ? 'Only image files (JPG, PNG, WEBP) are allowed for the photograph.'
-        : 'Only PDF, JPG, PNG, or WEBP files are allowed.';
-      this.setError(zone, msg);
-      return;
-    }
-    if (file.size > this.MAX_SIZE_BYTES) {
-      this.setError(zone, 'File size must be under 5 MB.');
-      return;
-    }
+    if (!allowed.includes(file.type)) { this.setError(zone, `Only ${label} are allowed.`); return; }
+    if (file.size > this.MAX_SIZE_BYTES) { this.setError(zone, 'File size must be under 5 MB.'); return; }
 
     this.setError(zone, null);
     const uploaded: UploadedFile = { file, name: file.name, size: file.size, type: file.type };
-
-    // Generate preview URL for images
-    if (file.type.startsWith('image/')) {
-      uploaded.previewUrl = URL.createObjectURL(file);
-    }
+    if (file.type.startsWith('image/')) uploaded.previewUrl = URL.createObjectURL(file);
 
     if (zone === 'income')      this.incomeFile = uploaded;
     if (zone === 'photo')       this.photoFile = uploaded;
     if (zone === 'guarantorId') this.guarantorIdFile = uploaded;
+    if (zone === 'signature')   this.signatureFile = uploaded;
     if (zone === 'other')       this.otherFiles = [...this.otherFiles, uploaded];
   }
 
   removeFile(zone: string, index?: number) {
-    if (zone === 'income')      { if (this.incomeFile?.previewUrl) URL.revokeObjectURL(this.incomeFile.previewUrl); this.incomeFile = null; }
-    if (zone === 'photo')       { if (this.photoFile?.previewUrl) URL.revokeObjectURL(this.photoFile.previewUrl); this.photoFile = null; }
-    if (zone === 'guarantorId') { if (this.guarantorIdFile?.previewUrl) URL.revokeObjectURL(this.guarantorIdFile.previewUrl); this.guarantorIdFile = null; }
+    const revoke = (f: UploadedFile | null) => { if (f?.previewUrl) URL.revokeObjectURL(f.previewUrl); };
+    if (zone === 'income')      { revoke(this.incomeFile); this.incomeFile = null; }
+    if (zone === 'photo')       { revoke(this.photoFile); this.photoFile = null; }
+    if (zone === 'guarantorId') { revoke(this.guarantorIdFile); this.guarantorIdFile = null; }
+    if (zone === 'signature')   { revoke(this.signatureFile); this.signatureFile = null; }
     if (zone === 'other' && index !== undefined) {
-      const f = this.otherFiles[index];
-      if (f?.previewUrl) URL.revokeObjectURL(f.previewUrl);
+      revoke(this.otherFiles[index]);
       this.otherFiles = this.otherFiles.filter((_, i) => i !== index);
     }
   }
@@ -182,11 +172,13 @@ export class LoanApplicationComponent implements OnInit {
     if (zone === 'income')      this.incomeError = msg;
     if (zone === 'photo')       this.photoError = msg;
     if (zone === 'guarantorId') this.guarantorIdError = msg;
+    if (zone === 'signature')   this.signatureError = msg;
     if (zone === 'other')       this.otherError = msg;
   }
 
   private resetDragStates() {
-    this.isDragOverIncome = this.isDragOverPhoto = this.isDragOverGuarantorId = this.isDragOverOther = false;
+    this.isDragOverIncome = this.isDragOverPhoto = this.isDragOverGuarantorId =
+    this.isDragOverOther = this.isDragOverSignature = false;
   }
 
   formatBytes(bytes: number): string {
@@ -204,15 +196,67 @@ export class LoanApplicationComponent implements OnInit {
       this.guarantorForm.markAllAsTouched(); return;
     }
     if (this.currentStep === 3 && !this.isDocsStepValid) return;
-
     if (this.currentStep < this.totalSteps) this.currentStep++;
   }
 
-  prevStep(): void {
-    if (this.currentStep > 1) this.currentStep--;
+  prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
+
+  // ── Submission (AC3, AC4) ──
+  submitApplication(): void {
+    if (!this.isSubmitEnabled) return;
+
+    this.isSubmitting = true;
+    this.submissionError = null;
+
+    const fd = new FormData();
+    const lf = this.loanRequirementsForm.value;
+    const gf = this.guarantorForm.value;
+
+    fd.append('principalAmount', lf.principalAmount);
+    fd.append('tenureMonths',    lf.tenureMonths);
+    fd.append('purpose',         lf.purpose);
+
+    fd.append('guarantorName',    gf.name);
+    fd.append('guarantorAddress', gf.address);
+    fd.append('guarantorCity',    gf.city);
+    fd.append('guarantorZip',     gf.zipCode);
+    fd.append('guarantorAadhaar', gf.aadhaarNumber);
+    fd.append('guarantorPan',     gf.panNumber);
+
+    fd.append('incomeCert',  this.incomeFile!.file, this.incomeFile!.name);
+    fd.append('photo',       this.photoFile!.file,  this.photoFile!.name);
+    fd.append('guarantorId', this.guarantorIdFile!.file, this.guarantorIdFile!.name);
+    this.otherFiles.forEach(f => fd.append('otherDocs', f.file, f.name));
+    fd.append('signature',   this.signatureFile!.file, this.signatureFile!.name);
+
+    this.borrowerService.submitLoanApplication(fd).subscribe({
+      next: (response: any) => {
+        this.isSubmitting = false;
+        // Extract application number from response header
+        this.submittedAppNumber = response.headers.get('X-Application-Number') || 'N/A';
+        // Create a downloadable URL from the PDF blob
+        const pdfBlob = new Blob([response.body], { type: 'application/pdf' });
+        this.pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.submissionError = 'Submission failed. Please try again.';
+        console.error('Submission error:', err);
+      }
+    });
   }
 
-  cancel(): void {
+  downloadPdf(): void {
+    if (!this.pdfBlobUrl || !this.submittedAppNumber) return;
+    const a = document.createElement('a');
+    a.href = this.pdfBlobUrl;
+    a.download = `${this.submittedAppNumber}_application.pdf`;
+    a.click();
+  }
+
+  goToDashboard(): void {
     this.router.navigate(['/applicant']);
   }
+
+  cancel(): void { this.router.navigate(['/applicant']); }
 }

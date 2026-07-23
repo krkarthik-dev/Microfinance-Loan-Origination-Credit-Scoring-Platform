@@ -339,13 +339,14 @@
       </div>
     </div>
 
-    <!-- ========== STEP 4: Review & Submit ========== -->
-    <div class="step-content" *ngIf="currentStep === 4">
+    <!-- ========== STEP 4: Review, Signature & Submit ========== -->
+    <div class="step-content" *ngIf="currentStep === 4 && !submittedAppNumber">
       <div class="step-title">
-        <h3>Step 4: Review &amp; Submit</h3>
-        <p>Review your application carefully before submitting.</p>
+        <h3>Step 4: Review &amp; Sign</h3>
+        <p>Review your complete application, accept the terms, upload your signature, and submit.</p>
       </div>
 
+      <!-- AC1: Read-Only Summary -->
       <div class="review-grid">
         <!-- Loan Requirements -->
         <div class="review-card">
@@ -354,7 +355,7 @@
             <h4>Loan Requirements</h4>
           </div>
           <div class="summary-row">
-            <span>Amount</span>
+            <span>Amount Requested</span>
             <strong>&#8377;{{ loanRequirementsForm.get('principalAmount')?.value | number }}</strong>
           </div>
           <div class="summary-row">
@@ -378,12 +379,8 @@
             <strong>{{ guarantorForm.get('name')?.value }}</strong>
           </div>
           <div class="summary-row">
-            <span>City</span>
-            <strong>{{ guarantorForm.get('city')?.value }}</strong>
-          </div>
-          <div class="summary-row">
-            <span>PIN Code</span>
-            <strong>{{ guarantorForm.get('zipCode')?.value }}</strong>
+            <span>City / PIN</span>
+            <strong>{{ guarantorForm.get('city')?.value }} – {{ guarantorForm.get('zipCode')?.value }}</strong>
           </div>
           <div class="summary-row">
             <span>Aadhaar</span>
@@ -395,7 +392,7 @@
           </div>
         </div>
 
-        <!-- Documents Uploaded -->
+        <!-- Documents Summary -->
         <div class="review-card docs-summary-card">
           <div class="review-card-header">
             <span class="review-icon">📁</span>
@@ -403,27 +400,113 @@
           </div>
           <div class="summary-row">
             <span>Income Certificate</span>
-            <strong class="text-success" *ngIf="incomeFile">✓ {{ incomeFile.name }}</strong>
+            <strong class="text-success">✓ {{ incomeFile?.name }}</strong>
           </div>
           <div class="summary-row">
             <span>Photograph</span>
-            <strong class="text-success" *ngIf="photoFile">✓ {{ photoFile.name }}</strong>
+            <strong class="text-success">✓ {{ photoFile?.name }}</strong>
           </div>
           <div class="summary-row">
             <span>Guarantor ID</span>
-            <strong class="text-success" *ngIf="guarantorIdFile">✓ {{ guarantorIdFile.name }}</strong>
+            <strong class="text-success">✓ {{ guarantorIdFile?.name }}</strong>
           </div>
           <div class="summary-row" *ngIf="otherFiles.length > 0">
-            <span>Other</span>
+            <span>Additional</span>
             <strong>{{ otherFiles.length }} file(s)</strong>
           </div>
         </div>
       </div>
 
+      <!-- AC1: Terms & Conditions Consent -->
+      <div class="terms-section">
+        <h4 class="terms-heading">Terms &amp; Conditions</h4>
+        <div class="terms-box">
+          <p>By submitting this application, I/We declare that all information provided is true, correct, and complete.
+            I/We agree to the repayment schedule, interest rates, and penalty clauses as communicated by the institution.
+            I/We understand that this application is subject to credit verification and the institution may reject it without
+            stating reasons. The guarantor has consented to co-sign this application and accepts joint liability.
+            All submitted documents may be verified against government databases.</p>
+        </div>
+        <label class="terms-checkbox" for="termsCheck">
+          <input type="checkbox" id="termsCheck" [(ngModel)]="termsAccepted" [ngModelOptions]="{standalone: true}">
+          <span>I have read and agree to the Terms &amp; Conditions above.</span>
+        </label>
+      </div>
+
+      <!-- AC2: Signature Upload -->
+      <div class="signature-section">
+        <div class="doc-zone-label" style="margin-bottom: 0.5rem;">
+          Upload Signature <span class="badge-mandatory">Mandatory</span>
+          <span class="sig-hint">(Image file only — JPG, PNG, WEBP)</span>
+        </div>
+        <div class="drop-zone signature-zone"
+             [class.drag-over]="isDragOverSignature"
+             [class.has-file]="signatureFile"
+             (dragover)="onDragOver($event,'signature')"
+             (dragleave)="onDragLeave($event,'signature')"
+             (drop)="onDrop($event,'signature')">
+
+          <ng-container *ngIf="!signatureFile">
+            <div class="dz-icon">✍️</div>
+            <p class="dz-hint">Drag &amp; drop your signature image or</p>
+            <button type="button" class="btn btn-outline-sm" (click)="sigInput.click()">Browse File</button>
+            <input type="file" #sigInput hidden accept="image/jpeg,image/png,image/webp"
+                   (change)="onFileChange($event,'signature')">
+          </ng-container>
+
+          <ng-container *ngIf="signatureFile">
+            <img [src]="signatureFile.previewUrl" class="sig-preview" alt="Signature preview">
+            <div class="doc-meta">
+              <span class="doc-name">{{ signatureFile.name }}</span>
+              <span class="doc-size">{{ formatBytes(signatureFile.size) }}</span>
+            </div>
+            <button type="button" class="remove-btn" (click)="removeFile('signature')" title="Remove">✕</button>
+          </ng-container>
+        </div>
+        <div class="dz-error" *ngIf="signatureError">{{ signatureError }}</div>
+      </div>
+
+      <!-- Submission Error -->
+      <div class="submission-error" *ngIf="submissionError">
+        ⚠️ {{ submissionError }}
+      </div>
+
       <div class="wizard-actions">
-        <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
-        <button type="button" class="btn btn-primary submit-btn" (click)="cancel()">
-          ✓ Save as Draft
+        <button type="button" class="btn btn-ghost" (click)="prevStep()" [disabled]="isSubmitting">&#8592; Back</button>
+        <button type="button" class="btn btn-primary submit-btn"
+                [disabled]="!isSubmitEnabled"
+                (click)="submitApplication()">
+          <span *ngIf="!isSubmitting">✓ Submit Application</span>
+          <span *ngIf="isSubmitting" class="submitting-label">
+            <span class="spinner"></span> Generating PDF...
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== SUCCESS STATE ========== -->
+    <div class="step-content success-content" *ngIf="submittedAppNumber">
+      <div class="success-icon">🎉</div>
+      <h3>Application Submitted!</h3>
+      <p>Your loan application has been successfully submitted and a formal PDF has been generated.</p>
+
+      <div class="success-card">
+        <div class="summary-row">
+          <span>Application Number</span>
+          <strong class="app-number">{{ submittedAppNumber }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Status</span>
+          <strong class="text-success">Draft — Pending Officer Review</strong>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <button type="button" class="btn btn-primary" (click)="downloadPdf()">
+          ⬇ Download Application PDF
+        </button>
+        <button type="button" class="btn btn-ghost" (click)="goToDashboard()">
+          ← Back to Dashboard
         </button>
       </div>
     </div>

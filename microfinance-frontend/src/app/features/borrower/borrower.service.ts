@@ -74,4 +74,15 @@ export class BorrowerService {
   getKycDocumentMetadata(documentType: string): Observable<KycUploadResponse> {
     return this.http.get<KycUploadResponse>(`${this.apiUrl}/kyc/${documentType}`);
   }
+
+  /**
+   * Submits a complete loan application as multipart/form-data.
+   * Returns a Blob (the generated PDF) along with headers (application number).
+   */
+  submitLoanApplication(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/loan/submit`, formData, {
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
 }

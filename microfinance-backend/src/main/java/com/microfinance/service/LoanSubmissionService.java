@@ -1,0 +1,143 @@
+package com.microfinance.service;
+
+import com.microfinance.entity.LoanApplication;
+import com.microfinance.entity.LoanDocument;
+import com.microfinance.entity.LoanProduct;
+import com.microfinance.entity.User;
+import com.microfinance.enums.ApplicationStatus;
+import com.microfinance.repository.LoanApplicationRepository;
+import com.microfinance.repository.LoanDocumentRepository;
+import com.microfinance.repository.LoanProductRepository;
+import com.microfinance.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+/**
+ * Handles the full loan application submission workflow.
+ * Persists all form data, documents, signature, and generates the PDF.
+ */
+@Service
+@RequiredArgsConstructor
+public class LoanSubmissionService {
+
+    private final LoanApplicationRepository loanApplicationRepo;
+    private final LoanDocumentRepository    loanDocumentRepo;
+    private final LoanProductRepository     loanProductRepo;
+    private final UserRepository            userRepo;
+    private final PdfGenerationService      pdfGenerationService;
+
+    /**
+     * Generates a sequential application number in format MF-YYYY-NNNNN.
+     */
+    private String generateApplicationNumber() {
+        long count = loanApplicationRepo.count() + 1;
+        return String.format("MF-%d-%05d", LocalDateTime.now().getYear(), count);
+    }
+
+    /**
+     * Submits a complete loan application including documents and signature.
+     * Returns the generated PDF as a byte array.
+     */
+    @Transactional
+    public LoanApplication submitApplication(
+            String applicantEmail,
+            // Step 1
+            BigDecimal principalAmount,
+            int tenureMonths,
+            String purpose,
+            // Step 2 — Guarantor
+            String guarantorName,
+            String guarantorAddress,
+            String guarantorCity,
+            String guarantorZip,
+            String guarantorAadhaar,
+            String guarantorPan,
+            // Step 3 — Docs
+            MultipartFile incomeCertFile,
+            MultipartFile photoFile,
+            MultipartFile guarantorIdFile,
+            MultipartFile[] otherFiles,
+            // Step 4 — Signature
+            MultipartFile signatureFile
+    ) throws IOException {
+
+        // 1. Resolve applicant user
+        User applicant = userRepo.findByEmail(applicantEmail)
+                .orElseThrow(() -> new IllegalStateException("Applicant not found: " + applicantEmail));
+
+        // 2. Resolve a default loan product (first active one)
+        LoanProduct product = loanProductRepo.findAll().stream()
+                .filter(LoanProduct::isActive)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No active loan product configured."));
+
+        // 3. Build and save the LoanApplication entity
+        LoanApplication app = LoanApplication.builder()
+                .applicationNumber(generateApplicationNumber())
+                .applicant(applicant)
+                .loanProduct(product)
+                .appliedAmount(principalAmount)
+                .tenureMonths(tenureMonths)
+                .purpose(purpose)
+                .guarantorName(guarantorName)
+                .guarantorAddress(guarantorAddress)
+                .guarantorCity(guarantorCity)
+                .guarantorZip(guarantorZip)
+                .guarantorAadhaar(guarantorAadhaar)
+                .guarantorPan(guarantorPan)
+                .termsAccepted(true)
+                .status(ApplicationStatus.DRAFT)
+                .submittedAt(LocalDateTime.now())
+                .build();
+
+        // 4. Attach signature
+        if (signatureFile != null && !signatureFile.isEmpty()) {
+            app.setSignatureImage(signatureFile.getBytes());
+            app.setSignatureContentType(signatureFile.getContentType());
+        }
+
+        // 5. Generate PDF (before final save, so we can embed app number)
+        byte[] pdf = pdfGenerationService.generateApplicationPdf(
+                app,
+                signatureFile != null ? signatureFile.getBytes() : null,
+                signatureFile != null ? signatureFile.getContentType() : null
+        );
+        app.setApplicationPdf(pdf);
+
+        // 6. Persist application
+        LoanApplication saved = loanApplicationRepo.save(app);
+
+        // 7. Persist uploaded documents
+        saveDocument(saved, "INCOME_CERTIFICATE", incomeCertFile);
+        saveDocument(saved, "PHOTOGRAPH", photoFile);
+        saveDocument(saved, "GUARANTOR_ID", guarantorIdFile);
+        if (otherFiles != null) {
+            for (MultipartFile other : otherFiles) {
+                if (other != null && !other.isEmpty()) {
+                    saveDocument(saved, "OTHER", other);
+                }
+            }
+        }
+
+        return saved;
+    }
+
+    private void saveDocument(LoanApplication app, String type, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return;
+        LoanDocument doc = LoanDocument.builder()
+                .application(app)
+                .documentType(type)
+                .fileName(file.getOriginalFilename() != null ? file.getOriginalFilename() : "file")
+                .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
+                .fileData(file.getBytes())
+                .build();
+        loanDocumentRepo.save(doc);
+    }
+}
