@@ -1,6 +1,7 @@
 .profile-container {
   padding: 2rem;
   background-color: var(--bg-white, #ffffff);
+  color: var(--text-main, #111827); /* Ensure text is dark and visible */
 }
 
 .profile-header {
@@ -19,12 +20,12 @@
     margin-bottom: 0.5rem;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--primary-color, #4f46e5); /* Fallback added */
   }
 
   p {
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-muted, #6b7280); /* Explicitly set to a gray fallback */
     opacity: 0.8;
     font-size: 1.125rem;
   }
@@ -151,6 +152,7 @@
     font-size: 1rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     background-color: #fff;
+    color: #111827; /* Force text color inside inputs to be dark */
     
     &:focus {
       outline: none;
@@ -233,6 +235,17 @@
     
     &:hover:not(:disabled) {
       background-color: #f9fafb;
+    }
+  }
+  
+  &-outline-primary {
+    background-color: transparent;
+    color: var(--primary-color, #4f46e5);
+    border: 1px solid var(--primary-color, #4f46e5);
+    
+    &:hover:not(:disabled) {
+      background-color: var(--primary-color, #4f46e5);
+      color: white;
     }
   }
 }
