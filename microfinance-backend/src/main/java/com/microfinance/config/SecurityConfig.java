@@ -1,54 +1,84 @@
 package com.microfinance.config;
 
+import com.microfinance.security.JwtAuthenticationEntryPoint;
+import com.microfinance.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
- * Base Security configuration for the Microfinance Platform.
- *
- * <p>This is a foundational setup for US01. Full JWT authentication,
- * role-based access control, and endpoint-level authorization will be
- * implemented in a dedicated Security User Story.
- *
- * <p>For US01, only /api/health is explicitly permitted without authentication
- * to validate end-to-end connectivity between Angular and Spring Boot.
+ * Main Security configuration implementing RBAC using JWT.
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // Allows @PreAuthorize annotations
 public class SecurityConfig {
 
     private final CorsConfigurationSource corsConfigurationSource;
+    private final JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(CorsConfigurationSource corsConfigurationSource) {
+    public SecurityConfig(CorsConfigurationSource corsConfigurationSource,
+                          JwtAuthenticationEntryPoint unauthorizedHandler,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.corsConfigurationSource = corsConfigurationSource;
+        this.unauthorizedHandler = unauthorizedHandler;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Apply CORS configuration (allows Angular dev server requests)
+                // Apply CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-                // Disable CSRF — stateless REST API uses JWT tokens, not sessions
+                // Disable CSRF (we use JWT)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Stateless session — no server-side session storage
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Set exception handler for unauthorized requests
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
 
-                // Endpoint authorization rules
+                // Make session stateless
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Endpoint authorization rules (AC3: RBAC Enforced here)
                 .authorizeHttpRequests(auth -> auth
-                        // Health check is publicly accessible (no token required)
+                        // Public endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health").permitAll()
-                        // All other endpoints require authentication (JWT to be added)
+                        
+                        // Protected endpoints with role checks
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/officer/**").hasAnyRole("OFFICER", "ADMIN")
+                        .requestMatchers("/api/applicant/**").hasRole("APPLICANT")
+                        
+                        // Any other request must be authenticated
                         .anyRequest().authenticated()
                 );
+
+        // Add our custom JWT security filter before Spring Security's UsernamePasswordAuthenticationFilter
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

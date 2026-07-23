@@ -64,3 +64,7 @@ app:
   version: 1.0.0
   cors:
     allowed-origins: "http://localhost:4200"
+  jwt:
+    # 256-bit Base64-encoded HMAC key for dev (should be injected via env vars in prod)
+    secret: "M2FjNzhlZjkyZDE0YzRlOWI4YTNjZGFjYzYwNjVhOGYzYmQ5MjU3NzI0OWMwNDRlYzc2NWRjMjQ0ZjJiNzNkNQ=="
+    expiration-ms: 86400000 # 24 hours

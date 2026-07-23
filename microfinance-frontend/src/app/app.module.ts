@@ -1,11 +1,15 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HealthCheckComponent } from './pages/health-check/health-check.component';
+import { LoginComponent } from './pages/login/login.component';
+import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
+import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 /**
  * Root application module for the Microfinance Loan Origination Platform.
@@ -19,15 +23,20 @@ import { HealthCheckComponent } from './pages/health-check/health-check.componen
 @NgModule({
   declarations: [
     AppComponent,
-    HealthCheckComponent
+    HealthCheckComponent,
+    LoginComponent,
+    UnauthorizedComponent
   ],
   imports: [
     BrowserModule,
     CommonModule,
     HttpClientModule,
+    ReactiveFormsModule,
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

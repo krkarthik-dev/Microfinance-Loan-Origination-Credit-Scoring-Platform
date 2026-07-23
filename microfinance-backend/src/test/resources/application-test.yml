@@ -30,3 +30,8 @@ logging:
     org.springframework.security: WARN
     org.hibernate: WARN
     org.flywaydb: WARN
+
+app:
+  jwt:
+    secret: "M2FjNzhlZjkyZDE0YzRlOWI4YTNjZGFjYzYwNjVhOGYzYmQ5MjU3NzI0OWMwNDRlYzc2NWRjMjQ0ZjJiNzNkNQ=="
+    expiration-ms: 86400000

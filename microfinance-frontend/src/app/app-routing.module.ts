@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HealthCheckComponent } from './pages/health-check/health-check.component';
+import { LoginComponent } from './pages/login/login.component';
+import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 /**
  * Application routing configuration.
- *
- * US01: Default route redirects to health check page.
- * Future US will add routes for borrower, officer, and admin modules.
  */
 const routes: Routes = [
   {
@@ -19,11 +20,35 @@ const routes: Routes = [
     component: HealthCheckComponent,
     title: 'System Health | Microfinance Platform'
   },
-  // Future lazy-loaded feature routes will be added here:
-  // { path: 'login',    loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule) },
-  // { path: 'borrower', loadChildren: () => import('./features/borrower/borrower.module').then(m => m.BorrowerModule) },
-  // { path: 'officer',  loadChildren: () => import('./features/officer/officer.module').then(m => m.OfficerModule) },
-  // { path: 'admin',    loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule) },
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Sign In | Microfinance Platform'
+  },
+  {
+    path: 'unauthorized',
+    component: UnauthorizedComponent,
+    title: 'Access Denied'
+  },
+  // Stub routes to test AC4 (Routing Guards)
+  {
+    path: 'applicant',
+    component: HealthCheckComponent, // Stub destination
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] }
+  },
+  {
+    path: 'officer',
+    component: HealthCheckComponent, // Stub destination
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] }
+  },
+  {
+    path: 'admin',
+    component: HealthCheckComponent, // Stub destination
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_ADMIN'] }
+  },
   {
     path: '**',
     redirectTo: 'health'
