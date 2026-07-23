@@ -10,6 +10,7 @@ import { HealthCheckComponent } from './pages/health-check/health-check.componen
 import { LoginComponent } from './pages/login/login.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
+import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
 
 /**
  * Root application module for the Microfinance Loan Origination Platform.
@@ -25,7 +26,8 @@ import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
     AppComponent,
     HealthCheckComponent,
     LoginComponent,
-    UnauthorizedComponent
+    UnauthorizedComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,

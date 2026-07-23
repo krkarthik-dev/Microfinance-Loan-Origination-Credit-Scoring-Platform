@@ -3,8 +3,11 @@ package com.microfinance.repository;
 import com.microfinance.entity.LoanApplication;
 import com.microfinance.enums.ApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,4 +32,10 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     /** Count applications per status — used for manager dashboard metrics. */
     long countByStatus(ApplicationStatus status);
+
+    // US06: Borrower Dashboard Metrics
+    int countByApplicantIdAndStatusIn(Long applicantId, List<ApplicationStatus> statuses);
+
+    @Query("SELECT COALESCE(SUM(l.approvedAmount), 0) FROM LoanApplication l WHERE l.applicant.id = :applicantId AND l.status IN :statuses")
+    BigDecimal sumApprovedAmountByApplicantIdAndStatusIn(@Param("applicantId") Long applicantId, @Param("statuses") List<ApplicationStatus> statuses);
 }

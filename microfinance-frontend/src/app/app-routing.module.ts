@@ -5,6 +5,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
+import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
 
 /**
  * Application routing configuration.
@@ -31,11 +32,13 @@ const routes: Routes = [
     title: 'Access Denied'
   },
   // Stub routes to test AC4 (Routing Guards)
+  // Applicant Dashboard Route
   {
     path: 'applicant',
-    component: HealthCheckComponent, // Stub destination
+    component: DashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_APPLICANT'] }
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Borrower Dashboard | Microfinance'
   },
   {
     path: 'officer',
