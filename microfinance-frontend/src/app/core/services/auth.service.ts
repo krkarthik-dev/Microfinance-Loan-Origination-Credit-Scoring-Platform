@@ -11,7 +11,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = `${environment.apiUrl}/api/auth`;
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
 
   constructor(
     private http: HttpClient,
