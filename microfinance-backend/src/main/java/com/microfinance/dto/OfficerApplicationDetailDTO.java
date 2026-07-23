@@ -54,6 +54,7 @@ public class OfficerApplicationDetailDTO {
     // ML Data
     private Integer creditScore;
     private RiskTier riskTier;
+    private BigDecimal probabilityOfDefault;
 
     // Documents
     private Long panDocumentId;

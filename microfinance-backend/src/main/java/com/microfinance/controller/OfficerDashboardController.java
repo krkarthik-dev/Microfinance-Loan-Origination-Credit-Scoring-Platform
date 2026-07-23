@@ -121,6 +121,7 @@ public class OfficerDashboardController {
                 .guarantorPan(app.getGuarantorPan())
                 .creditScore(scoreOpt.map(CreditScore::getCreditScore).orElse(null))
                 .riskTier(scoreOpt.map(CreditScore::getRiskTier).orElse(null))
+                .probabilityOfDefault(scoreOpt.map(CreditScore::getProbabilityOfDefault).orElse(null))
                 .panDocumentId(panDocId)
                 .aadhaarDocumentId(aadhaarDocId)
                 .incomeDocumentId(incomeDocId)

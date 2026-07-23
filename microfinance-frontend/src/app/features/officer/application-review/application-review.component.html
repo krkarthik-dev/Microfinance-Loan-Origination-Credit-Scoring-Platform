@@ -73,6 +73,56 @@
         </div>
       </div>
 
+      <!-- Section C: ML Intelligence Panel -->
+      <div class="review-section ml-panel">
+        <div class="section-header ml-header">
+          <h3>🧠 ML Risk Intelligence</h3>
+          <button class="btn btn-sm" 
+                  [ngClass]="verifications.mlData ? 'btn-outline-success' : 'btn-primary'"
+                  (click)="toggleVerification('mlData')">
+            {{ verifications.mlData ? 'Review' : 'Approve' }}
+          </button>
+        </div>
+        
+        <div class="ml-grid" *ngIf="details.creditScore; else noMlData">
+          <!-- Score Gauge -->
+          <div class="ml-card score-card">
+            <label>Credit Score</label>
+            <div class="score-value" [style.color]="getScoreColor(details.creditScore)">
+              {{ details.creditScore }}
+            </div>
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" 
+                   [style.width.%]="getScorePercentage(details.creditScore)"
+                   [style.background-color]="getScoreColor(details.creditScore)">
+              </div>
+            </div>
+            <div class="score-labels">
+              <span>300 (High Risk)</span>
+              <span>900 (Low Risk)</span>
+            </div>
+          </div>
+
+          <!-- Risk Tier & PoD -->
+          <div class="ml-card tier-card">
+            <label>Risk Tier</label>
+            <div class="tier-badge" [ngClass]="'tier-' + (details.riskTier | lowercase)">
+              {{ details.riskTier }} RISK
+            </div>
+          </div>
+          
+          <div class="ml-card pod-card">
+            <label>Probability of Default</label>
+            <div class="pod-value">
+              {{ (details.probabilityOfDefault * 100).toFixed(2) }}%
+            </div>
+          </div>
+        </div>
+        <ng-template #noMlData>
+          <div class="no-ml-data">ML Risk Assessment pending or unavailable.</div>
+        </ng-template>
+      </div>
+
       <!-- Guarantor Details -->
       <div class="review-section">
         <div class="section-header">

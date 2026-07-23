@@ -30,7 +30,8 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
     aadhaarCard: false,
     incomeCert: false,
     photo: false,
-    guarantorId: false
+    guarantorId: false,
+    mlData: false
   };
 
   // Document Viewer state
@@ -79,6 +80,23 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
 
   get allVerified(): boolean {
     return Object.values(this.verifications).every(v => v === true);
+  }
+
+  // ML Score Visual Helpers
+  // Normalizing 300 to 900 as 0% to 100%
+  getScorePercentage(score: number): number {
+    if (!score) return 0;
+    const min = 300;
+    const max = 900;
+    const normalized = Math.max(0, Math.min(100, ((score - min) / (max - min)) * 100));
+    return normalized;
+  }
+
+  getScoreColor(score: number): string {
+    if (!score) return '#e5e7eb'; // gray
+    if (score >= 750) return '#10b981'; // green
+    if (score >= 600) return '#f59e0b'; // yellow/orange
+    return '#ef4444'; // red
   }
 
   viewKycDocument(id: number, title: string): void {

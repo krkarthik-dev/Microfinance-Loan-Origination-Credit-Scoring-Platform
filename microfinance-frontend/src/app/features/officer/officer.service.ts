@@ -14,6 +14,7 @@ export interface ApplicationSummary {
   // ML Score Data
   creditScore: number;
   riskTier: string;
+  probabilityOfDefault: number;
 
   // Documents
   panDocumentId: number;
