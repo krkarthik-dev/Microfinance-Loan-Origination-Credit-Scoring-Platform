@@ -7,7 +7,7 @@ export interface LoanActivity {
   loanId: string;
   requestedAmount: number;
   dateApplied: string;
-  currentStatus: string;
+  status: string;
 }
 
 export interface UserProfile {
