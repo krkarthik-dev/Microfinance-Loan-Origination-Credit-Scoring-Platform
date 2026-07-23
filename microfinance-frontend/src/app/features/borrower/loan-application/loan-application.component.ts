@@ -45,9 +45,12 @@ export class LoanApplicationComponent implements OnInit {
     });
 
     this.guarantorForm = this.fb.group({
-      name:    ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z\s]+$/)]],
-      city:    ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s]+$/)]],
-      zipCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+      name:         ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z\s]+$/)]],
+      address:      ['', [Validators.required, Validators.minLength(10), Validators.maxLength(255)]],
+      city:         ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s]+$/)]],
+      zipCode:      ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+      aadhaarNumber:['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
+      panNumber:    ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]]
     });
   }
 

@@ -188,6 +188,8 @@
     color: #111827;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
 
     &:focus {
       outline: none;
@@ -202,6 +204,11 @@
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
       }
     }
+
+    &.text-uppercase {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
   }
 
   .invalid-feedback {
@@ -209,6 +216,16 @@
     color: #ef4444;
     font-size: 0.8rem;
     margin-top: 0.35rem;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
   }
 }
 

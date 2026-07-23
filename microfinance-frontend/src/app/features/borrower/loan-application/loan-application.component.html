@@ -128,27 +128,66 @@
           </div>
         </div>
 
-        <!-- City -->
+        <!-- Guarantor Address -->
         <div class="form-group">
-          <label for="guarCity">Guarantor's City *</label>
-          <input type="text" id="guarCity" formControlName="city"
-                 class="form-control" [class.is-invalid]="isGuarInvalid('city')"
-                 placeholder="e.g. Chennai">
-          <div class="invalid-feedback" *ngIf="isGuarInvalid('city')">
-            <span *ngIf="guarF['city'].errors?.['required']">City is required.</span>
-            <span *ngIf="guarF['city'].errors?.['pattern']">City must contain letters only.</span>
+          <label for="guarAddress">Guarantor Address *</label>
+          <textarea id="guarAddress" formControlName="address"
+                    class="form-control" [class.is-invalid]="isGuarInvalid('address')"
+                    placeholder="e.g. 12, Gandhi Street, Anna Nagar" rows="3"></textarea>
+          <div class="invalid-feedback" *ngIf="isGuarInvalid('address')">
+            <span *ngIf="guarF['address'].errors?.['required']">Address is required.</span>
+            <span *ngIf="guarF['address'].errors?.['minlength']">Please enter a more complete address (min 10 chars).</span>
           </div>
         </div>
 
-        <!-- PIN / ZIP Code -->
-        <div class="form-group">
-          <label for="guarZip">Guarantor's PIN Code *</label>
-          <input type="text" id="guarZip" formControlName="zipCode"
-                 class="form-control" [class.is-invalid]="isGuarInvalid('zipCode')"
-                 placeholder="e.g. 600001" maxlength="6">
-          <div class="invalid-feedback" *ngIf="isGuarInvalid('zipCode')">
-            <span *ngIf="guarF['zipCode'].errors?.['required']">PIN code is required.</span>
-            <span *ngIf="guarF['zipCode'].errors?.['pattern']">PIN code must be exactly 6 digits.</span>
+        <!-- City & PIN in a row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="guarCity">City *</label>
+            <input type="text" id="guarCity" formControlName="city"
+                   class="form-control" [class.is-invalid]="isGuarInvalid('city')"
+                   placeholder="e.g. Chennai">
+            <div class="invalid-feedback" *ngIf="isGuarInvalid('city')">
+              <span *ngIf="guarF['city'].errors?.['required']">City is required.</span>
+              <span *ngIf="guarF['city'].errors?.['pattern']">City must contain letters only.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="guarZip">PIN Code *</label>
+            <input type="text" id="guarZip" formControlName="zipCode"
+                   class="form-control" [class.is-invalid]="isGuarInvalid('zipCode')"
+                   placeholder="e.g. 600001" maxlength="6">
+            <div class="invalid-feedback" *ngIf="isGuarInvalid('zipCode')">
+              <span *ngIf="guarF['zipCode'].errors?.['required']">PIN code is required.</span>
+              <span *ngIf="guarF['zipCode'].errors?.['pattern']">PIN code must be exactly 6 digits.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KYC: Aadhaar & PAN in a row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="guarAadhaar">Guarantor Aadhaar Number *</label>
+            <input type="text" id="guarAadhaar" formControlName="aadhaarNumber"
+                   class="form-control" [class.is-invalid]="isGuarInvalid('aadhaarNumber')"
+                   placeholder="123456789012" maxlength="12">
+            <div class="invalid-feedback" *ngIf="isGuarInvalid('aadhaarNumber')">
+              <span *ngIf="guarF['aadhaarNumber'].errors?.['required']">Aadhaar number is required.</span>
+              <span *ngIf="guarF['aadhaarNumber'].errors?.['pattern']">Must be exactly 12 digits.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="guarPan">Guarantor PAN Number *</label>
+            <input type="text" id="guarPan" formControlName="panNumber"
+                   class="form-control text-uppercase" [class.is-invalid]="isGuarInvalid('panNumber')"
+                   placeholder="ABCDE1234F" maxlength="10"
+                   (input)="guarF['panNumber'].setValue(guarF['panNumber'].value.toUpperCase(), {emitEvent: false})">
+            <div class="invalid-feedback" *ngIf="isGuarInvalid('panNumber')">
+              <span *ngIf="guarF['panNumber'].errors?.['required']">PAN number is required.</span>
+              <span *ngIf="guarF['panNumber'].errors?.['pattern']">Invalid format (e.g. ABCDE1234F).</span>
+            </div>
           </div>
         </div>
 
@@ -200,12 +239,24 @@
             <strong>{{ guarantorForm.get('name')?.value }}</strong>
           </div>
           <div class="summary-row">
+            <span>Address</span>
+            <strong>{{ guarantorForm.get('address')?.value }}</strong>
+          </div>
+          <div class="summary-row">
             <span>City</span>
             <strong>{{ guarantorForm.get('city')?.value }}</strong>
           </div>
           <div class="summary-row">
             <span>PIN Code</span>
             <strong>{{ guarantorForm.get('zipCode')?.value }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Aadhaar</span>
+            <strong>XXXX XXXX {{ guarantorForm.get('aadhaarNumber')?.value?.slice(-4) }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>PAN</span>
+            <strong>{{ guarantorForm.get('panNumber')?.value }}</strong>
           </div>
         </div>
       </div>
