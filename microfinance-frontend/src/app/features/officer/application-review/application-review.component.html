@@ -1,1 +1,207 @@
-<p>application-review works!</p>
+<div class="review-container fade-in">
+  
+  <header class="review-header">
+    <div class="title-area">
+      <button class="btn btn-ghost" (click)="goBack()">← Back to Queue</button>
+      <h2>Application Review: <span class="app-num">{{ applicationNumber }}</span></h2>
+    </div>
+    
+    <div class="status-actions">
+      <div class="verification-status" [ngClass]="{'all-verified': allVerified}">
+        {{ allVerified ? 'All Data Verified' : 'Verification Pending' }}
+      </div>
+      <button class="btn btn-success" [disabled]="!allVerified">Approve Application</button>
+      <button class="btn btn-danger">Reject</button>
+    </div>
+  </header>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading application data...</p>
+  </div>
+
+  <div class="error-state" *ngIf="errorMessage && !isLoading">
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-outline" (click)="loadDetails()">Retry</button>
+  </div>
+
+  <!-- Dual Pane Layout -->
+  <main class="review-workspace" *ngIf="details && !isLoading">
+    
+    <!-- LEFT PANE: Data & Verification Controls -->
+    <div class="data-pane">
+      
+      <!-- Section A: Profile Data -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Borrower Profile</h3>
+          <button class="btn btn-sm" 
+                  [ngClass]="verifications.profile ? 'btn-outline-success' : 'btn-primary'"
+                  (click)="toggleVerification('profile')">
+            {{ verifications.profile ? 'Review' : 'Approve' }}
+          </button>
+        </div>
+        <div class="data-grid">
+          <div class="data-group"><label>Full Name</label><span>{{ details.firstName }} {{ details.lastName }}</span></div>
+          <div class="data-group"><label>DOB</label><span>{{ details.dateOfBirth | date }}</span></div>
+          <div class="data-group"><label>Gender</label><span>{{ details.gender }}</span></div>
+          <div class="data-group"><label>Phone</label><span>{{ details.phone }}</span></div>
+          <div class="data-group"><label>Email</label><span>{{ details.email }}</span></div>
+          <div class="data-group"><label>Address</label><span>{{ details.address }}</span></div>
+          <div class="data-group"><label>Employment</label><span>{{ details.employmentType }}</span></div>
+          <div class="data-group"><label>Monthly Income</label><span>&#8377;{{ details.monthlyIncome | number }}</span></div>
+        </div>
+      </div>
+
+      <!-- Section B: Loan Summary -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Loan Summary</h3>
+          <button class="btn btn-sm" 
+                  [ngClass]="verifications.loanInfo ? 'btn-outline-success' : 'btn-primary'"
+                  (click)="toggleVerification('loanInfo')">
+            {{ verifications.loanInfo ? 'Review' : 'Approve' }}
+          </button>
+        </div>
+        <div class="data-grid bg-gray-50 p-3 rounded">
+          <div class="data-group"><label>Requested Principal</label><span class="font-bold">&#8377;{{ details.appliedAmount | number }}</span></div>
+          <div class="data-group"><label>Tenure</label><span>{{ details.tenureMonths }} Months</span></div>
+          <div class="data-group"><label>Interest Rate (p.a.)</label><span>{{ details.interestRate }}%</span></div>
+          <div class="data-group"><label>Monthly EMI</label><span class="text-indigo font-bold">&#8377;{{ details.monthlyEmi | number }}</span></div>
+          <div class="data-group"><label>Total Payable</label><span>&#8377;{{ details.totalPayable | number }}</span></div>
+          <div class="data-group" style="grid-column: span 2;"><label>Purpose</label><span>{{ details.purpose }}</span></div>
+        </div>
+      </div>
+
+      <!-- Guarantor Details -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Guarantor Details</h3>
+          <button class="btn btn-sm" 
+                  [ngClass]="verifications.guarantor ? 'btn-outline-success' : 'btn-primary'"
+                  (click)="toggleVerification('guarantor')">
+            {{ verifications.guarantor ? 'Review' : 'Approve' }}
+          </button>
+        </div>
+        <div class="data-grid">
+          <div class="data-group"><label>Name</label><span>{{ details.guarantorName }}</span></div>
+          <div class="data-group"><label>City</label><span>{{ details.guarantorCity }}</span></div>
+          <div class="data-group"><label>ZIP Code</label><span>{{ details.guarantorZip }}</span></div>
+          <div class="data-group" style="grid-column: span 2;"><label>Address</label><span>{{ details.guarantorAddress }}</span></div>
+        </div>
+      </div>
+
+      <!-- Documents Section -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Document Verification</h3>
+        </div>
+        
+        <div class="document-list">
+          
+          <!-- PAN Card -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">PAN Card</span>
+              <span class="doc-meta">Declared: {{ details.panNumber }}</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.panCard ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('panCard')">
+                {{ verifications.panCard ? 'Review' : 'Approve' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Aadhaar Card -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">Aadhaar Card</span>
+              <span class="doc-meta">Declared: {{ details.aadhaarNumber }}</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.aadhaarDocumentId, 'Aadhaar Card')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.aadhaarCard ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('aadhaarCard')">
+                {{ verifications.aadhaarCard ? 'Review' : 'Approve' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Income Certificate -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">Income Certificate</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.incomeDocumentId, 'Income Certificate')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.incomeCert ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('incomeCert')">
+                {{ verifications.incomeCert ? 'Review' : 'Approve' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Photograph -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">Applicant Photograph</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.photoDocumentId, 'Photograph')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.photo ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('photo')">
+                {{ verifications.photo ? 'Review' : 'Approve' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Guarantor ID -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">Guarantor ID</span>
+              <span class="doc-meta">Aadhaar: {{ details.guarantorAadhaar }} | PAN: {{ details.guarantorPan }}</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.guarantorIdDocumentId, 'Guarantor ID')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.guarantorId ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('guarantorId')">
+                {{ verifications.guarantorId ? 'Review' : 'Approve' }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANE: Document Viewer -->
+    <div class="viewer-pane">
+      <div class="viewer-header">
+        <h3>Document Viewer: {{ activeDocumentTitle }}</h3>
+      </div>
+      <div class="viewer-body">
+        <div class="empty-viewer" *ngIf="!activeDocumentUrl">
+          <p>Select a document from the left pane to view it here.</p>
+        </div>
+        
+        <object *ngIf="activeDocumentUrl" 
+                [data]="activeDocumentUrl" 
+                type="application/pdf" 
+                width="100%" 
+                height="100%">
+          <p>It appears your browser doesn't support embedded PDFs or images in object tags. 
+             <a [href]="activeDocumentUrl" target="_blank">Click here to open it.</a></p>
+        </object>
+      </div>
+    </div>
+
+  </main>
+</div>

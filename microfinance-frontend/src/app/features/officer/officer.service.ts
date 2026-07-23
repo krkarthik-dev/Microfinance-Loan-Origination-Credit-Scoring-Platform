@@ -11,8 +11,17 @@ export interface ApplicationSummary {
   tenureMonths: number;
   purpose: string;
   submittedAt: string;
+  // ML Score Data
   creditScore: number;
   riskTier: string;
+
+  // Documents
+  panDocumentId: number;
+  aadhaarDocumentId: number;
+  incomeDocumentId: number;
+  photoDocumentId: number;
+  guarantorIdDocumentId: number;
+  otherDocuments: any[];
 }
 
 @Injectable({
@@ -28,5 +37,26 @@ export class OfficerService {
    */
   getQueue(): Observable<ApplicationSummary[]> {
     return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/applications/queue`);
+  }
+
+  /**
+   * Fetches the comprehensive application detail.
+   */
+  getApplicationDetails(applicationNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/applications/${applicationNumber}/details`);
+  }
+
+  /**
+   * Constructs the URL for viewing a KYC document.
+   */
+  getKycDocumentUrl(id: number): string {
+    return `${this.apiUrl}/documents/kyc/${id}`;
+  }
+
+  /**
+   * Constructs the URL for viewing a Loan document.
+   */
+  getLoanDocumentUrl(id: number): string {
+    return `${this.apiUrl}/documents/loan/${id}`;
   }
 }
