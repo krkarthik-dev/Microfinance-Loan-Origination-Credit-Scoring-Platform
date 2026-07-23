@@ -7,7 +7,24 @@ export interface LoanActivity {
   loanId: string;
   requestedAmount: number;
   dateApplied: string;
-  status: string;
+  currentStatus: string;
+}
+
+export interface UserProfile {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string; // YYYY-MM-DD
+  gender: string;
+  phoneNumber: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  panNumber?: string;
+  aadhaarNumber?: string;
+  employmentType: string;
+  monthlyIncome: number;
 }
 
 export interface DashboardMetrics {
@@ -28,5 +45,13 @@ export class BorrowerService {
 
   getDashboardMetrics(): Observable<DashboardMetrics> {
     return this.http.get<DashboardMetrics>(`${this.apiUrl}/dashboard`);
+  }
+
+  getProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.apiUrl}/profile`);
+  }
+
+  updateProfile(profile: UserProfile): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.apiUrl}/profile`, profile);
   }
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -70,6 +71,12 @@ public class UserProfile {
     /** 12-digit Aadhaar number */
     @Column(name = "aadhaar_number", unique = true, length = 12)
     private String aadhaarNumber;
+
+    @Column(name = "employment_type", length = 30)
+    private String employmentType;
+
+    @Column(name = "monthly_income")
+    private BigDecimal monthlyIncome;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

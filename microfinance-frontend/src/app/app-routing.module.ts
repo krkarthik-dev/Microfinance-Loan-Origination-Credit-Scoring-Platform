@@ -6,6 +6,7 @@ import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.compone
 import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
 import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
+import { ProfileSetupComponent } from './features/borrower/profile-setup/profile-setup.component';
 
 /**
  * Application routing configuration.
@@ -39,6 +40,13 @@ const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ROLE_APPLICANT'] },
     title: 'Borrower Dashboard | Microfinance'
+  },
+  {
+    path: 'applicant/profile',
+    component: ProfileSetupComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Complete Profile | Microfinance'
   },
   {
     path: 'officer',

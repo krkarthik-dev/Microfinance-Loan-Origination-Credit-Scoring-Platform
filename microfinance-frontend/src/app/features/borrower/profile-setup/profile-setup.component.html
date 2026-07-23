@@ -1,0 +1,173 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>Complete Your Profile</h1>
+    <p>Please provide your demographic and financial details to unlock lending features.</p>
+  </div>
+
+  <div *ngIf="isLoading" class="loader-container">
+    <div class="loader"></div>
+    <p>Loading your profile...</p>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      
+      <!-- Personal Information -->
+      <section class="form-section">
+        <h2>Personal Information</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input id="firstName" type="text" formControlName="firstName" class="form-control" [class.is-invalid]="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+              First name is required.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input id="lastName" type="text" formControlName="lastName" class="form-control" [class.is-invalid]="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+              Last name is required.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateOfBirth">Date of Birth *</label>
+            <input id="dateOfBirth" type="date" formControlName="dateOfBirth" class="form-control" [class.is-invalid]="profileForm.get('dateOfBirth')?.invalid && profileForm.get('dateOfBirth')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('dateOfBirth')?.errors?.['required'] && profileForm.get('dateOfBirth')?.touched">
+              Date of birth is required.
+            </div>
+            <div class="invalid-feedback" *ngIf="profileForm.get('dateOfBirth')?.errors?.['minimumAge'] && profileForm.get('dateOfBirth')?.touched">
+              You must be at least 18 years old.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="gender">Gender *</label>
+            <select id="gender" formControlName="gender" class="form-control" [class.is-invalid]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+              <option value="">Select Gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+              Gender is required.
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number *</label>
+          <input id="phoneNumber" type="tel" formControlName="phoneNumber" class="form-control" placeholder="+919876543210" [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+          <div class="invalid-feedback" *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+            Valid phone number is required.
+          </div>
+        </div>
+      </section>
+
+      <!-- Address Information -->
+      <section class="form-section">
+        <h2>Address Details</h2>
+        
+        <div class="form-group">
+          <label for="addressLine1">Address Line 1 *</label>
+          <input id="addressLine1" type="text" formControlName="addressLine1" class="form-control" [class.is-invalid]="profileForm.get('addressLine1')?.invalid && profileForm.get('addressLine1')?.touched">
+          <div class="invalid-feedback" *ngIf="profileForm.get('addressLine1')?.invalid && profileForm.get('addressLine1')?.touched">
+            Address is required.
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="addressLine2">Address Line 2</label>
+          <input id="addressLine2" type="text" formControlName="addressLine2" class="form-control">
+        </div>
+
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label for="city">City *</label>
+            <input id="city" type="text" formControlName="city" class="form-control" [class.is-invalid]="profileForm.get('city')?.invalid && profileForm.get('city')?.touched">
+          </div>
+          
+          <div class="form-group">
+            <label for="state">State *</label>
+            <input id="state" type="text" formControlName="state" class="form-control" [class.is-invalid]="profileForm.get('state')?.invalid && profileForm.get('state')?.touched">
+          </div>
+          
+          <div class="form-group">
+            <label for="pincode">Pincode *</label>
+            <input id="pincode" type="text" formControlName="pincode" class="form-control" [class.is-invalid]="profileForm.get('pincode')?.invalid && profileForm.get('pincode')?.touched">
+          </div>
+        </div>
+      </section>
+
+      <!-- KYC Information -->
+      <section class="form-section kyc-section">
+        <h2>KYC Details <span class="kyc-badge">Required for Loan</span></h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="panNumber">PAN Number *</label>
+            <input id="panNumber" type="text" formControlName="panNumber" class="form-control text-uppercase" placeholder="ABCDE1234F" [class.is-invalid]="profileForm.get('panNumber')?.invalid && profileForm.get('panNumber')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('panNumber')?.invalid && profileForm.get('panNumber')?.touched">
+              Please enter a valid 10-character PAN number.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="aadhaarNumber">Aadhaar Number *</label>
+            <input id="aadhaarNumber" type="text" formControlName="aadhaarNumber" class="form-control" placeholder="123456789012" [class.is-invalid]="profileForm.get('aadhaarNumber')?.invalid && profileForm.get('aadhaarNumber')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('aadhaarNumber')?.invalid && profileForm.get('aadhaarNumber')?.touched">
+              Please enter a valid 12-digit Aadhaar number.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Financial Information -->
+      <section class="form-section financial-section">
+        <h2>Financial Information</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="employmentType">Employment Type *</label>
+            <select id="employmentType" formControlName="employmentType" class="form-control" [class.is-invalid]="profileForm.get('employmentType')?.invalid && profileForm.get('employmentType')?.touched">
+              <option value="">Select Employment Type</option>
+              <option *ngFor="let type of employmentTypes" [value]="type">{{ type }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="profileForm.get('employmentType')?.invalid && profileForm.get('employmentType')?.touched">
+              Employment type is required.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="monthlyIncome">Declared Monthly Income (₹) *</label>
+            <input id="monthlyIncome" type="number" formControlName="monthlyIncome" class="form-control" min="0" [class.is-invalid]="profileForm.get('monthlyIncome')?.invalid && profileForm.get('monthlyIncome')?.touched">
+            <div class="invalid-feedback" *ngIf="profileForm.get('monthlyIncome')?.invalid && profileForm.get('monthlyIncome')?.touched">
+              Please enter a valid positive amount.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" routerLink="/applicant">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+          <span *ngIf="!isSaving">Save Profile</span>
+          <span *ngIf="isSaving">Saving...</span>
+        </button>
+      </div>
+      
+    </form>
+  </div>
+</div>
