@@ -1,0 +1,49 @@
+# ==================== JAVA / MAVEN ====================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+*.log
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+HELP.md
+
+# ==================== ANGULAR / NODE ====================
+microfinance-frontend/node_modules/
+microfinance-frontend/dist/
+microfinance-frontend/.angular/
+
+# ==================== IDE & OS ====================
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.orig
+
+# ==================== ENVIRONMENT & SECRETS ====================
+*.env
+.env.local
+application-prod.yml
+application-secrets.yml
+
+# ==================== PYTHON (future ML module) ====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+ml-model/.venv/
+ml-model/venv/

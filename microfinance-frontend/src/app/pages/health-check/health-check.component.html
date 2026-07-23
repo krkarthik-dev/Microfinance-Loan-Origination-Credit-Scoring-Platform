@@ -1,0 +1,63 @@
+<section class="health-page" id="health-check-page">
+
+  <!-- ── HEADER ── -->
+  <div class="health-header">
+    <div class="logo-badge">
+      <span class="logo-icon">🏦</span>
+    </div>
+    <h1 class="platform-title">Microfinance Loan Origination Platform</h1>
+    <p class="platform-subtitle">System Health Monitor</p>
+  </div>
+
+  <!-- ── LOADING STATE ── -->
+  <div *ngIf="isLoading" class="status-card loading-card" id="health-loading">
+    <div class="pulse-ring"></div>
+    <p class="loading-text">Connecting to backend...</p>
+  </div>
+
+  <!-- ── ERROR STATE ── -->
+  <div *ngIf="!isLoading && hasError" class="status-card error-card" id="health-error">
+    <div class="status-icon error-icon">✗</div>
+    <h2 class="status-label error-label">DOWN</h2>
+    <p class="error-message">{{ errorMessage }}</p>
+    <button class="retry-btn" id="retry-health-btn" (click)="checkHealth()">
+      Retry Connection
+    </button>
+  </div>
+
+  <!-- ── SUCCESS STATE ── -->
+  <div *ngIf="!isLoading && !hasError && healthData" class="status-card success-card" id="health-success">
+    <div class="status-icon success-icon">✓</div>
+    <h2 class="status-label success-label">{{ healthData.status }}</h2>
+    <p class="status-description">Backend API is reachable and operational</p>
+
+    <div class="info-grid">
+      <div class="info-item" id="health-service">
+        <span class="info-label">Service</span>
+        <span class="info-value">{{ healthData.service }}</span>
+      </div>
+      <div class="info-item" id="health-version">
+        <span class="info-label">Version</span>
+        <span class="info-value">{{ healthData.version }}</span>
+      </div>
+      <div class="info-item" id="health-timestamp">
+        <span class="info-label">Server Time</span>
+        <span class="info-value">{{ healthData.timestamp }}</span>
+      </div>
+      <div class="info-item" id="health-api-url">
+        <span class="info-label">API Endpoint</span>
+        <span class="info-value">localhost:8080/api</span>
+      </div>
+    </div>
+
+    <button class="retry-btn refresh-btn" id="refresh-health-btn" (click)="checkHealth()">
+      Refresh Status
+    </button>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="health-footer">
+    <p>Angular 16 ↔ Spring Boot 3.4 · Microfinance Platform v1.0.0</p>
+  </footer>
+
+</section>

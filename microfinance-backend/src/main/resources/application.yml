@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: microfinance-backend
+
+  # ==================== DATABASE ====================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/microfinance_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: MicrofinanceHikariPool
+
+  # ==================== JPA ====================
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+    open-in-view: false
+
+  # ==================== ASYNC TASK EXECUTOR ====================
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 10
+        queue-capacity: 100
+      thread-name-prefix: async-task-
+
+# ==================== LOGGING ====================
+logging:
+  level:
+    com.microfinance: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# ==================== APPLICATION METADATA ====================
+app:
+  name: Microfinance Loan Origination Platform
+  version: 1.0.0
+  cors:
+    allowed-origins: "http://localhost:4200"
