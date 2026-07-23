@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { BorrowerService, UserProfile } from '../borrower.service';
 
 // Custom validator for minimum age
@@ -25,7 +25,7 @@ function minimumAgeValidator(minAge: number) {
 @Component({
   selector: 'app-profile-setup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './profile-setup.component.html',
   styleUrls: ['./profile-setup.component.scss']
 })
