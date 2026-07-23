@@ -14,6 +14,7 @@ export interface DashboardMetrics {
   activeLoans: number;
   totalOutstanding: number;
   pendingApplications: number;
+  profileComplete: boolean;
   recentActivity: LoanActivity[];
 }
 

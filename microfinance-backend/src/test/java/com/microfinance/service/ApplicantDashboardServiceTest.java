@@ -3,8 +3,10 @@ package com.microfinance.service;
 import com.microfinance.dto.DashboardMetricsDto;
 import com.microfinance.entity.LoanApplication;
 import com.microfinance.entity.User;
+import com.microfinance.entity.UserProfile;
 import com.microfinance.enums.ApplicationStatus;
 import com.microfinance.repository.LoanApplicationRepository;
+import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,9 @@ class ApplicantDashboardServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserProfileRepository userProfileRepository;
 
     @InjectMocks
     private ApplicantDashboardService applicantDashboardService;
@@ -57,6 +62,12 @@ class ApplicantDashboardServiceTest {
                 .build();
         when(loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(100L))
                 .thenReturn(List.of(mockApp));
+                
+        UserProfile mockProfile = UserProfile.builder()
+                .panNumber("ABCDE1234F")
+                .aadhaarNumber("123456789012")
+                .build();
+        when(userProfileRepository.findByUserId(100L)).thenReturn(Optional.of(mockProfile));
 
         // Act
         DashboardMetricsDto metrics = applicantDashboardService.getDashboardMetrics(username);
@@ -66,6 +77,7 @@ class ApplicantDashboardServiceTest {
         assertThat(metrics.getPendingApplications()).isEqualTo(3);
         assertThat(metrics.getActiveLoans()).isEqualTo(2);
         assertThat(metrics.getTotalOutstanding()).isEqualByComparingTo(new BigDecimal("150000.00"));
+        assertThat(metrics.isProfileComplete()).isTrue();
         assertThat(metrics.getRecentActivity()).hasSize(1);
         assertThat(metrics.getRecentActivity().get(0).getLoanId()).isEqualTo("APP-123");
     }

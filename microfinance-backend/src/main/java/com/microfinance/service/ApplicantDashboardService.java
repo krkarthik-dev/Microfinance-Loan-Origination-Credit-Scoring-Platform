@@ -4,8 +4,10 @@ import com.microfinance.dto.DashboardMetricsDto;
 import com.microfinance.dto.LoanActivityDto;
 import com.microfinance.entity.User;
 import com.microfinance.entity.LoanApplication;
+import com.microfinance.entity.UserProfile;
 import com.microfinance.enums.ApplicationStatus;
 import com.microfinance.repository.LoanApplicationRepository;
+import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class ApplicantDashboardService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     /**
      * Calculates the borrower dashboard metrics.
@@ -68,10 +71,17 @@ public class ApplicantDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
+        // 5. KYC Status Evaluation (US08)
+        boolean profileComplete = userProfileRepository.findByUserId(applicantId)
+                .map(profile -> profile.getPanNumber() != null && !profile.getPanNumber().trim().isEmpty() &&
+                                profile.getAadhaarNumber() != null && !profile.getAadhaarNumber().trim().isEmpty())
+                .orElse(false);
+
         return DashboardMetricsDto.builder()
                 .activeLoans(activeLoans)
                 .totalOutstanding(totalOutstanding)
                 .pendingApplications(pendingApplications)
+                .profileComplete(profileComplete)
                 .recentActivity(recentActivity)
                 .build();
     }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { BorrowerService, DashboardMetrics } from '../borrower.service';
 
@@ -12,10 +13,12 @@ export class DashboardComponent implements OnInit {
   metrics: DashboardMetrics | null = null;
   isLoading = true;
   errorMessage = '';
+  validationMessage = '';
 
   constructor(
     private authService: AuthService,
-    private borrowerService: BorrowerService
+    private borrowerService: BorrowerService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -40,5 +43,18 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  onApplyClick(): void {
+    if (this.metrics && !this.metrics.profileComplete) {
+      this.validationMessage = 'Please complete your KYC Profile (PAN & Aadhaar) before applying for a new loan.';
+      // Auto-hide the message after 5 seconds
+      setTimeout(() => {
+        this.validationMessage = '';
+      }, 5000);
+      return;
+    }
+    
+    this.router.navigate(['/applicant/apply']);
   }
 }

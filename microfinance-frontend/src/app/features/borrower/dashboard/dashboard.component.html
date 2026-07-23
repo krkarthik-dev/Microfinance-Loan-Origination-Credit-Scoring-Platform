@@ -6,8 +6,17 @@
       <p>Here is a summary of your financial footprint.</p>
     </div>
     <div class="cta-actions">
-      <!-- AC3: Primary CTA -->
-      <button class="btn btn-primary" routerLink="/applicant/apply">Apply for a New Loan</button>
+      <!-- AC3: Primary CTA with dynamic lock -->
+      <button class="btn btn-primary" 
+              [class.locked-btn]="metrics && !metrics.profileComplete"
+              (click)="onApplyClick()">
+        Apply for a New Loan
+      </button>
+      
+      <!-- Validation Message displayed right below button -->
+      <div class="validation-tooltip" *ngIf="validationMessage">
+        {{ validationMessage }}
+      </div>
     </div>
   </header>
 
@@ -24,6 +33,16 @@
       <div class="icon-warning">⚠</div>
       <p>{{ errorMessage }}</p>
       <button class="btn btn-secondary" (click)="fetchMetrics()">Try Again</button>
+    </div>
+
+    <!-- KYC Warning Banner -->
+    <div class="warning-banner" *ngIf="!isLoading && !errorMessage && metrics && !metrics.profileComplete">
+      <div class="banner-icon">🔒</div>
+      <div class="banner-content">
+        <h3>Action Required</h3>
+        <p>Complete your Profile & KYC (PAN and Aadhaar) to unlock lending features.</p>
+      </div>
+      <button class="btn btn-secondary banner-btn" routerLink="/applicant/profile">Complete KYC</button>
     </div>
 
     <!-- AC2: Summary Cards -->

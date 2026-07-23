@@ -12,6 +12,13 @@
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   
+  .cta-actions {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
   .welcome-text {
     h1 {
       font-size: 2.25rem;
@@ -61,6 +68,42 @@
       background-color: var(--bg-light);
     }
   }
+  
+  &.locked-btn {
+    background-color: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+    box-shadow: none;
+    
+    &:hover {
+      background-color: #d1d5db;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.validation-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: #fee2e2;
+  color: var(--danger);
+  border: 1px solid #f87171;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+  white-space: nowrap;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .cards-grid {
@@ -171,6 +214,61 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1.5rem;
+    
+    .cta-actions {
+      width: 100%;
+      align-items: flex-start;
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   KYC Warning Banner
+   ========================================================================== */
+.warning-banner {
+  display: flex;
+  align-items: center;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid var(--warning);
+  padding: 1.5rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  
+  .banner-icon {
+    font-size: 2rem;
+    margin-right: 1.5rem;
+  }
+  
+  .banner-content {
+    flex: 1;
+    
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 0.25rem;
+    }
+    
+    p {
+      color: #b45309;
+      font-size: 1rem;
+    }
+  }
+  
+  .banner-btn {
+    border-color: #fcd34d;
+    background-color: white;
+    color: #92400e;
+    
+    &:hover {
+      background-color: #fef3c7;
+    }
   }
 }
 

@@ -19,5 +19,6 @@ public class DashboardMetricsDto {
     private int activeLoans;
     private BigDecimal totalOutstanding;
     private int pendingApplications;
+    private boolean profileComplete;
     private List<LoanActivityDto> recentActivity;
 }
