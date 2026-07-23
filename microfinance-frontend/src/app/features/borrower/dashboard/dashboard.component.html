@@ -5,17 +5,25 @@
       <h1>Welcome back, <span>{{ userName }}</span></h1>
       <p>Here is a summary of your financial footprint.</p>
     </div>
-    <div class="cta-actions">
-      <!-- AC3: Primary CTA with dynamic lock -->
-      <button class="btn btn-primary" 
-              [class.locked-btn]="metrics && !metrics.profileComplete"
-              (click)="onApplyClick()">
-        Apply for a New Loan
+    <div class="header-actions">
+      <button class="profile-icon-btn" (click)="openProfilePopup()" title="Profile & KYC Settings">
+        <svg xmlns="http://www.w3.org/2001/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
       </button>
-      
-      <!-- Validation Message displayed right below button -->
-      <div class="validation-tooltip" *ngIf="validationMessage">
-        {{ validationMessage }}
+      <div class="cta-actions">
+        <!-- AC3: Primary CTA with dynamic lock -->
+        <button class="btn btn-primary" 
+                [class.locked-btn]="metrics && !metrics.profileComplete"
+                (click)="onApplyClick()">
+          Apply for a New Loan
+        </button>
+        
+        <!-- Validation Message displayed right below button -->
+        <div class="validation-tooltip" *ngIf="validationMessage">
+          {{ validationMessage }}
+        </div>
       </div>
     </div>
   </header>
@@ -42,7 +50,7 @@
         <h3>Action Required</h3>
         <p>Complete your Profile & KYC (PAN and Aadhaar) to unlock lending features.</p>
       </div>
-      <button class="btn btn-secondary banner-btn" routerLink="/applicant/profile">Complete KYC</button>
+      <button class="btn btn-secondary banner-btn" (click)="openProfilePopup()">Complete KYC</button>
     </div>
 
     <!-- AC2: Summary Cards -->
@@ -116,4 +124,12 @@
       </div>
     </section>
   </main>
+
+  <!-- Profile Popup Modal -->
+  <div class="modal-overlay" *ngIf="showProfilePopup">
+    <div class="modal-content">
+      <button class="close-btn" (click)="closeProfilePopup()">&times;</button>
+      <app-profile-setup (closePopup)="closeProfilePopup()"></app-profile-setup>
+    </div>
+  </div>
 </div>

@@ -14,6 +14,7 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   validationMessage = '';
+  showProfilePopup = false;
 
   constructor(
     private authService: AuthService,
@@ -56,5 +57,14 @@ export class DashboardComponent implements OnInit {
     }
     
     this.router.navigate(['/applicant/apply']);
+  }
+
+  openProfilePopup(): void {
+    this.showProfilePopup = true;
+  }
+
+  closeProfilePopup(): void {
+    this.showProfilePopup = false;
+    this.fetchMetrics(); // Refresh metrics in case KYC was completed
   }
 }

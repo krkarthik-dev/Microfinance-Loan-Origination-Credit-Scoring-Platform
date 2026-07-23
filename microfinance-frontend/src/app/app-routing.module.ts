@@ -35,13 +35,6 @@ const routes: Routes = [
   // Stub routes to test AC4 (Routing Guards)
   // Applicant Dashboard Route
   {
-    path: 'applicant/profile',
-    component: ProfileSetupComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_APPLICANT'] },
-    title: 'Complete Profile | Microfinance'
-  },
-  {
     path: 'applicant',
     component: DashboardComponent,
     canActivate: [AuthGuard, RoleGuard],

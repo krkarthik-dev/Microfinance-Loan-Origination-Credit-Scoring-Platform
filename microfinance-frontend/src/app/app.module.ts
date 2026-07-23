@@ -11,6 +11,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
+import { ProfileSetupComponent } from './features/borrower/profile-setup/profile-setup.component';
 
 /**
  * Root application module for the Microfinance Loan Origination Platform.
@@ -34,7 +35,8 @@ import { DashboardComponent } from './features/borrower/dashboard/dashboard.comp
     CommonModule,
     HttpClientModule,
     ReactiveFormsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    ProfileSetupComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -30,6 +30,8 @@ function minimumAgeValidator(minAge: number) {
   styleUrls: ['./profile-setup.component.scss']
 })
 export class ProfileSetupComponent implements OnInit {
+  @Output() closePopup = new EventEmitter<void>();
+  
   profileForm!: FormGroup;
   isLoading = true;
   isSaving = false;
@@ -140,8 +142,8 @@ export class ProfileSetupComponent implements OnInit {
         this.isEditMode = false;
         this.profileForm.disable();
         setTimeout(() => {
-          this.router.navigate(['/applicant']);
-        }, 2000);
+          this.closePopup.emit();
+        }, 1500);
       },
       error: (err) => {
         console.error('Error saving profile', err);
