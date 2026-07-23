@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { LoginRequest, LoginResponse } from '../../shared/models/auth.model';
+import { LoginRequest, LoginResponse, UserClaims } from '../../shared/models/auth.model';
 import { TokenService } from './token.service';
 import { environment } from '../../../environments/environment';
 
@@ -52,5 +52,12 @@ export class AuthService {
    */
   getRole(): string | null {
     return this.tokenService.getRole();
+  }
+
+  /**
+   * Get the current user's claims from the decoded JWT
+   */
+  getCurrentUser(): UserClaims | null {
+    return this.tokenService.decodeToken();
   }
 }

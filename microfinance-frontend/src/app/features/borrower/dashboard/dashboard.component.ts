@@ -20,8 +20,8 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
-    // Use part of email as fallback for name if user details don't have a specific name
-    this.userName = user?.email?.split('@')[0] || 'Borrower';
+    // Use part of email (sub) as fallback for name if user details don't have a specific name
+    this.userName = user?.sub?.split('@')[0] || 'Borrower';
     this.fetchMetrics();
   }
 
