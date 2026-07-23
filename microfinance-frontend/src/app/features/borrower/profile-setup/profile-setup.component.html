@@ -1,7 +1,14 @@
 <div class="profile-container">
   <div class="profile-header">
-    <h1>Complete Your Profile</h1>
-    <p>Please provide your demographic and financial details to unlock lending features.</p>
+    <div class="header-content">
+      <div>
+        <h1>Complete Your Profile</h1>
+        <p>Please provide your demographic and financial details to unlock lending features.</p>
+      </div>
+      <button type="button" class="btn btn-outline-primary" *ngIf="hasExistingProfile && !isEditMode" (click)="toggleEditMode()">
+        Edit Profile
+      </button>
+    </div>
   </div>
 
   <div *ngIf="isLoading" class="loader-container">
@@ -160,12 +167,16 @@
         </div>
       </section>
 
-      <div class="form-actions">
+      <div class="form-actions" *ngIf="isEditMode">
         <button type="button" class="btn btn-secondary" routerLink="/applicant">Cancel</button>
         <button type="submit" class="btn btn-primary" [disabled]="isSaving">
           <span *ngIf="!isSaving">Save Profile</span>
           <span *ngIf="isSaving">Saving...</span>
         </button>
+      </div>
+
+      <div class="form-actions" *ngIf="!isEditMode">
+        <button type="button" class="btn btn-secondary" routerLink="/applicant">Back to Dashboard</button>
       </div>
       
     </form>

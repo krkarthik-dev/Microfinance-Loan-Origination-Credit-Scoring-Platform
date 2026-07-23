@@ -45,7 +45,7 @@ public class UserProfileDto {
     @NotBlank(message = "Pincode is required")
     private String pincode;
 
-    @Pattern(regexp = "^[A-Z]{5}[0-9]{4}[A-Z]{1}$", message = "Invalid PAN number format")
+    @Pattern(regexp = "^[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}$", message = "Invalid PAN number format")
     private String panNumber;
 
     @Pattern(regexp = "^\\d{12}$", message = "Invalid Aadhaar number format")

@@ -33,6 +33,8 @@ export class ProfileSetupComponent implements OnInit {
   profileForm!: FormGroup;
   isLoading = true;
   isSaving = false;
+  isEditMode = true;
+  hasExistingProfile = false;
   successMessage = '';
   errorMessage = '';
 
@@ -69,7 +71,7 @@ export class ProfileSetupComponent implements OnInit {
       city: ['', [Validators.required, Validators.maxLength(100)]],
       state: ['', [Validators.required, Validators.maxLength(100)]],
       pincode: ['', [Validators.required, Validators.maxLength(10)]],
-      panNumber: ['', [Validators.pattern('^[A-Z]{5}[0-9]{4}[A-Z]{1}$')]],
+      panNumber: ['', [Validators.pattern('^[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}$')]],
       aadhaarNumber: ['', [Validators.pattern('^\\d{12}$')]],
       employmentType: ['', Validators.required],
       monthlyIncome: ['', [Validators.required, Validators.min(0)]]
@@ -80,8 +82,14 @@ export class ProfileSetupComponent implements OnInit {
     this.isLoading = true;
     this.borrowerService.getProfile().subscribe({
       next: (profile) => {
-        if (profile && Object.keys(profile).length > 0) {
+        if (profile && Object.keys(profile).length > 0 && profile.firstName) {
+          this.hasExistingProfile = true;
+          this.isEditMode = false;
           this.profileForm.patchValue(profile);
+          this.profileForm.disable();
+        } else {
+          this.hasExistingProfile = false;
+          this.isEditMode = true;
         }
         this.isLoading = false;
       },
@@ -93,9 +101,25 @@ export class ProfileSetupComponent implements OnInit {
     });
   }
 
+  toggleEditMode(): void {
+    this.isEditMode = true;
+    this.profileForm.enable();
+    
+    // If PAN or Aadhaar already exist, keep them read-only (locked for KYC)
+    if (this.hasExistingProfile) {
+      if (this.profileForm.get('panNumber')?.value) {
+        this.profileForm.get('panNumber')?.disable();
+      }
+      if (this.profileForm.get('aadhaarNumber')?.value) {
+        this.profileForm.get('aadhaarNumber')?.disable();
+      }
+    }
+  }
+
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.errorMessage = 'Please fix the highlighted errors before saving.';
       return;
     }
 
@@ -103,15 +127,21 @@ export class ProfileSetupComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const profileData: UserProfile = this.profileForm.value;
+    const profileData: UserProfile = this.profileForm.getRawValue();
+    if (profileData.panNumber) {
+      profileData.panNumber = profileData.panNumber.toUpperCase();
+    }
 
     this.borrowerService.updateProfile(profileData).subscribe({
       next: () => {
         this.isSaving = false;
         this.successMessage = 'Profile updated successfully!';
+        this.hasExistingProfile = true;
+        this.isEditMode = false;
+        this.profileForm.disable();
         setTimeout(() => {
           this.router.navigate(['/applicant']);
-        }, 1500);
+        }, 2000);
       },
       error: (err) => {
         console.error('Error saving profile', err);
