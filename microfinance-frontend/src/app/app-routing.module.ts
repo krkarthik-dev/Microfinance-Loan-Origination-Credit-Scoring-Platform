@@ -49,6 +49,13 @@ const routes: Routes = [
     title: 'Loan Application | Microfinance'
   },
   {
+    path: 'applicant/loan/:id/tracking',
+    loadComponent: () => import('./features/borrower/loan-tracking/loan-tracking.component').then(m => m.LoanTrackingComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Loan Tracking | Microfinance'
+  },
+  {
     path: 'officer',
     component: HealthCheckComponent, // Stub destination
     canActivate: [AuthGuard, RoleGuard],

@@ -39,5 +39,14 @@ public enum ApplicationStatus {
     FINAL_APPROVED,
 
     /** Manager gave final rejection on escalated application. */
-    FINAL_REJECTED
+    FINAL_REJECTED,
+
+    /** Pre-disbursement checks and document signing. */
+    CLOSING,
+
+    /** Funds are being transferred to the borrower. */
+    DISBURSEMENT,
+
+    /** Loan is disbursed and in active repayment phase. */
+    ACTIVE
 }

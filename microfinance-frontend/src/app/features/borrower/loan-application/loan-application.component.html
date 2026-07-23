@@ -484,32 +484,5 @@
       </div>
     </div>
 
-    <!-- ========== SUCCESS STATE ========== -->
-    <div class="step-content success-content" *ngIf="submittedAppNumber">
-      <div class="success-icon">🎉</div>
-      <h3>Application Submitted!</h3>
-      <p>Your loan application has been successfully submitted and a formal PDF has been generated.</p>
-
-      <div class="success-card">
-        <div class="summary-row">
-          <span>Application Number</span>
-          <strong class="app-number">{{ submittedAppNumber }}</strong>
-        </div>
-        <div class="summary-row">
-          <span>Status</span>
-          <strong class="text-success">Draft — Pending Officer Review</strong>
-        </div>
-      </div>
-
-      <div class="success-actions">
-        <button type="button" class="btn btn-primary" (click)="downloadPdf()">
-          ⬇ Download Application PDF
-        </button>
-        <button type="button" class="btn btn-ghost" (click)="goToDashboard()">
-          ← Back to Dashboard
-        </button>
-      </div>
-    </div>
-
   </div>
 </div>

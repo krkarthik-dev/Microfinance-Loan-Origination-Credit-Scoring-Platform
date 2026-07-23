@@ -233,10 +233,13 @@ export class LoanApplicationComponent implements OnInit {
       next: (response: any) => {
         this.isSubmitting = false;
         // Extract application number from response header
-        this.submittedAppNumber = response.headers.get('X-Application-Number') || 'N/A';
-        // Create a downloadable URL from the PDF blob
-        const pdfBlob = new Blob([response.body], { type: 'application/pdf' });
-        this.pdfBlobUrl = URL.createObjectURL(pdfBlob);
+        const appNumber = response.headers.get('X-Application-Number');
+        if (appNumber) {
+          // AC1: Redirect to tracking page
+          this.router.navigate(['/applicant/loan', appNumber, 'tracking']);
+        } else {
+          this.submissionError = 'Submission succeeded, but tracking ID was missing.';
+        }
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -244,18 +247,6 @@ export class LoanApplicationComponent implements OnInit {
         console.error('Submission error:', err);
       }
     });
-  }
-
-  downloadPdf(): void {
-    if (!this.pdfBlobUrl || !this.submittedAppNumber) return;
-    const a = document.createElement('a');
-    a.href = this.pdfBlobUrl;
-    a.download = `${this.submittedAppNumber}_application.pdf`;
-    a.click();
-  }
-
-  goToDashboard(): void {
-    this.router.navigate(['/applicant']);
   }
 
   cancel(): void { this.router.navigate(['/applicant']); }

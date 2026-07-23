@@ -85,4 +85,11 @@ export class BorrowerService {
       responseType: 'blob'
     });
   }
+
+  /**
+   * Retrieves the current tracking status for a loan application.
+   */
+  getLoanStatus(applicationNumber: string): Observable<{ status: string }> {
+    return this.http.get<{ status: string }>(`${this.apiUrl}/loan/${applicationNumber}/status`);
+  }
 }

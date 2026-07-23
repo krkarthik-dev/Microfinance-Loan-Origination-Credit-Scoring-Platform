@@ -9,7 +9,9 @@ import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.LoanDocumentRepository;
 import com.microfinance.repository.LoanProductRepository;
 import com.microfinance.repository.UserRepository;
+import com.microfinance.event.LoanSubmittedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +34,7 @@ public class LoanSubmissionService {
     private final LoanProductRepository     loanProductRepo;
     private final UserRepository            userRepo;
     private final PdfGenerationService      pdfGenerationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Generates a sequential application number in format MF-YYYY-NNNNN.
@@ -125,6 +128,13 @@ public class LoanSubmissionService {
                 }
             }
         }
+
+        // 8. Publish event for async scoring
+        eventPublisher.publishEvent(new LoanSubmittedEvent(
+                saved.getId(),
+                applicant.getId(),
+                saved.getAppliedAmount()
+        ));
 
         return saved;
     }

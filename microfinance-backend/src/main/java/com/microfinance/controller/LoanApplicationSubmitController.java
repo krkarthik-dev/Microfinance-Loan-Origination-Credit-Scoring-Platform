@@ -1,6 +1,7 @@
 package com.microfinance.controller;
 
 import com.microfinance.entity.LoanApplication;
+import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.service.LoanSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import java.util.Map;
 public class LoanApplicationSubmitController {
 
     private final LoanSubmissionService submissionService;
+    private final LoanApplicationRepository loanApplicationRepo;
 
     /**
      * POST /api/applicant/loan/submit
@@ -97,5 +99,20 @@ public class LoanApplicationSubmitController {
         // Delegate to service (placeholder — can be fleshed out later)
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                 .body(Map.of("message", "PDF re-download coming in a future sprint."));
+    }
+
+    /**
+     * GET /api/applicant/loan/{applicationNumber}/status
+     * Returns the current status of the loan application for the tracker.
+     */
+    @PreAuthorize("hasRole('APPLICANT')")
+    @GetMapping("/{applicationNumber}/status")
+    public ResponseEntity<?> getApplicationStatus(
+            @PathVariable String applicationNumber,
+            Principal principal
+    ) {
+        return loanApplicationRepo.findByApplicationNumber(applicationNumber)
+                .map(app -> ResponseEntity.ok(Map.of("status", app.getStatus().name())))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

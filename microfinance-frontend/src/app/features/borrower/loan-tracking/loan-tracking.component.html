@@ -1,0 +1,45 @@
+<div class="tracker-container fade-in">
+  <!-- AC1: Success Message & Header -->
+  <div class="tracker-header">
+    <div class="success-icon">🎉</div>
+    <h2>Application Submitted Successfully!</h2>
+    <p>Your application <strong class="app-num">{{ applicationNumber }}</strong> is now being processed.</p>
+    <p class="subtitle">Track the real-time progress of your loan below.</p>
+  </div>
+
+  <div class="tracker-card">
+    <div class="status-summary">
+      <span class="status-label">Current Status:</span>
+      <span class="status-value" [ngClass]="{'rejected': isRejected}">
+        {{ isRejected ? 'Rejected' : currentStatus | titlecase }}
+      </span>
+      <span class="polling-indicator" *ngIf="currentStatus === 'SUBMITTED' || currentStatus === 'RISK_ASSESSMENT'">
+        <span class="dot"></span> Polling for updates...
+      </span>
+    </div>
+
+    <!-- AC2 & AC3 & AC5: Visual Progress Bar -->
+    <div class="stepper-wrapper">
+      <div class="step" *ngFor="let step of STEPS; let i = index"
+           [class.completed]="isStepCompleted(i)"
+           [class.active]="isStepCurrent(i)"
+           [class.failed]="isStepFailed(i)"
+           [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i)">
+        
+        <div class="step-circle">
+          <span *ngIf="isStepCompleted(i)">✓</span>
+          <span *ngIf="isStepFailed(i)">✕</span>
+          <span *ngIf="!isStepCompleted(i) && !isStepFailed(i)">{{ i + 1 }}</span>
+        </div>
+        <div class="step-label">{{ step.label }}</div>
+        
+        <!-- Connecting Line -->
+        <div class="step-line" *ngIf="i < STEPS.length - 1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-ghost" (click)="goToDashboard()">← Back to Dashboard</button>
+  </div>
+</div>
