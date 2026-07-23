@@ -84,7 +84,7 @@ export class ProfileSetupComponent implements OnInit {
     this.isLoading = true;
     this.borrowerService.getProfile().subscribe({
       next: (profile) => {
-        if (profile && Object.keys(profile).length > 0 && profile.firstName) {
+        if (profile && typeof profile === 'object' && Object.keys(profile).length > 0 && profile.firstName) {
           this.hasExistingProfile = true;
           this.isEditMode = false;
           this.profileForm.patchValue(profile);

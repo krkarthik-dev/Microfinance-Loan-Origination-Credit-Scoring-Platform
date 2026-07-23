@@ -1,9 +1,6 @@
 .profile-container {
-  max-width: 900px;
-  margin: 0 auto;
   padding: 2rem;
-  background-color: var(--bg-light, #f9fafb);
-  min-height: 100vh;
+  background-color: var(--bg-white, #ffffff);
 }
 
 .profile-header {
@@ -78,8 +75,7 @@
 .profile-form {
   background-color: white;
   border-radius: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
+  padding: 1rem 0;
 }
 
 .form-section {
