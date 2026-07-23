@@ -57,9 +57,10 @@ const routes: Routes = [
   },
   {
     path: 'officer',
-    component: HealthCheckComponent, // Stub destination
+    loadComponent: () => import('./features/officer/command-center/command-center.component').then(m => m.CommandCenterComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] }
+    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] },
+    title: 'Command Center | Microfinance'
   },
   {
     path: 'admin',

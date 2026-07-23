@@ -2,6 +2,7 @@ package com.microfinance.repository;
 
 import com.microfinance.entity.LoanApplication;
 import com.microfinance.enums.ApplicationStatus;
+import com.microfinance.dto.OfficerApplicationSummaryDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +39,13 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     @Query("SELECT COALESCE(SUM(l.approvedAmount), 0) FROM LoanApplication l WHERE l.applicant.id = :applicantId AND l.status IN :statuses")
     BigDecimal sumApprovedAmountByApplicantIdAndStatusIn(@Param("applicantId") Long applicantId, @Param("statuses") List<ApplicationStatus> statuses);
+
+    // US16: Officer Dashboard Query
+    @Query("SELECT new com.microfinance.dto.OfficerApplicationSummaryDTO(" +
+           "a.applicationNumber, a.applicant.firstName, a.applicant.lastName, " +
+           "a.appliedAmount, a.tenureMonths, a.purpose, a.submittedAt, " +
+           "c.creditScore, c.riskTier) " +
+           "FROM LoanApplication a LEFT JOIN CreditScore c ON c.application = a " +
+           "WHERE a.status = :status")
+    List<OfficerApplicationSummaryDTO> findSummariesByStatus(@Param("status") ApplicationStatus status);
 }

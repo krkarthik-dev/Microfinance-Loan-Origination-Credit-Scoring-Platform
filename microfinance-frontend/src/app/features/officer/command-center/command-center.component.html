@@ -1,0 +1,78 @@
+<div class="command-center fade-in">
+  <!-- Header -->
+  <header class="cc-header">
+    <div class="header-content">
+      <div class="title-area">
+        <h1>Command Center</h1>
+        <p>Queue: Applications Under Review</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" (click)="loadQueue()">↻ Refresh</button>
+        <button class="btn btn-ghost" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="cc-main">
+    
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading queue...</p>
+    </div>
+
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-outline" (click)="loadQueue()">Try Again</button>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && queue.length === 0">
+      <p>The queue is empty. Great job!</p>
+    </div>
+
+    <!-- The Queue Grid -->
+    <div class="grid-container" *ngIf="!isLoading && !errorMessage && queue.length > 0">
+      <table class="cc-table">
+        <thead>
+          <tr>
+            <th (click)="sortBy('applicationNumber')">App ID {{ getSortIcon('applicationNumber') }}</th>
+            <th (click)="sortBy('applicantFirstName')">Applicant {{ getSortIcon('applicantFirstName') }}</th>
+            <th (click)="sortBy('appliedAmount')">Amount {{ getSortIcon('appliedAmount') }}</th>
+            <th (click)="sortBy('submittedAt')">Date Applied {{ getSortIcon('submittedAt') }}</th>
+            
+            <!-- AC3 & AC4: ML Risk Sorting -->
+            <th class="risk-col" (click)="sortBy('creditScore')">
+              Risk Tier <span class="sort-icon">{{ getSortIcon('creditScore') }}</span>
+              <div class="ml-badge">ML Sorted</div>
+            </th>
+            
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let app of queue">
+            <td class="font-mono text-indigo">{{ app.applicationNumber }}</td>
+            <td>
+              <div class="font-medium">{{ app.applicantFirstName }} {{ app.applicantLastName }}</div>
+              <div class="text-sm text-gray">{{ app.purpose }}</div>
+            </td>
+            <td class="font-semibold">&#8377;{{ app.appliedAmount | number }}</td>
+            <td class="text-gray">{{ app.submittedAt | date:'mediumDate' }}</td>
+            
+            <td>
+              <div class="risk-badge" [ngClass]="app.riskTier">
+                <span class="tier">{{ app.riskTier }}</span>
+                <span class="score">Score: {{ app.creditScore }}</span>
+              </div>
+            </td>
+            
+            <td>
+              <button class="btn btn-primary btn-sm">Review</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
