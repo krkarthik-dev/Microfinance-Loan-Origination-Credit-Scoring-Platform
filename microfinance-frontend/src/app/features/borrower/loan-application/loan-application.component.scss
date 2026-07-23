@@ -424,6 +424,241 @@
 }
 
 /* =============================================
+   Document Upload Zones (Step 3)
+   ============================================= */
+
+.doc-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doc-zone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.doc-zone-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-mandatory {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.badge-optional {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.drop-zone {
+  position: relative;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  background: #f9fafb;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+  cursor: pointer;
+
+  &.drag-over {
+    border-color: #4f46e5;
+    background: #eef2ff;
+  }
+
+  &.has-file {
+    border-style: solid;
+    border-color: #a5b4fc;
+    background: #fff;
+    padding: 0;
+    min-height: 140px;
+  }
+
+  &--optional {
+    border-color: #e5e7eb;
+    background: #fff;
+  }
+
+  .dz-icon {
+    font-size: 2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .dz-hint {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    margin: 0 0 0.6rem 0;
+  }
+}
+
+.doc-thumb {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px 8px 0 0;
+
+  &--photo {
+    object-position: top center;
+  }
+}
+
+.pdf-thumb {
+  font-size: 3rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.doc-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+
+  .doc-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #374151;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .doc-size {
+    font-size: 0.72rem;
+    color: #9ca3af;
+  }
+}
+
+.remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+
+  &:hover { background: #dc2626; }
+
+  &--sm {
+    position: static;
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    background: #fee2e2;
+    color: #b91c1c;
+
+    &:hover { background: #fecaca; }
+  }
+}
+
+.btn-outline-sm {
+  background: transparent;
+  border: 1.5px solid #6366f1;
+  color: #4f46e5;
+  border-radius: 6px;
+  padding: 0.35rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #eef2ff;
+  }
+}
+
+.other-files-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.other-file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+
+  .of-icon { font-size: 0.9rem; }
+  .of-name { font-size: 0.78rem; color: #374151; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .of-size { font-size: 0.7rem; color: #9ca3af; flex-shrink: 0; }
+}
+
+.dz-error {
+  color: #ef4444;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.mandatory-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #92400e;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.text-success {
+  color: #059669;
+}
+
+.docs-summary-card {
+  grid-column: 1 / -1;
+}
+
+/* =============================================
    Animations
    ============================================= */
 @keyframes fadeInUp {

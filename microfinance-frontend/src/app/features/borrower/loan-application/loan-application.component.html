@@ -1,9 +1,9 @@
 <div class="wizard-container">
   <div class="wizard-card">
 
-    <!-- Header & Stepper Progress -->
+    <!-- ========== Wizard Header & Stepper ========== -->
     <div class="wizard-header">
-      <button class="back-to-dash" (click)="cancel()">&#8592; Back to Dashboard</button>
+      <button class="back-to-dash" (click)="cancel()">&#8592; Dashboard</button>
       <h2>New Loan Application</h2>
 
       <div class="stepper">
@@ -13,7 +13,7 @@
             <span *ngIf="currentStep <= 1">1</span>
             <span *ngIf="currentStep > 1">✓</span>
           </div>
-          <div class="step-label">Loan Requirements</div>
+          <div class="step-label">Loan Details</div>
         </div>
         <div class="step-line" [class.active]="currentStep >= 2"></div>
 
@@ -23,30 +23,38 @@
             <span *ngIf="currentStep <= 2">2</span>
             <span *ngIf="currentStep > 2">✓</span>
           </div>
-          <div class="step-label">Guarantor Details</div>
+          <div class="step-label">Guarantor</div>
         </div>
         <div class="step-line" [class.active]="currentStep >= 3"></div>
 
         <!-- Step 3 -->
-        <div class="step" [class.active]="currentStep >= 3">
-          <div class="step-circle">3</div>
-          <div class="step-label">Review &amp; Submit</div>
+        <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+          <div class="step-circle">
+            <span *ngIf="currentStep <= 3">3</span>
+            <span *ngIf="currentStep > 3">✓</span>
+          </div>
+          <div class="step-label">Documents</div>
+        </div>
+        <div class="step-line" [class.active]="currentStep >= 4"></div>
+
+        <!-- Step 4 -->
+        <div class="step" [class.active]="currentStep >= 4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Review</div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== STEP 1: Loan Requirements ==================== -->
+    <!-- ========== STEP 1: Loan Requirements ========== -->
     <div class="step-content" *ngIf="currentStep === 1">
       <div class="step-title">
-        <h3>Step 1: What do you need?</h3>
+        <h3>Step 1: Loan Requirements</h3>
         <p>Tell us how much you want to borrow and why.</p>
       </div>
 
       <form [formGroup]="loanRequirementsForm" (ngSubmit)="nextStep()">
-
-        <!-- Principal Amount -->
         <div class="form-group">
-          <label for="principalAmount">Requested Principal Amount (&#8377;) *</label>
+          <label for="principalAmount">Principal Amount (&#8377;) *</label>
           <input type="number" id="principalAmount" formControlName="principalAmount"
                  class="form-control" [class.is-invalid]="isReqInvalid('principalAmount')"
                  placeholder="e.g. 50000">
@@ -57,29 +65,19 @@
           </div>
         </div>
 
-        <!-- Tenure Slider -->
         <div class="form-group">
-          <label for="tenureMonths">Loan Tenure (Months) *</label>
+          <label for="tenureMonths">Loan Tenure *</label>
           <div class="slider-container">
             <input type="range" id="tenureMonths" formControlName="tenureMonths"
                    min="3" max="24" step="3" class="form-range">
-            <div class="slider-value">
-              <span>{{ loanRequirementsForm.get('tenureMonths')?.value }} Months</span>
-            </div>
+            <div class="slider-value">{{ loanRequirementsForm.get('tenureMonths')?.value }} Months</div>
           </div>
           <div class="slider-labels">
-            <span>3m</span>
-            <span>6m</span>
-            <span>9m</span>
-            <span>12m</span>
-            <span>15m</span>
-            <span>18m</span>
-            <span>21m</span>
-            <span>24m</span>
+            <span>3m</span><span>6m</span><span>9m</span><span>12m</span>
+            <span>15m</span><span>18m</span><span>21m</span><span>24m</span>
           </div>
         </div>
 
-        <!-- Purpose -->
         <div class="form-group">
           <label for="purpose">Loan Purpose *</label>
           <select id="purpose" formControlName="purpose" class="form-control"
@@ -94,41 +92,36 @@
 
         <div class="wizard-actions">
           <button type="button" class="btn btn-ghost" (click)="cancel()">Cancel</button>
-          <button type="submit" class="btn btn-primary">
-            Next Step <span class="arrow">&#8594;</span>
-          </button>
+          <button type="submit" class="btn btn-primary">Next &#8594;</button>
         </div>
       </form>
     </div>
 
-    <!-- ==================== STEP 2: Guarantor Details ==================== -->
+    <!-- ========== STEP 2: Guarantor Details ========== -->
     <div class="step-content" *ngIf="currentStep === 2">
       <div class="step-title">
         <h3>Step 2: Guarantor Details</h3>
-        <p>A guarantor is required by our underwriting policy. Please provide their information accurately.</p>
+        <p>A guarantor is required by underwriting policy. Please provide accurate information.</p>
       </div>
 
       <div class="info-banner">
         <span class="info-icon">ℹ️</span>
-        <span>The guarantor co-signs your application and agrees to be liable if repayments are missed.</span>
+        <span>The guarantor co-signs your application and is liable if repayments are missed.</span>
       </div>
 
       <form [formGroup]="guarantorForm" (ngSubmit)="nextStep()">
-
-        <!-- Guarantor Name -->
         <div class="form-group">
           <label for="guarName">Guarantor Full Name *</label>
           <input type="text" id="guarName" formControlName="name"
                  class="form-control" [class.is-invalid]="isGuarInvalid('name')"
                  placeholder="e.g. Rajesh Kumar">
           <div class="invalid-feedback" *ngIf="isGuarInvalid('name')">
-            <span *ngIf="guarF['name'].errors?.['required']">Guarantor name is required.</span>
+            <span *ngIf="guarF['name'].errors?.['required']">Name is required.</span>
             <span *ngIf="guarF['name'].errors?.['minlength']">Name must be at least 3 characters.</span>
-            <span *ngIf="guarF['name'].errors?.['pattern']">Name must contain letters only (no numbers or symbols).</span>
+            <span *ngIf="guarF['name'].errors?.['pattern']">Letters only — no numbers or symbols.</span>
           </div>
         </div>
 
-        <!-- Guarantor Address -->
         <div class="form-group">
           <label for="guarAddress">Guarantor Address *</label>
           <textarea id="guarAddress" formControlName="address"
@@ -140,7 +133,6 @@
           </div>
         </div>
 
-        <!-- City & PIN in a row -->
         <div class="form-row">
           <div class="form-group">
             <label for="guarCity">City *</label>
@@ -149,10 +141,9 @@
                    placeholder="e.g. Chennai">
             <div class="invalid-feedback" *ngIf="isGuarInvalid('city')">
               <span *ngIf="guarF['city'].errors?.['required']">City is required.</span>
-              <span *ngIf="guarF['city'].errors?.['pattern']">City must contain letters only.</span>
+              <span *ngIf="guarF['city'].errors?.['pattern']">Letters only.</span>
             </div>
           </div>
-
           <div class="form-group">
             <label for="guarZip">PIN Code *</label>
             <input type="text" id="guarZip" formControlName="zipCode"
@@ -160,62 +151,210 @@
                    placeholder="e.g. 600001" maxlength="6">
             <div class="invalid-feedback" *ngIf="isGuarInvalid('zipCode')">
               <span *ngIf="guarF['zipCode'].errors?.['required']">PIN code is required.</span>
-              <span *ngIf="guarF['zipCode'].errors?.['pattern']">PIN code must be exactly 6 digits.</span>
+              <span *ngIf="guarF['zipCode'].errors?.['pattern']">Must be exactly 6 digits.</span>
             </div>
           </div>
         </div>
 
-        <!-- KYC: Aadhaar & PAN in a row -->
         <div class="form-row">
           <div class="form-group">
-            <label for="guarAadhaar">Guarantor Aadhaar Number *</label>
+            <label for="guarAadhaar">Guarantor Aadhaar *</label>
             <input type="text" id="guarAadhaar" formControlName="aadhaarNumber"
                    class="form-control" [class.is-invalid]="isGuarInvalid('aadhaarNumber')"
                    placeholder="123456789012" maxlength="12">
             <div class="invalid-feedback" *ngIf="isGuarInvalid('aadhaarNumber')">
-              <span *ngIf="guarF['aadhaarNumber'].errors?.['required']">Aadhaar number is required.</span>
+              <span *ngIf="guarF['aadhaarNumber'].errors?.['required']">Aadhaar is required.</span>
               <span *ngIf="guarF['aadhaarNumber'].errors?.['pattern']">Must be exactly 12 digits.</span>
             </div>
           </div>
-
           <div class="form-group">
-            <label for="guarPan">Guarantor PAN Number *</label>
+            <label for="guarPan">Guarantor PAN *</label>
             <input type="text" id="guarPan" formControlName="panNumber"
                    class="form-control text-uppercase" [class.is-invalid]="isGuarInvalid('panNumber')"
                    placeholder="ABCDE1234F" maxlength="10"
                    (input)="guarF['panNumber'].setValue(guarF['panNumber'].value.toUpperCase(), {emitEvent: false})">
             <div class="invalid-feedback" *ngIf="isGuarInvalid('panNumber')">
-              <span *ngIf="guarF['panNumber'].errors?.['required']">PAN number is required.</span>
-              <span *ngIf="guarF['panNumber'].errors?.['pattern']">Invalid format (e.g. ABCDE1234F).</span>
+              <span *ngIf="guarF['panNumber'].errors?.['required']">PAN is required.</span>
+              <span *ngIf="guarF['panNumber'].errors?.['pattern']">Format: ABCDE1234F</span>
             </div>
           </div>
         </div>
 
         <div class="wizard-actions">
           <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
-          <button type="submit" class="btn btn-primary" [disabled]="!isGuarantorValid">
-            Next Step <span class="arrow">&#8594;</span>
-          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="!isGuarantorValid">Next &#8594;</button>
         </div>
       </form>
     </div>
 
-    <!-- ==================== STEP 3: Review & Submit ==================== -->
+    <!-- ========== STEP 3: Document Upload ========== -->
     <div class="step-content" *ngIf="currentStep === 3">
       <div class="step-title">
-        <h3>Step 3: Review &amp; Submit</h3>
-        <p>Review your application details carefully before submitting.</p>
+        <h3>Step 3: Document Upload</h3>
+        <p>Upload the required documents. Accepted formats: PDF, JPG, PNG, WEBP — max 5 MB each.</p>
+      </div>
+
+      <div class="doc-upload-grid">
+
+        <!-- 1. Income Certificate (Mandatory) -->
+        <div class="doc-zone-card">
+          <div class="doc-zone-label">
+            Income Certificate <span class="badge-mandatory">Mandatory</span>
+          </div>
+          <div class="drop-zone"
+               [class.drag-over]="isDragOverIncome"
+               [class.has-file]="incomeFile"
+               (dragover)="onDragOver($event,'income')"
+               (dragleave)="onDragLeave($event,'income')"
+               (drop)="onDrop($event,'income')">
+
+            <ng-container *ngIf="!incomeFile">
+              <div class="dz-icon">📄</div>
+              <p class="dz-hint">Drag &amp; drop or</p>
+              <button type="button" class="btn btn-outline-sm" (click)="incomeInput.click()">Browse File</button>
+              <input type="file" #incomeInput hidden accept=".pdf,image/jpeg,image/png,image/webp"
+                     (change)="onFileChange($event,'income')">
+            </ng-container>
+
+            <ng-container *ngIf="incomeFile">
+              <img *ngIf="incomeFile.previewUrl" [src]="incomeFile.previewUrl" class="doc-thumb" alt="preview">
+              <div *ngIf="!incomeFile.previewUrl" class="pdf-thumb">📋</div>
+              <div class="doc-meta">
+                <span class="doc-name" title="{{ incomeFile.name }}">{{ incomeFile.name }}</span>
+                <span class="doc-size">{{ formatBytes(incomeFile.size) }}</span>
+              </div>
+              <button type="button" class="remove-btn" (click)="removeFile('income')" title="Remove">✕</button>
+            </ng-container>
+          </div>
+          <div class="dz-error" *ngIf="incomeError">{{ incomeError }}</div>
+        </div>
+
+        <!-- 2. Borrower Photograph (Mandatory, image only) -->
+        <div class="doc-zone-card">
+          <div class="doc-zone-label">
+            Borrower Photograph <span class="badge-mandatory">Mandatory</span>
+          </div>
+          <div class="drop-zone"
+               [class.drag-over]="isDragOverPhoto"
+               [class.has-file]="photoFile"
+               (dragover)="onDragOver($event,'photo')"
+               (dragleave)="onDragLeave($event,'photo')"
+               (drop)="onDrop($event,'photo')">
+
+            <ng-container *ngIf="!photoFile">
+              <div class="dz-icon">🤳</div>
+              <p class="dz-hint">Images only (JPG, PNG, WEBP)</p>
+              <button type="button" class="btn btn-outline-sm" (click)="photoInput.click()">Browse File</button>
+              <input type="file" #photoInput hidden accept="image/jpeg,image/png,image/webp"
+                     (change)="onFileChange($event,'photo')">
+            </ng-container>
+
+            <ng-container *ngIf="photoFile">
+              <img [src]="photoFile.previewUrl" class="doc-thumb doc-thumb--photo" alt="Photograph preview">
+              <div class="doc-meta">
+                <span class="doc-name">{{ photoFile.name }}</span>
+                <span class="doc-size">{{ formatBytes(photoFile.size) }}</span>
+              </div>
+              <button type="button" class="remove-btn" (click)="removeFile('photo')" title="Remove">✕</button>
+            </ng-container>
+          </div>
+          <div class="dz-error" *ngIf="photoError">{{ photoError }}</div>
+        </div>
+
+        <!-- 3. Guarantor ID Copy (Mandatory) -->
+        <div class="doc-zone-card">
+          <div class="doc-zone-label">
+            Guarantor PAN / Aadhaar Copy <span class="badge-mandatory">Mandatory</span>
+          </div>
+          <div class="drop-zone"
+               [class.drag-over]="isDragOverGuarantorId"
+               [class.has-file]="guarantorIdFile"
+               (dragover)="onDragOver($event,'guarantorId')"
+               (dragleave)="onDragLeave($event,'guarantorId')"
+               (drop)="onDrop($event,'guarantorId')">
+
+            <ng-container *ngIf="!guarantorIdFile">
+              <div class="dz-icon">🪪</div>
+              <p class="dz-hint">Scan of Guarantor PAN or Aadhaar card</p>
+              <button type="button" class="btn btn-outline-sm" (click)="guarIdInput.click()">Browse File</button>
+              <input type="file" #guarIdInput hidden accept=".pdf,image/jpeg,image/png,image/webp"
+                     (change)="onFileChange($event,'guarantorId')">
+            </ng-container>
+
+            <ng-container *ngIf="guarantorIdFile">
+              <img *ngIf="guarantorIdFile.previewUrl" [src]="guarantorIdFile.previewUrl" class="doc-thumb" alt="preview">
+              <div *ngIf="!guarantorIdFile.previewUrl" class="pdf-thumb">📋</div>
+              <div class="doc-meta">
+                <span class="doc-name" title="{{ guarantorIdFile.name }}">{{ guarantorIdFile.name }}</span>
+                <span class="doc-size">{{ formatBytes(guarantorIdFile.size) }}</span>
+              </div>
+              <button type="button" class="remove-btn" (click)="removeFile('guarantorId')" title="Remove">✕</button>
+            </ng-container>
+          </div>
+          <div class="dz-error" *ngIf="guarantorIdError">{{ guarantorIdError }}</div>
+        </div>
+
+        <!-- 4. Other Documents (Optional) -->
+        <div class="doc-zone-card">
+          <div class="doc-zone-label">
+            Other Documents <span class="badge-optional">Optional</span>
+          </div>
+          <div class="drop-zone drop-zone--optional"
+               [class.drag-over]="isDragOverOther"
+               (dragover)="onDragOver($event,'other')"
+               (dragleave)="onDragLeave($event,'other')"
+               (drop)="onDrop($event,'other')">
+            <div class="dz-icon">📎</div>
+            <p class="dz-hint">Bank statements, property papers, etc.</p>
+            <button type="button" class="btn btn-outline-sm" (click)="otherInput.click()">Add File</button>
+            <input type="file" #otherInput hidden accept=".pdf,image/jpeg,image/png,image/webp"
+                   (change)="onFileChange($event,'other')">
+          </div>
+
+          <!-- Stacked list of uploaded optional files -->
+          <ul class="other-files-list" *ngIf="otherFiles.length > 0">
+            <li *ngFor="let f of otherFiles; let i = index" class="other-file-item">
+              <span class="of-icon">{{ f.type === 'application/pdf' ? '📄' : '🖼️' }}</span>
+              <span class="of-name">{{ f.name }}</span>
+              <span class="of-size">{{ formatBytes(f.size) }}</span>
+              <button type="button" class="remove-btn remove-btn--sm" (click)="removeFile('other', i)">✕</button>
+            </li>
+          </ul>
+          <div class="dz-error" *ngIf="otherError">{{ otherError }}</div>
+        </div>
+
+      </div><!-- /doc-upload-grid -->
+
+      <!-- Mandatory completion hint -->
+      <div class="mandatory-hint" *ngIf="!isDocsStepValid">
+        <span>⚠️</span>
+        <span>Please upload all 3 mandatory documents before proceeding.</span>
+      </div>
+
+      <div class="wizard-actions">
+        <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
+        <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="!isDocsStepValid">
+          Review &amp; Submit &#8594;
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== STEP 4: Review & Submit ========== -->
+    <div class="step-content" *ngIf="currentStep === 4">
+      <div class="step-title">
+        <h3>Step 4: Review &amp; Submit</h3>
+        <p>Review your application carefully before submitting.</p>
       </div>
 
       <div class="review-grid">
-        <!-- Loan Details card -->
+        <!-- Loan Requirements -->
         <div class="review-card">
           <div class="review-card-header">
             <span class="review-icon">💰</span>
             <h4>Loan Requirements</h4>
           </div>
           <div class="summary-row">
-            <span>Amount Requested</span>
+            <span>Amount</span>
             <strong>&#8377;{{ loanRequirementsForm.get('principalAmount')?.value | number }}</strong>
           </div>
           <div class="summary-row">
@@ -228,7 +367,7 @@
           </div>
         </div>
 
-        <!-- Guarantor card -->
+        <!-- Guarantor Details -->
         <div class="review-card">
           <div class="review-card-header">
             <span class="review-icon">🤝</span>
@@ -237,10 +376,6 @@
           <div class="summary-row">
             <span>Name</span>
             <strong>{{ guarantorForm.get('name')?.value }}</strong>
-          </div>
-          <div class="summary-row">
-            <span>Address</span>
-            <strong>{{ guarantorForm.get('address')?.value }}</strong>
           </div>
           <div class="summary-row">
             <span>City</span>
@@ -259,12 +394,36 @@
             <strong>{{ guarantorForm.get('panNumber')?.value }}</strong>
           </div>
         </div>
+
+        <!-- Documents Uploaded -->
+        <div class="review-card docs-summary-card">
+          <div class="review-card-header">
+            <span class="review-icon">📁</span>
+            <h4>Documents Uploaded</h4>
+          </div>
+          <div class="summary-row">
+            <span>Income Certificate</span>
+            <strong class="text-success" *ngIf="incomeFile">✓ {{ incomeFile.name }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Photograph</span>
+            <strong class="text-success" *ngIf="photoFile">✓ {{ photoFile.name }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Guarantor ID</span>
+            <strong class="text-success" *ngIf="guarantorIdFile">✓ {{ guarantorIdFile.name }}</strong>
+          </div>
+          <div class="summary-row" *ngIf="otherFiles.length > 0">
+            <span>Other</span>
+            <strong>{{ otherFiles.length }} file(s)</strong>
+          </div>
+        </div>
       </div>
 
       <div class="wizard-actions">
         <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
         <button type="button" class="btn btn-primary submit-btn" (click)="cancel()">
-          Save as Draft
+          ✓ Save as Draft
         </button>
       </div>
     </div>
