@@ -6,11 +6,18 @@ spring:
     username: sa
     password: ''
 
+  # Tests use ddl-auto: create-drop so JPA builds schema from entities
+  # Flyway is disabled — no SQL migration scripts needed for tests
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+
+  # ==================== FLYWAY DISABLED FOR TESTS ====================
+  # SQL migrations use PostgreSQL syntax; tests use H2 with entity-generated schema
+  flyway:
+    enabled: false
 
   security:
     user:
@@ -22,3 +29,4 @@ logging:
     com.microfinance: DEBUG
     org.springframework.security: WARN
     org.hibernate: WARN
+    org.flywaydb: WARN

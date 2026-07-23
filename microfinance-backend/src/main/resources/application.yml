@@ -18,9 +18,10 @@ spring:
       pool-name: MicrofinanceHikariPool
 
   # ==================== JPA ====================
+  # ddl-auto: validate — Flyway owns the schema; JPA only validates entities match the DB
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -28,6 +29,14 @@ spring:
         format_sql: true
         use_sql_comments: true
     open-in-view: false
+
+  # ==================== FLYWAY (Schema Migration) ====================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false
 
   # ==================== ASYNC TASK EXECUTOR ====================
   task:
@@ -45,6 +54,7 @@ logging:
     org.springframework.security: INFO
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
+    org.flywaydb: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
