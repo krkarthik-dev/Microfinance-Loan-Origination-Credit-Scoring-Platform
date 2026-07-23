@@ -63,6 +63,13 @@ const routes: Routes = [
     title: 'Command Center | Microfinance'
   },
   {
+    path: 'officer/loan/:id/review',
+    loadComponent: () => import('./features/officer/application-review/application-review.component').then(m => m.ApplicationReviewComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] },
+    title: 'Review Application | Microfinance'
+  },
+  {
     path: 'admin',
     component: HealthCheckComponent, // Stub destination
     canActivate: [AuthGuard, RoleGuard],

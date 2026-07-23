@@ -77,8 +77,13 @@
     vertical-align: middle;
   }
 
+  .cursor-pointer {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+  }
+
   tbody tr:hover {
-    background-color: #f9fafb;
+    background-color: #f3f4f6;
   }
 }
 

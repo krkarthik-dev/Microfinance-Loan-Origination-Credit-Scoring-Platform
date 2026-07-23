@@ -97,6 +97,10 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
+  goToReview(applicationNumber: string): void {
+    this.router.navigate(['/officer/loan', applicationNumber, 'review']);
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

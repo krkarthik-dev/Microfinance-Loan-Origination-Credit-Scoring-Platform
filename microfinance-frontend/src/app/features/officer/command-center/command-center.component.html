@@ -50,7 +50,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let app of queue">
+          <tr *ngFor="let app of queue" (click)="goToReview(app.applicationNumber)" class="cursor-pointer">
             <td class="font-mono text-indigo">{{ app.applicationNumber }}</td>
             <td>
               <div class="font-medium">{{ app.applicantFirstName }} {{ app.applicantLastName }}</div>
