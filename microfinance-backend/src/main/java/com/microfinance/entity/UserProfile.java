@@ -78,6 +78,10 @@ public class UserProfile {
     @Column(name = "monthly_income")
     private BigDecimal monthlyIncome;
 
+    @Column(name = "kyc_verified", nullable = false)
+    @Builder.Default
+    private boolean kycVerified = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

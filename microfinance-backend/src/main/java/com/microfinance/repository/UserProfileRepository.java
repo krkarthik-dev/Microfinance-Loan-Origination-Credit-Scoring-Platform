@@ -4,6 +4,7 @@ import com.microfinance.entity.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,6 +15,9 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
 
     /** Fetch profile by the owning user's ID. */
     Optional<UserProfile> findByUserId(Long userId);
+
+    /** Fetch all profiles where KYC is pending. */
+    List<UserProfile> findByKycVerifiedFalse();
 
     /** Check if a profile already exists for a user. */
     boolean existsByUserId(Long userId);

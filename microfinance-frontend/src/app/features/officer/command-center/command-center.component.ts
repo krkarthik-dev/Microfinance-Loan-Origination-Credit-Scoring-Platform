@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OfficerService, ApplicationSummary } from '../officer.service';
+import { OfficerService, ApplicationSummary, PendingKyc } from '../officer.service';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -21,6 +21,14 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   sortColumn: keyof ApplicationSummary | 'creditScore' = 'creditScore'; 
   sortDirection: 'asc' | 'desc' = 'desc'; // Default: High Score (Low Risk) at top
 
+  // KYC Queue
+  pendingKyc: PendingKyc[] = [];
+  isKycLoading = true;
+  kycErrorMessage = '';
+
+  // Tabs
+  activeTab: 'LOANS' | 'KYC' = 'LOANS';
+
   private queueSub?: Subscription;
 
   constructor(
@@ -31,6 +39,7 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadQueue();
+    this.fetchPendingKyc();
   }
 
   ngOnDestroy(): void {
@@ -99,6 +108,30 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
 
   goToReview(applicationNumber: string): void {
     this.router.navigate(['/officer/loan', applicationNumber, 'review']);
+  }
+
+  // --- KYC QUEUE ---
+
+  fetchPendingKyc(): void {
+    this.isKycLoading = true;
+    this.kycErrorMessage = '';
+    
+    this.officerService.getPendingKyc().subscribe({
+      next: (data) => {
+        this.pendingKyc = data;
+        this.isKycLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load pending KYC', err);
+        this.kycErrorMessage = 'Could not load pending KYC requests.';
+        this.isKycLoading = false;
+      }
+    });
+  }
+
+  viewKycDetails(userId: number): void {
+    // We will route to a new component for KYC review
+    this.router.navigate(['/officer/kyc', userId]);
   }
 
   logout(): void {

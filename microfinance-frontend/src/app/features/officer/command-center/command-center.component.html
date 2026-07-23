@@ -3,12 +3,14 @@
   <header class="cc-header">
     <div class="header-content">
       <div class="title-area">
-        <h1>Command Center</h1>
-        <p>Queue: Applications Under Review</p>
-      </div>
-      <div class="actions">
-        <button class="btn btn-outline" (click)="loadQueue()">↻ Refresh</button>
-        <button class="btn btn-ghost" (click)="logout()">Logout</button>
+        <h2>Command Center</h2>
+    
+    <div class="tabs">
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'LOANS'}" (click)="activeTab = 'LOANS'">Loan Applications</button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'KYC'}" (click)="activeTab = 'KYC'">Pending KYC <span class="badge" *ngIf="pendingKyc.length">{{pendingKyc.length}}</span></button>
+    </div>
+
+    <button class="btn btn-outline" (click)="logout()">Logout</button>
       </div>
     </div>
   </header>
@@ -16,63 +18,103 @@
   <!-- Main Content -->
   <main class="cc-main">
     
-    <div class="loading-state" *ngIf="isLoading">
-      <div class="spinner"></div>
-      <p>Loading queue...</p>
-    </div>
+    <div class="workspace-area">
+    
+    <!-- LOANS TAB -->
+    <ng-container *ngIf="activeTab === 'LOANS'">
+      <div class="table-card" *ngIf="!isLoading && !errorMessage">
+        <table class="data-grid">
+          <thead>
+            <tr>
+              <th (click)="sortBy('applicationNumber')">Application ID</th>
+              <th (click)="sortBy('applicantFirstName')">Applicant Name</th>
+              <th (click)="sortBy('appliedAmount')">Amount</th>
+              <th (click)="sortBy('purpose')">Purpose</th>
+              <th (click)="sortBy('creditScore')">ML Score</th>
+              <th (click)="sortBy('riskTier')">Risk Tier</th>
+              <th (click)="sortBy('submittedAt')">Date Applied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of queue" (click)="goToReview(app.applicationNumber)">
+              <td class="font-mono text-indigo">{{ app.applicationNumber }}</td>
+              <td class="font-bold">{{ app.applicantFirstName }} {{ app.applicantLastName }}</td>
+              <td>&#8377;{{ app.appliedAmount | number }}</td>
+              <td>{{ app.purpose }}</td>
+              <td class="font-bold" [ngClass]="{
+                'text-green': app.creditScore >= 750,
+                'text-yellow': app.creditScore >= 600 && app.creditScore < 750,
+                'text-red': app.creditScore < 600
+              }">{{ app.creditScore }}</td>
+              <td>
+                <span class="badge" [ngClass]="'badge-' + (app.riskTier | lowercase)">
+                  {{ app.riskTier }}
+                </span>
+              </td>
+              <td>{{ app.submittedAt | date:'mediumDate' }}</td>
+            </tr>
+            <tr *ngIf="queue.length === 0">
+              <td colspan="7" class="text-center empty-state">No applications currently under review.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <div class="error-state" *ngIf="errorMessage && !isLoading">
-      <p>{{ errorMessage }}</p>
-      <button class="btn btn-outline" (click)="loadQueue()">Try Again</button>
-    </div>
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading application queue...</p>
+      </div>
 
-    <div class="empty-state" *ngIf="!isLoading && !errorMessage && queue.length === 0">
-      <p>The queue is empty. Great job!</p>
-    </div>
+      <div class="error-state" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+        <button class="btn btn-primary" (click)="loadQueue()">Retry</button>
+      </div>
+    </ng-container>
 
-    <!-- The Queue Grid -->
-    <div class="grid-container" *ngIf="!isLoading && !errorMessage && queue.length > 0">
-      <table class="cc-table">
-        <thead>
-          <tr>
-            <th (click)="sortBy('applicationNumber')">App ID {{ getSortIcon('applicationNumber') }}</th>
-            <th (click)="sortBy('applicantFirstName')">Applicant {{ getSortIcon('applicantFirstName') }}</th>
-            <th (click)="sortBy('appliedAmount')">Amount {{ getSortIcon('appliedAmount') }}</th>
-            <th (click)="sortBy('submittedAt')">Date Applied {{ getSortIcon('submittedAt') }}</th>
-            
-            <!-- AC3 & AC4: ML Risk Sorting -->
-            <th class="risk-col" (click)="sortBy('creditScore')">
-              Risk Tier <span class="sort-icon">{{ getSortIcon('creditScore') }}</span>
-              <div class="ml-badge">ML Sorted</div>
-            </th>
-            
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let app of queue" (click)="goToReview(app.applicationNumber)" class="cursor-pointer">
-            <td class="font-mono text-indigo">{{ app.applicationNumber }}</td>
-            <td>
-              <div class="font-medium">{{ app.applicantFirstName }} {{ app.applicantLastName }}</div>
-              <div class="text-sm text-gray">{{ app.purpose }}</div>
-            </td>
-            <td class="font-semibold">&#8377;{{ app.appliedAmount | number }}</td>
-            <td class="text-gray">{{ app.submittedAt | date:'mediumDate' }}</td>
-            
-            <td>
-              <div class="risk-badge" [ngClass]="app.riskTier">
-                <span class="tier">{{ app.riskTier }}</span>
-                <span class="score">Score: {{ app.creditScore }}</span>
-              </div>
-            </td>
-            
-            <td>
-              <button class="btn btn-primary btn-sm">Review</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- KYC TAB -->
+    <ng-container *ngIf="activeTab === 'KYC'">
+      <div class="table-card" *ngIf="!isKycLoading && !kycErrorMessage">
+        <table class="data-grid">
+          <thead>
+            <tr>
+              <th>Applicant Name</th>
+              <th>Email</th>
+              <th>PAN Number</th>
+              <th>Aadhaar Number</th>
+              <th>Profile Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let kyc of pendingKyc" (click)="viewKycDetails(kyc.userId)">
+              <td class="font-bold">{{ kyc.fullName }}</td>
+              <td>{{ kyc.email }}</td>
+              <td class="font-mono">{{ kyc.panNumber }}</td>
+              <td class="font-mono">{{ kyc.aadhaarNumber }}</td>
+              <td>{{ kyc.profileCreatedAt | date:'mediumDate' }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary">Review KYC</button>
+              </td>
+            </tr>
+            <tr *ngIf="pendingKyc.length === 0">
+              <td colspan="6" class="text-center empty-state">No pending KYC verifications.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="loading-state" *ngIf="isKycLoading">
+        <div class="spinner"></div>
+        <p>Loading pending KYC...</p>
+      </div>
+
+      <div class="error-state" *ngIf="kycErrorMessage">
+        <p>{{ kycErrorMessage }}</p>
+        <button class="btn btn-primary" (click)="fetchPendingKyc()">Retry</button>
+      </div>
+    </ng-container>
+
+  </div>
 
   </main>
 </div>

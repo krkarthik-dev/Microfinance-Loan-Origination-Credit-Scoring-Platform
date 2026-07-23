@@ -70,6 +70,13 @@ const routes: Routes = [
     title: 'Review Application | Microfinance'
   },
   {
+    path: 'officer/kyc/:id',
+    loadComponent: () => import('./features/officer/kyc-review/kyc-review.component').then(m => m.KycReviewComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] },
+    title: 'KYC Review | Microfinance'
+  },
+  {
     path: 'admin',
     component: HealthCheckComponent, // Stub destination
     canActivate: [AuthGuard, RoleGuard],

@@ -25,6 +25,17 @@ export interface ApplicationSummary {
   otherDocuments: any[];
 }
 
+export interface PendingKyc {
+  userId: number;
+  fullName: string;
+  email: string;
+  panNumber: string;
+  aadhaarNumber: string;
+  profileCreatedAt: string;
+  panDocumentId: number;
+  aadhaarDocumentId: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -66,5 +77,19 @@ export class OfficerService {
    */
   submitDecision(applicationNumber: string, payload: { decision: string, rejectionReason?: string, internalNotes?: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/applications/${applicationNumber}/decision`, payload);
+  }
+
+  /**
+   * US21: Fetch all users pending KYC verification.
+   */
+  getPendingKyc(): Observable<PendingKyc[]> {
+    return this.http.get<PendingKyc[]>(`${this.apiUrl}/kyc/pending`);
+  }
+
+  /**
+   * US21: Submit KYC decision.
+   */
+  submitKycDecision(userId: number, payload: { decision: string, rejectionReason?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/kyc/${userId}/decision`, payload);
   }
 }

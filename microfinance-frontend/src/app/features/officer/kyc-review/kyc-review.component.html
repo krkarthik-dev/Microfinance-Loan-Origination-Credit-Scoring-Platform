@@ -1,0 +1,134 @@
+<div class="review-container">
+  <!-- Header -->
+  <header class="review-header">
+    <div class="title-area">
+      <button class="btn btn-ghost" (click)="goBack()">← Back to Command Center</button>
+      <h2>KYC Verification <span class="app-num">#USER-{{ userId }}</span></h2>
+    </div>
+    <div class="status-actions">
+      <button class="btn btn-danger" (click)="openModal('REJECT')">Reject KYC</button>
+      <button class="btn btn-success" (click)="openModal('APPROVE')">Approve KYC</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="review-workspace">
+    
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading details...</p>
+    </div>
+
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-outline" (click)="goBack()">Return</button>
+    </div>
+
+    <!-- Left Pane: Data -->
+    <div class="data-pane fade-in" *ngIf="!isLoading && details">
+      
+      <!-- Section A: Profile -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Applicant Profile</h3>
+        </div>
+        <div class="data-grid">
+          <div class="data-group"><label>Full Name</label><span>{{ details.fullName }}</span></div>
+          <div class="data-group"><label>Email</label><span>{{ details.email }}</span></div>
+          <div class="data-group"><label>PAN Number</label><span class="font-mono">{{ details.panNumber }}</span></div>
+          <div class="data-group"><label>Aadhaar Number</label><span class="font-mono">{{ details.aadhaarNumber }}</span></div>
+        </div>
+      </div>
+
+      <!-- Section: Document Links -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Uploaded Documents</h3>
+        </div>
+        <div class="document-list">
+          <!-- PAN -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">PAN Card</span>
+              <span class="doc-meta">Identity Proof</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-outline" (click)="viewDocument(details.panDocumentId, 'PAN Card')">
+                View
+              </button>
+            </div>
+          </div>
+          <!-- Aadhaar -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">Aadhaar Card</span>
+              <span class="doc-meta">Address Proof</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-outline" (click)="viewDocument(details.aadhaarDocumentId, 'Aadhaar Card')">
+                View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Pane: Document Viewer -->
+    <div class="viewer-pane fade-in" *ngIf="!isLoading && details">
+      <div class="viewer-header">
+        <h3>Document Viewer: {{ activeDocumentTitle }}</h3>
+      </div>
+      <div class="viewer-body">
+        <div *ngIf="!activeDocumentUrl" class="empty-viewer">
+          Select a document from the left pane to view it here.
+        </div>
+        <object *ngIf="activeDocumentUrl" [data]="activeDocumentUrl" type="application/pdf" width="100%" height="100%">
+          <p>Your browser does not support PDFs or Images here. <a [href]="activeDocumentUrl" target="_blank">Download instead.</a></p>
+        </object>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal-backdrop" *ngIf="activeModal === 'APPROVE'">
+  <div class="modal-content">
+    <h3>Confirm KYC Approval</h3>
+    <p>Are you sure you want to approve KYC for <strong>{{ details?.fullName }}</strong>? This will unlock their ability to apply for loans.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-success" (click)="submitDecision()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Confirm Approval' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-backdrop" *ngIf="activeModal === 'REJECT'">
+  <div class="modal-content">
+    <h3>Reject KYC</h3>
+    <p>Please select the reason for rejecting the KYC for <strong>{{ details?.fullName }}</strong>.</p>
+    
+    <div class="form-group">
+      <label>Rejection Reason *</label>
+      <select class="form-control" [(ngModel)]="rejectionReason">
+        <option value="" disabled selected>Select a reason</option>
+        <option value="Illegible Document">Illegible or Blurry Document</option>
+        <option value="Name Mismatch">Name on Document Does Not Match Profile</option>
+        <option value="Invalid Document">Invalid or Expired Document</option>
+        <option value="Suspected Forgery">Suspected Forgery</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-danger" (click)="submitDecision()" [disabled]="!rejectionReason || isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Submit Rejection' }}
+      </button>
+    </div>
+  </div>
+</div>

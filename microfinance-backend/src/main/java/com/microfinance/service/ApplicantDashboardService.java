@@ -77,7 +77,8 @@ public class ApplicantDashboardService {
         // Profile is complete if text profile is filled AND both PAN and Aadhaar are uploaded
         boolean hasTextProfile = userProfileRepository.findByUserId(applicantId)
                 .map(profile -> profile.getPanNumber() != null && !profile.getPanNumber().trim().isEmpty() &&
-                                profile.getAadhaarNumber() != null && !profile.getAadhaarNumber().trim().isEmpty())
+                                profile.getAadhaarNumber() != null && !profile.getAadhaarNumber().trim().isEmpty() &&
+                                profile.isKycVerified())
                 .orElse(false);
 
         boolean hasPanDocument = kycDocumentRepository.findByUserIdAndDocumentType(applicantId, com.microfinance.enums.DocumentType.PAN).isPresent();

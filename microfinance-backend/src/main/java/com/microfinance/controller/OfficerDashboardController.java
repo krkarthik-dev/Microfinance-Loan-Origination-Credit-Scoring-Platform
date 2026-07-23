@@ -4,6 +4,8 @@ import com.microfinance.dto.OfficerApplicationDetailDTO;
 import com.microfinance.dto.OfficerApplicationDetailDTO;
 import com.microfinance.dto.OfficerApplicationSummaryDTO;
 import com.microfinance.dto.OfficerDecisionRequestDTO;
+import com.microfinance.dto.PendingKycDTO;
+import com.microfinance.dto.KycDecisionRequestDTO;
 import com.microfinance.entity.AuditLog;
 import com.microfinance.entity.CreditScore;
 import com.microfinance.entity.KycDocument;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -236,6 +239,97 @@ public class OfficerDashboardController {
         // Since we don't have a specific notes field in AuditLog, we can store it in newValue or a similar construct.
         // But for simplicity, we'll serialize the state to newValue
         audit.setNewValue("{\"status\":\"" + newStatus.name() + "\", \"details\":\"" + noteDetails + "\"}");
+        
+        auditLogRepository.save(audit);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * US21: Fetch all users pending KYC Verification.
+     */
+    @GetMapping("/kyc/pending")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<List<PendingKycDTO>> getPendingKyc() {
+        List<UserProfile> pendingProfiles = userProfileRepository.findByKycVerifiedFalse();
+        
+        List<PendingKycDTO> dtos = pendingProfiles.stream().map(profile -> {
+            Long userId = profile.getUser().getId();
+            
+            Long panDocId = kycDocumentRepository.findByUserIdAndDocumentType(userId, DocumentType.PAN)
+                    .map(KycDocument::getId).orElse(null);
+            Long aadhaarDocId = kycDocumentRepository.findByUserIdAndDocumentType(userId, DocumentType.AADHAAR)
+                    .map(KycDocument::getId).orElse(null);
+                    
+            // Only include if they actually uploaded documents
+            if (panDocId == null || aadhaarDocId == null) {
+                return null;
+            }
+
+            return PendingKycDTO.builder()
+                    .userId(userId)
+                    .fullName(profile.getFirstName() + " " + profile.getLastName())
+                    .email(profile.getUser().getEmail())
+                    .panNumber(profile.getPanNumber())
+                    .aadhaarNumber(profile.getAadhaarNumber())
+                    .profileCreatedAt(profile.getCreatedAt())
+                    .panDocumentId(panDocId)
+                    .aadhaarDocumentId(aadhaarDocId)
+                    .build();
+        }).filter(dto -> dto != null).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    /**
+     * US21: Process KYC Verification Decision.
+     */
+    @PutMapping("/kyc/{userId}/decision")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<?> submitKycDecision(
+            @PathVariable Long userId,
+            @RequestBody KycDecisionRequestDTO request) {
+
+        Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(userId);
+        if (profileOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        UserProfile profile = profileOpt.get();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User officer = userRepository.findByEmail(auth.getName()).orElse(null);
+
+        boolean isApproved = "APPROVE".equalsIgnoreCase(request.getDecision());
+        
+        if (isApproved) {
+            profile.setKycVerified(true);
+            userProfileRepository.save(profile);
+            
+            // Also mark the specific documents as verified
+            List<KycDocument> docs = kycDocumentRepository.findByUserId(userId);
+            for (KycDocument doc : docs) {
+                doc.setVerified(true);
+                doc.setVerifiedBy(officer);
+                doc.setVerifiedAt(LocalDateTime.now());
+                kycDocumentRepository.save(doc);
+            }
+        }
+
+        // Audit Logging
+        String action = isApproved ? "KYC_APPROVED" : "KYC_REJECTED";
+        String noteDetails = "Decision: " + request.getDecision();
+        if (!isApproved && request.getRejectionReason() != null) {
+            noteDetails += " | Reason: " + request.getRejectionReason();
+        }
+
+        AuditLog audit = AuditLog.builder()
+                .entityType("USER_PROFILE")
+                .entityId(profile.getId())
+                .action(action)
+                .performedBy(officer)
+                .oldValue("kycVerified=false")
+                .newValue("{\"kycVerified\":" + isApproved + ", \"details\":\"" + noteDetails + "\"}")
+                .build();
         
         auditLogRepository.save(audit);
 
