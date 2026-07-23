@@ -1,126 +1,220 @@
 <div class="wizard-container">
   <div class="wizard-card">
-    
+
     <!-- Header & Stepper Progress -->
     <div class="wizard-header">
-      <h2>Loan Application</h2>
-      
+      <button class="back-to-dash" (click)="cancel()">&#8592; Back to Dashboard</button>
+      <h2>New Loan Application</h2>
+
       <div class="stepper">
+        <!-- Step 1 -->
         <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
-          <div class="step-circle">1</div>
+          <div class="step-circle">
+            <span *ngIf="currentStep <= 1">1</span>
+            <span *ngIf="currentStep > 1">✓</span>
+          </div>
           <div class="step-label">Loan Requirements</div>
         </div>
         <div class="step-line" [class.active]="currentStep >= 2"></div>
-        
+
+        <!-- Step 2 -->
         <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
-          <div class="step-circle">2</div>
-          <div class="step-label">Income Verification</div>
+          <div class="step-circle">
+            <span *ngIf="currentStep <= 2">2</span>
+            <span *ngIf="currentStep > 2">✓</span>
+          </div>
+          <div class="step-label">Guarantor Details</div>
         </div>
         <div class="step-line" [class.active]="currentStep >= 3"></div>
-        
-        <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+
+        <!-- Step 3 -->
+        <div class="step" [class.active]="currentStep >= 3">
           <div class="step-circle">3</div>
-          <div class="step-label">Review & Submit</div>
+          <div class="step-label">Review &amp; Submit</div>
         </div>
       </div>
     </div>
 
-    <!-- Step 1: Loan Requirements -->
+    <!-- ==================== STEP 1: Loan Requirements ==================== -->
     <div class="step-content" *ngIf="currentStep === 1">
       <div class="step-title">
         <h3>Step 1: What do you need?</h3>
         <p>Tell us how much you want to borrow and why.</p>
       </div>
 
-      <form [formGroup]="loanForm" (ngSubmit)="nextStep()">
-        
+      <form [formGroup]="loanRequirementsForm" (ngSubmit)="nextStep()">
+
+        <!-- Principal Amount -->
         <div class="form-group">
-          <label for="principalAmount">Requested Principal Amount (₹) *</label>
-          <input type="number" id="principalAmount" formControlName="principalAmount" class="form-control" [class.is-invalid]="isInvalid('principalAmount')" placeholder="e.g. 10000">
-          <div class="invalid-feedback" *ngIf="isInvalid('principalAmount')">
-            <span *ngIf="f['principalAmount'].errors?.['required']">Amount is required.</span>
-            <span *ngIf="f['principalAmount'].errors?.['min']">Minimum amount is ₹1,000.</span>
-            <span *ngIf="f['principalAmount'].errors?.['max']">Maximum amount is ₹50,000.</span>
+          <label for="principalAmount">Requested Principal Amount (&#8377;) *</label>
+          <input type="number" id="principalAmount" formControlName="principalAmount"
+                 class="form-control" [class.is-invalid]="isReqInvalid('principalAmount')"
+                 placeholder="e.g. 50000">
+          <div class="invalid-feedback" *ngIf="isReqInvalid('principalAmount')">
+            <span *ngIf="reqF['principalAmount'].errors?.['required']">Amount is required.</span>
+            <span *ngIf="reqF['principalAmount'].errors?.['min']">Minimum amount is &#8377;1,000.</span>
+            <span *ngIf="reqF['principalAmount'].errors?.['max']">Maximum amount is &#8377;5,00,000.</span>
           </div>
         </div>
 
+        <!-- Tenure Slider -->
         <div class="form-group">
           <label for="tenureMonths">Loan Tenure (Months) *</label>
-          
           <div class="slider-container">
-            <input type="range" id="tenureMonths" formControlName="tenureMonths" min="3" max="24" step="3" class="form-range">
+            <input type="range" id="tenureMonths" formControlName="tenureMonths"
+                   min="3" max="24" step="3" class="form-range">
             <div class="slider-value">
-              <span>{{ loanForm.get('tenureMonths')?.value }} Months</span>
+              <span>{{ loanRequirementsForm.get('tenureMonths')?.value }} Months</span>
             </div>
           </div>
           <div class="slider-labels">
             <span>3m</span>
+            <span>6m</span>
+            <span>9m</span>
+            <span>12m</span>
+            <span>15m</span>
+            <span>18m</span>
+            <span>21m</span>
             <span>24m</span>
           </div>
         </div>
 
+        <!-- Purpose -->
         <div class="form-group">
           <label for="purpose">Loan Purpose *</label>
-          <select id="purpose" formControlName="purpose" class="form-control" [class.is-invalid]="isInvalid('purpose')">
+          <select id="purpose" formControlName="purpose" class="form-control"
+                  [class.is-invalid]="isReqInvalid('purpose')">
             <option value="">Select Purpose</option>
-            <option *ngFor="let purpose of purposes" [value]="purpose">{{ purpose }}</option>
+            <option *ngFor="let p of purposes" [value]="p">{{ p }}</option>
           </select>
-          <div class="invalid-feedback" *ngIf="isInvalid('purpose')">
+          <div class="invalid-feedback" *ngIf="isReqInvalid('purpose')">
             Please select a loan purpose.
           </div>
         </div>
 
         <div class="wizard-actions">
-          <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Next Step</button>
+          <button type="button" class="btn btn-ghost" (click)="cancel()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Next Step <span class="arrow">&#8594;</span>
+          </button>
         </div>
       </form>
     </div>
 
-    <!-- Step 2: Placeholder Shell -->
-    <div class="step-content text-center" *ngIf="currentStep === 2">
+    <!-- ==================== STEP 2: Guarantor Details ==================== -->
+    <div class="step-content" *ngIf="currentStep === 2">
       <div class="step-title">
-        <h3>Step 2: Income Verification</h3>
-        <p>Connect your bank account to verify your income securely.</p>
-      </div>
-      
-      <div class="empty-state">
-        <div class="icon">🏦</div>
-        <h4>Bank Sync Integration Pending</h4>
-        <p>This step will securely pull your bank statements to assess your repayment capacity.</p>
+        <h3>Step 2: Guarantor Details</h3>
+        <p>A guarantor is required by our underwriting policy. Please provide their information accurately.</p>
       </div>
 
-      <div class="wizard-actions">
-        <button type="button" class="btn btn-secondary" (click)="prevStep()">Back</button>
-        <button type="button" class="btn btn-primary" (click)="nextStep()">Simulate Bank Sync & Next</button>
+      <div class="info-banner">
+        <span class="info-icon">ℹ️</span>
+        <span>The guarantor co-signs your application and agrees to be liable if repayments are missed.</span>
       </div>
+
+      <form [formGroup]="guarantorForm" (ngSubmit)="nextStep()">
+
+        <!-- Guarantor Name -->
+        <div class="form-group">
+          <label for="guarName">Guarantor Full Name *</label>
+          <input type="text" id="guarName" formControlName="name"
+                 class="form-control" [class.is-invalid]="isGuarInvalid('name')"
+                 placeholder="e.g. Rajesh Kumar">
+          <div class="invalid-feedback" *ngIf="isGuarInvalid('name')">
+            <span *ngIf="guarF['name'].errors?.['required']">Guarantor name is required.</span>
+            <span *ngIf="guarF['name'].errors?.['minlength']">Name must be at least 3 characters.</span>
+            <span *ngIf="guarF['name'].errors?.['pattern']">Name must contain letters only (no numbers or symbols).</span>
+          </div>
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label for="guarCity">Guarantor's City *</label>
+          <input type="text" id="guarCity" formControlName="city"
+                 class="form-control" [class.is-invalid]="isGuarInvalid('city')"
+                 placeholder="e.g. Chennai">
+          <div class="invalid-feedback" *ngIf="isGuarInvalid('city')">
+            <span *ngIf="guarF['city'].errors?.['required']">City is required.</span>
+            <span *ngIf="guarF['city'].errors?.['pattern']">City must contain letters only.</span>
+          </div>
+        </div>
+
+        <!-- PIN / ZIP Code -->
+        <div class="form-group">
+          <label for="guarZip">Guarantor's PIN Code *</label>
+          <input type="text" id="guarZip" formControlName="zipCode"
+                 class="form-control" [class.is-invalid]="isGuarInvalid('zipCode')"
+                 placeholder="e.g. 600001" maxlength="6">
+          <div class="invalid-feedback" *ngIf="isGuarInvalid('zipCode')">
+            <span *ngIf="guarF['zipCode'].errors?.['required']">PIN code is required.</span>
+            <span *ngIf="guarF['zipCode'].errors?.['pattern']">PIN code must be exactly 6 digits.</span>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!isGuarantorValid">
+            Next Step <span class="arrow">&#8594;</span>
+          </button>
+        </div>
+      </form>
     </div>
 
-    <!-- Step 3: Placeholder Shell -->
-    <div class="step-content text-center" *ngIf="currentStep === 3">
+    <!-- ==================== STEP 3: Review & Submit ==================== -->
+    <div class="step-content" *ngIf="currentStep === 3">
       <div class="step-title">
-        <h3>Step 3: Review & Submit</h3>
-        <p>Review your loan configuration and submit your application.</p>
+        <h3>Step 3: Review &amp; Submit</h3>
+        <p>Review your application details carefully before submitting.</p>
       </div>
 
-      <div class="summary-box">
-        <div class="summary-row">
-          <span>Amount Requested:</span>
-          <strong>{{ loanForm.get('principalAmount')?.value | currency:'INR' }}</strong>
+      <div class="review-grid">
+        <!-- Loan Details card -->
+        <div class="review-card">
+          <div class="review-card-header">
+            <span class="review-icon">💰</span>
+            <h4>Loan Requirements</h4>
+          </div>
+          <div class="summary-row">
+            <span>Amount Requested</span>
+            <strong>&#8377;{{ loanRequirementsForm.get('principalAmount')?.value | number }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Tenure</span>
+            <strong>{{ loanRequirementsForm.get('tenureMonths')?.value }} Months</strong>
+          </div>
+          <div class="summary-row">
+            <span>Purpose</span>
+            <strong>{{ loanRequirementsForm.get('purpose')?.value }}</strong>
+          </div>
         </div>
-        <div class="summary-row">
-          <span>Tenure:</span>
-          <strong>{{ loanForm.get('tenureMonths')?.value }} Months</strong>
-        </div>
-        <div class="summary-row">
-          <span>Purpose:</span>
-          <strong>{{ loanForm.get('purpose')?.value }}</strong>
+
+        <!-- Guarantor card -->
+        <div class="review-card">
+          <div class="review-card-header">
+            <span class="review-icon">🤝</span>
+            <h4>Guarantor Details</h4>
+          </div>
+          <div class="summary-row">
+            <span>Name</span>
+            <strong>{{ guarantorForm.get('name')?.value }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>City</span>
+            <strong>{{ guarantorForm.get('city')?.value }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>PIN Code</span>
+            <strong>{{ guarantorForm.get('zipCode')?.value }}</strong>
+          </div>
         </div>
       </div>
 
       <div class="wizard-actions">
-        <button type="button" class="btn btn-secondary" (click)="prevStep()">Back</button>
-        <button type="button" class="btn btn-primary" (click)="cancel()">Save as Draft (End of US11)</button>
+        <button type="button" class="btn btn-ghost" (click)="prevStep()">&#8592; Back</button>
+        <button type="button" class="btn btn-primary submit-btn" (click)="cancel()">
+          Save as Draft
+        </button>
       </div>
     </div>
 
