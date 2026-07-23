@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { BorrowerService } from '../borrower.service';
+import { OfficerService } from '../../officer/officer.service';
 
 export interface UploadedFile {
   file: File;
@@ -54,6 +55,10 @@ export class LoanApplicationComponent implements OnInit {
   submittedAppNumber: string | null = null;
   pdfBlobUrl: string | null = null;
 
+  // Officer Mode
+  isOfficerMode = false;
+  borrowerEmail: string | null = null;
+
   purposes = [
     'Agriculture', 'Small Business Setup', 'Medical Emergency',
     'Education', 'Home Repair'
@@ -66,10 +71,20 @@ export class LoanApplicationComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private borrowerService: BorrowerService
+    private route: ActivatedRoute,
+    private borrowerService: BorrowerService,
+    private officerService: OfficerService
   ) {}
 
-  ngOnInit(): void { this.initForms(); }
+  ngOnInit(): void { 
+    this.initForms(); 
+    this.route.paramMap.subscribe(params => {
+      if (params.has('email')) {
+        this.isOfficerMode = true;
+        this.borrowerEmail = params.get('email');
+      }
+    });
+  }
 
   private initForms(): void {
     this.loanRequirementsForm = this.fb.group({
@@ -229,14 +244,34 @@ export class LoanApplicationComponent implements OnInit {
     this.otherFiles.forEach(f => fd.append('otherDocs', f.file, f.name));
     fd.append('signature',   this.signatureFile!.file, this.signatureFile!.name);
 
-    this.borrowerService.submitLoanApplication(fd).subscribe({
+    const submitObservable = this.isOfficerMode
+      ? this.officerService.submitDirectLoanApplication(this.borrowerEmail!, fd)
+      : this.borrowerService.submitLoanApplication(fd);
+
+    submitObservable.subscribe({
       next: (response: any) => {
         this.isSubmitting = false;
         // Extract application number from response header
         const appNumber = response.headers.get('X-Application-Number');
         if (appNumber) {
-          // AC1: Redirect to tracking page
-          this.router.navigate(['/applicant/loan', appNumber, 'tracking']);
+          if (this.isOfficerMode) {
+             // Create an object URL for the PDF blob to download it automatically
+             const blob = new Blob([response.body], { type: 'application/pdf' });
+             const url = window.URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `${appNumber}_application.pdf`;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             window.URL.revokeObjectURL(url);
+             
+             // Then redirect back to officer dashboard
+             this.router.navigate(['/officer']);
+          } else {
+             // AC1: Redirect to tracking page for online borrower
+             this.router.navigate(['/applicant/loan', appNumber, 'tracking']);
+          }
         } else {
           this.submissionError = 'Submission succeeded, but tracking ID was missing.';
         }
@@ -249,5 +284,11 @@ export class LoanApplicationComponent implements OnInit {
     });
   }
 
-  cancel(): void { this.router.navigate(['/applicant']); }
+  cancel(): void { 
+    if (this.isOfficerMode) {
+       this.router.navigate(['/officer']);
+    } else {
+       this.router.navigate(['/applicant']);
+    }
+  }
 }

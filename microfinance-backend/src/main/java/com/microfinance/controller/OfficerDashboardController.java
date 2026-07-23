@@ -22,6 +22,7 @@ import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.LoanDocumentRepository;
 import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
+import com.microfinance.service.LoanSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,7 @@ public class OfficerDashboardController {
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoanSubmissionService loanSubmissionService;
 
     /**
      * US16: Returns a list of all applications currently in the UNDER_REVIEW state.
@@ -391,6 +393,56 @@ public class OfficerDashboardController {
                 .build();
         auditLogRepository.save(audit);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(java.util.Map.of("email", user.getEmail()));
+    }
+
+    /**
+     * US23: Direct Deal Origination via Standard Stepper
+     */
+    @PostMapping(value = "/direct-application/{email}/loan/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<?> submitDirectApplication(
+            @PathVariable String email,
+            @org.springframework.web.bind.annotation.RequestParam("principalAmount") BigDecimal principalAmount,
+            @org.springframework.web.bind.annotation.RequestParam("tenureMonths")    int tenureMonths,
+            @org.springframework.web.bind.annotation.RequestParam("purpose")         String purpose,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorName")    String guarantorName,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorAddress") String guarantorAddress,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorCity")    String guarantorCity,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorZip")     String guarantorZip,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorAadhaar") String guarantorAadhaar,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorPan")     String guarantorPan,
+            @org.springframework.web.bind.annotation.RequestParam("incomeCert")    org.springframework.web.multipart.MultipartFile incomeCert,
+            @org.springframework.web.bind.annotation.RequestParam("photo")         org.springframework.web.multipart.MultipartFile photo,
+            @org.springframework.web.bind.annotation.RequestParam("guarantorId")   org.springframework.web.multipart.MultipartFile guarantorId,
+            @org.springframework.web.bind.annotation.RequestParam(value = "otherDocs", required = false) org.springframework.web.multipart.MultipartFile[] otherDocs,
+            @org.springframework.web.bind.annotation.RequestParam("signature") org.springframework.web.multipart.MultipartFile signature
+    ) {
+        try {
+            LoanApplication saved = loanSubmissionService.submitApplication(
+                    email,
+                    principalAmount, tenureMonths, purpose,
+                    guarantorName, guarantorAddress, guarantorCity, guarantorZip,
+                    guarantorAadhaar, guarantorPan,
+                    incomeCert, photo, guarantorId, otherDocs,
+                    signature
+            );
+
+            // Return the generated PDF directly as a downloadable file
+            byte[] pdfBytes = saved.getApplicationPdf();
+            String filename = saved.getApplicationNumber() + "_application.pdf";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header("X-Application-Number", saved.getApplicationNumber())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        } catch (java.io.IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("error", "Failed to generate application PDF: " + e.getMessage()));
+        }
     }
 }

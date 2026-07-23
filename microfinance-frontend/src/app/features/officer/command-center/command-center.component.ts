@@ -178,10 +178,16 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     this.directAppSuccess = false;
 
     this.officerService.createDirectApplication(this.directAppForm.value).subscribe({
-      next: () => {
+      next: (response) => {
         this.isSubmittingDirectApp = false;
         this.directAppSuccess = true;
-        setTimeout(() => this.closeDirectApplicationModal(), 2000);
+        setTimeout(() => {
+          this.closeDirectApplicationModal();
+          // Navigate to the direct application stepper with the email
+          if (response && response.email) {
+            this.router.navigate(['/officer/direct-application', response.email, 'apply']);
+          }
+        }, 1500);
       },
       error: (err) => {
         this.isSubmittingDirectApp = false;

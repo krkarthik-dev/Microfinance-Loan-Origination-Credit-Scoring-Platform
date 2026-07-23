@@ -96,7 +96,14 @@ export class OfficerService {
   /**
    * US22: Walk-In Account Generation
    */
-  createDirectApplication(payload: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/direct-application`, payload);
+  createDirectApplication(data: any): Observable<{email: string}> {
+    return this.http.post<{email: string}>(`${this.apiUrl}/direct-application`, data);
+  }
+
+  submitDirectLoanApplication(email: string, formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/direct-application/${email}/loan/submit`, formData, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
 }
