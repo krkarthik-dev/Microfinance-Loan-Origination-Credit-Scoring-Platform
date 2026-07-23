@@ -27,6 +27,15 @@ export interface UserProfile {
   monthlyIncome: number;
 }
 
+export interface KycUploadResponse {
+  id: number;
+  documentType: string;
+  fileName: string;
+  fileSizeBytes: number;
+  verified: boolean;
+  uploadedAt: string;
+}
+
 export interface DashboardMetrics {
   activeLoans: number;
   totalOutstanding: number;
@@ -53,5 +62,16 @@ export class BorrowerService {
 
   updateProfile(profile: UserProfile): Observable<UserProfile> {
     return this.http.put<UserProfile>(`${this.apiUrl}/profile`, profile);
+  }
+
+  uploadKycDocument(file: File, documentType: string): Observable<KycUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+    return this.http.post<KycUploadResponse>(`${this.apiUrl}/kyc/upload`, formData);
+  }
+
+  getKycDocumentMetadata(documentType: string): Observable<KycUploadResponse> {
+    return this.http.get<KycUploadResponse>(`${this.apiUrl}/kyc/${documentType}`);
   }
 }

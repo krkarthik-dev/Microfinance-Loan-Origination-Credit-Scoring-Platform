@@ -6,6 +6,7 @@ import com.microfinance.entity.User;
 import com.microfinance.entity.LoanApplication;
 import com.microfinance.entity.UserProfile;
 import com.microfinance.enums.ApplicationStatus;
+import com.microfinance.repository.KycDocumentRepository;
 import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
@@ -27,6 +28,7 @@ public class ApplicantDashboardService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final KycDocumentRepository kycDocumentRepository;
 
     /**
      * Calculates the borrower dashboard metrics.
@@ -71,11 +73,17 @@ public class ApplicantDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 5. KYC Status Evaluation (US08)
-        boolean profileComplete = userProfileRepository.findByUserId(applicantId)
+        // 5. KYC Status Evaluation (US08 & US10)
+        // Profile is complete if text profile is filled AND both PAN and Aadhaar are uploaded
+        boolean hasTextProfile = userProfileRepository.findByUserId(applicantId)
                 .map(profile -> profile.getPanNumber() != null && !profile.getPanNumber().trim().isEmpty() &&
                                 profile.getAadhaarNumber() != null && !profile.getAadhaarNumber().trim().isEmpty())
                 .orElse(false);
+
+        boolean hasPanDocument = kycDocumentRepository.findByUserIdAndDocumentType(applicantId, com.microfinance.enums.DocumentType.PAN).isPresent();
+        boolean hasAadhaarDocument = kycDocumentRepository.findByUserIdAndDocumentType(applicantId, com.microfinance.enums.DocumentType.AADHAAR).isPresent();
+
+        boolean profileComplete = hasTextProfile && hasPanDocument && hasAadhaarDocument;
 
         return DashboardMetricsDto.builder()
                 .activeLoans(activeLoans)

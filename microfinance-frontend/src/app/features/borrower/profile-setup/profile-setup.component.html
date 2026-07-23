@@ -180,5 +180,87 @@
       </div>
       
     </form>
+
+    <!-- US10: Document Upload Section (Only visible after profile is saved) -->
+    <div class="document-upload-section" *ngIf="hasExistingProfile">
+      <h2>Upload KYC Documents</h2>
+      <p class="subtitle">Please upload clear images of your PAN and Aadhaar cards. Max size: 5MB.</p>
+
+      <div class="upload-grid">
+        <!-- PAN Card Upload Zone -->
+        <div class="upload-card">
+          <h3>PAN Card</h3>
+          <div class="drop-zone" 
+               [class.drag-over]="isPanDragOver"
+               [class.uploaded]="panDocument != null"
+               (dragover)="onDragOver($event, 'PAN')"
+               (dragleave)="onDragLeave($event, 'PAN')"
+               (drop)="onDrop($event, 'PAN')">
+               
+            <ng-container *ngIf="!panDocument && !isUploadingPan">
+              <div class="upload-icon">📄</div>
+              <p>Drag & Drop PAN Card here</p>
+              <p>or</p>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="panInput.click()">Browse File</button>
+              <input type="file" #panInput style="display: none" accept="image/jpeg, image/png, image/webp" (change)="onFileSelected($event, 'PAN')">
+            </ng-container>
+
+            <ng-container *ngIf="isUploadingPan">
+              <div class="loader"></div>
+              <p>Compressing & Uploading...</p>
+            </ng-container>
+
+            <ng-container *ngIf="panDocument">
+              <img [src]="getPreviewUrl('PAN')" alt="PAN Preview" class="doc-preview">
+              <div class="doc-status" *ngIf="panDocument.verified">
+                <span class="badge-verified">Verified ✓</span>
+              </div>
+              <div class="doc-actions" *ngIf="!panDocument.verified">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="panInput.click()">Re-upload</button>
+                <input type="file" #panInput style="display: none" accept="image/jpeg, image/png, image/webp" (change)="onFileSelected($event, 'PAN')">
+              </div>
+            </ng-container>
+          </div>
+          <div class="error-msg" *ngIf="panUploadError">{{ panUploadError }}</div>
+        </div>
+
+        <!-- Aadhaar Card Upload Zone -->
+        <div class="upload-card">
+          <h3>Aadhaar Card</h3>
+          <div class="drop-zone" 
+               [class.drag-over]="isAadhaarDragOver"
+               [class.uploaded]="aadhaarDocument != null"
+               (dragover)="onDragOver($event, 'AADHAAR')"
+               (dragleave)="onDragLeave($event, 'AADHAAR')"
+               (drop)="onDrop($event, 'AADHAAR')">
+               
+            <ng-container *ngIf="!aadhaarDocument && !isUploadingAadhaar">
+              <div class="upload-icon">📄</div>
+              <p>Drag & Drop Aadhaar Card here</p>
+              <p>or</p>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="aadhaarInput.click()">Browse File</button>
+              <input type="file" #aadhaarInput style="display: none" accept="image/jpeg, image/png, image/webp" (change)="onFileSelected($event, 'AADHAAR')">
+            </ng-container>
+
+            <ng-container *ngIf="isUploadingAadhaar">
+              <div class="loader"></div>
+              <p>Compressing & Uploading...</p>
+            </ng-container>
+
+            <ng-container *ngIf="aadhaarDocument">
+              <img [src]="getPreviewUrl('AADHAAR')" alt="Aadhaar Preview" class="doc-preview">
+              <div class="doc-status" *ngIf="aadhaarDocument.verified">
+                <span class="badge-verified">Verified ✓</span>
+              </div>
+              <div class="doc-actions" *ngIf="!aadhaarDocument.verified">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="aadhaarInput.click()">Re-upload</button>
+                <input type="file" #aadhaarInput style="display: none" accept="image/jpeg, image/png, image/webp" (change)="onFileSelected($event, 'AADHAAR')">
+              </div>
+            </ng-container>
+          </div>
+          <div class="error-msg" *ngIf="aadhaarUploadError">{{ aadhaarUploadError }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

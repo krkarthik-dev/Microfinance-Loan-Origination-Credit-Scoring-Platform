@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 /**
  * Metadata and S3 reference for a KYC document uploaded by a borrower.
  *
- * <p>Actual document bytes are stored in AWS S3. Only the S3 key, bucket,
- * and verification status are persisted here. This avoids storing sensitive
- * binary data in the relational database.
+ * Actual document bytes are stored directly in PostgreSQL (BYTEA).
  */
 @Entity
 @Table(name = "kyc_documents")
@@ -36,11 +34,11 @@ public class KycDocument {
     @Column(name = "document_type", nullable = false, length = 20)
     private DocumentType documentType;
 
-    @Column(name = "s3_bucket", nullable = false, length = 100)
-    private String s3Bucket;
+    @Column(name = "file_data", nullable = false)
+    private byte[] fileData;
 
-    @Column(name = "s3_key", nullable = false, length = 255)
-    private String s3Key;
+    @Column(name = "content_type", nullable = false, length = 100)
+    private String contentType;
 
     @Column(name = "file_name", nullable = false, length = 255)
     private String fileName;
