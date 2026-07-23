@@ -3,10 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface LoanActivity {
+  loanId: string;
+  requestedAmount: number;
+  dateApplied: string;
+  status: string;
+}
+
 export interface DashboardMetrics {
   activeLoans: number;
   totalOutstanding: number;
   pendingApplications: number;
+  recentActivity: LoanActivity[];
 }
 
 @Injectable({

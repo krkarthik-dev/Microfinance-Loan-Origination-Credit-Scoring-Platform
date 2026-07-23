@@ -1,6 +1,7 @@
 package com.microfinance.service;
 
 import com.microfinance.dto.DashboardMetricsDto;
+import com.microfinance.entity.LoanApplication;
 import com.microfinance.entity.User;
 import com.microfinance.enums.ApplicationStatus;
 import com.microfinance.repository.LoanApplicationRepository;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +49,14 @@ class ApplicantDashboardServiceTest {
                 
         when(loanApplicationRepository.sumApprovedAmountByApplicantIdAndStatusIn(eq(100L), any()))
                 .thenReturn(new BigDecimal("150000.00"));
+                
+        LoanApplication mockApp = LoanApplication.builder()
+                .applicationNumber("APP-123")
+                .appliedAmount(new BigDecimal("1000.00"))
+                .status(ApplicationStatus.SUBMITTED)
+                .build();
+        when(loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(100L))
+                .thenReturn(List.of(mockApp));
 
         // Act
         DashboardMetricsDto metrics = applicantDashboardService.getDashboardMetrics(username);
@@ -56,5 +66,7 @@ class ApplicantDashboardServiceTest {
         assertThat(metrics.getPendingApplications()).isEqualTo(3);
         assertThat(metrics.getActiveLoans()).isEqualTo(2);
         assertThat(metrics.getTotalOutstanding()).isEqualByComparingTo(new BigDecimal("150000.00"));
+        assertThat(metrics.getRecentActivity()).hasSize(1);
+        assertThat(metrics.getRecentActivity().get(0).getLoanId()).isEqualTo("APP-123");
     }
 }

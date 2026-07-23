@@ -1,7 +1,9 @@
 package com.microfinance.service;
 
 import com.microfinance.dto.DashboardMetricsDto;
+import com.microfinance.dto.LoanActivityDto;
 import com.microfinance.entity.User;
+import com.microfinance.entity.LoanApplication;
 import com.microfinance.enums.ApplicationStatus;
 import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.UserRepository;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +57,22 @@ public class ApplicantDashboardService {
         // 3. Total Outstanding Balance
         BigDecimal totalOutstanding = loanApplicationRepository.sumApprovedAmountByApplicantIdAndStatusIn(applicantId, activeStatuses);
 
+        // 4. Recent Activity
+        List<LoanApplication> applications = loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(applicantId);
+        List<LoanActivityDto> recentActivity = applications.stream()
+                .map(app -> LoanActivityDto.builder()
+                        .loanId(app.getApplicationNumber())
+                        .requestedAmount(app.getAppliedAmount())
+                        .dateApplied(app.getSubmittedAt() != null ? app.getSubmittedAt() : app.getCreatedAt())
+                        .status(app.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+
         return DashboardMetricsDto.builder()
                 .activeLoans(activeLoans)
                 .totalOutstanding(totalOutstanding)
                 .pendingApplications(pendingApplications)
+                .recentActivity(recentActivity)
                 .build();
     }
 }

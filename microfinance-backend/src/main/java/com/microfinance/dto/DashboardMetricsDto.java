@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * DTO for carrying dashboard summary metrics for a borrower.
@@ -18,4 +19,5 @@ public class DashboardMetricsDto {
     private int activeLoans;
     private BigDecimal totalOutstanding;
     private int pendingApplications;
+    private List<LoanActivityDto> recentActivity;
 }

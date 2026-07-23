@@ -58,5 +58,43 @@
       </div>
 
     </div>
+
+    <!-- AC1, AC2, AC3, AC4: Recent Activity Table -->
+    <section class="recent-activity-section" *ngIf="!isLoading && !errorMessage && metrics">
+      <h2>Recent Activity</h2>
+      
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!metrics.recentActivity || metrics.recentActivity.length === 0">
+        <div class="empty-icon">📁</div>
+        <p>You have no recent loan activity.</p>
+        <button class="btn btn-secondary" routerLink="/applicant/apply">Start an Application</button>
+      </div>
+
+      <!-- Data Grid -->
+      <div class="table-container" *ngIf="metrics.recentActivity && metrics.recentActivity.length > 0">
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Loan ID</th>
+              <th>Requested Amount</th>
+              <th>Date Applied</th>
+              <th>Current Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let activity of metrics.recentActivity">
+              <td class="font-medium">{{ activity.loanId }}</td>
+              <td>{{ activity.requestedAmount | currency:'USD' }}</td>
+              <td>{{ activity.dateApplied | date:'mediumDate' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="'badge-' + activity.status.toLowerCase()">
+                  {{ activity.status | titlecase }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
