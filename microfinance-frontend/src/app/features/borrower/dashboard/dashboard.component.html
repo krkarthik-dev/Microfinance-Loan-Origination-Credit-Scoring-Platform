@@ -106,8 +106,8 @@
               <td>{{ activity.requestedAmount | currency:'USD' }}</td>
               <td>{{ activity.dateApplied | date:'mediumDate' }}</td>
               <td>
-                <span class="status-badge" [ngClass]="'badge-' + activity.status.toLowerCase()">
-                  {{ activity.status | titlecase }}
+                <span class="status-badge" [ngClass]="'badge-' + activity.currentStatus.toLowerCase()">
+                  {{ activity.currentStatus | titlecase }}
                 </span>
               </td>
             </tr>
