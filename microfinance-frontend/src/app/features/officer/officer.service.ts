@@ -60,4 +60,11 @@ export class OfficerService {
   getLoanDocumentUrl(id: number): string {
     return `${this.apiUrl}/documents/loan/${id}`;
   }
+
+  /**
+   * US20: Submit Loan Officer decision.
+   */
+  submitDecision(applicationNumber: string, payload: { decision: string, rejectionReason?: string, internalNotes?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/applications/${applicationNumber}/decision`, payload);
+  }
 }

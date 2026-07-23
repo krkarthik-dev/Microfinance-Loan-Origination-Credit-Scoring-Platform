@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OfficerService } from '../officer.service';
 import { Subscription } from 'rxjs';
@@ -8,7 +9,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 @Component({
   selector: 'app-application-review',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './application-review.component.html',
   styleUrls: ['./application-review.component.scss']
 })
@@ -37,6 +38,12 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   // Document Viewer state
   activeDocumentUrl: SafeResourceUrl | null = null;
   activeDocumentTitle: string = 'Select a document to view';
+
+  // Modal States
+  activeModal: 'APPROVE' | 'REJECT' | 'ESCALATE' | null = null;
+  rejectionReason: string = '';
+  internalNotes: string = '';
+  isSubmitting = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -111,6 +118,50 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
     const url = this.officerService.getLoanDocumentUrl(id);
     this.activeDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     this.activeDocumentTitle = title;
+  }
+
+  // Underwriting Actions
+  openModal(type: 'APPROVE' | 'REJECT' | 'ESCALATE'): void {
+    this.activeModal = type;
+    this.rejectionReason = '';
+    this.internalNotes = '';
+  }
+
+  closeModal(): void {
+    this.activeModal = null;
+  }
+
+  submitDecision(): void {
+    if (this.activeModal === 'REJECT' && !this.rejectionReason) {
+      alert('Please select a rejection reason.');
+      return;
+    }
+    if (this.activeModal === 'ESCALATE' && !this.internalNotes.trim()) {
+      alert('Please provide internal notes for escalation.');
+      return;
+    }
+
+    this.isSubmitting = true;
+    
+    const payload = {
+      decision: this.activeModal!,
+      rejectionReason: this.activeModal === 'REJECT' ? this.rejectionReason : undefined,
+      internalNotes: this.activeModal === 'ESCALATE' ? this.internalNotes : undefined
+    };
+
+    this.officerService.submitDecision(this.applicationNumber, payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.closeModal();
+        alert(`Application successfully ${payload.decision.toLowerCase()}d.`);
+        this.router.navigate(['/officer']);
+      },
+      error: (err) => {
+        console.error(err);
+        this.isSubmitting = false;
+        alert('Failed to submit decision. Please try again.');
+      }
+    });
   }
 
   goBack(): void {

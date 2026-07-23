@@ -1,27 +1,37 @@
 package com.microfinance.controller;
 
 import com.microfinance.dto.OfficerApplicationDetailDTO;
+import com.microfinance.dto.OfficerApplicationDetailDTO;
 import com.microfinance.dto.OfficerApplicationSummaryDTO;
+import com.microfinance.dto.OfficerDecisionRequestDTO;
+import com.microfinance.entity.AuditLog;
 import com.microfinance.entity.CreditScore;
 import com.microfinance.entity.KycDocument;
 import com.microfinance.entity.LoanApplication;
 import com.microfinance.entity.LoanDocument;
+import com.microfinance.entity.User;
 import com.microfinance.entity.UserProfile;
 import com.microfinance.enums.ApplicationStatus;
 import com.microfinance.enums.DocumentType;
+import com.microfinance.repository.AuditLogRepository;
 import com.microfinance.repository.CreditScoreRepository;
 import com.microfinance.repository.KycDocumentRepository;
 import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.LoanDocumentRepository;
 import com.microfinance.repository.UserProfileRepository;
+import com.microfinance.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,6 +51,8 @@ public class OfficerDashboardController {
     private final CreditScoreRepository creditScoreRepository;
     private final KycDocumentRepository kycDocumentRepository;
     private final LoanDocumentRepository loanDocumentRepository;
+    private final UserRepository userRepository;
+    private final AuditLogRepository auditLogRepository;
 
     /**
      * US16: Returns a list of all applications currently in the UNDER_REVIEW state.
@@ -162,5 +174,71 @@ public class OfficerDashboardController {
                         .contentType(MediaType.parseMediaType(doc.getContentType()))
                         .body(doc.getFileData()))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * US20: Process Officer underwriting decision.
+     */
+    @PutMapping("/applications/{applicationNumber}/decision")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<?> submitDecision(
+            @PathVariable String applicationNumber,
+            @RequestBody OfficerDecisionRequestDTO request) {
+
+        Optional<LoanApplication> appOpt = loanApplicationRepository.findByApplicationNumber(applicationNumber);
+        if (appOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        LoanApplication app = appOpt.get();
+        if (app.getStatus() != ApplicationStatus.UNDER_REVIEW) {
+            return ResponseEntity.badRequest().body("Application is not in UNDER_REVIEW status.");
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User officer = userRepository.findByEmail(auth.getName()).orElse(null);
+
+        ApplicationStatus newStatus;
+        switch (request.getDecision().toUpperCase()) {
+            case "APPROVE":
+                newStatus = ApplicationStatus.APPROVED;
+                break;
+            case "REJECT":
+                newStatus = ApplicationStatus.REJECTED;
+                break;
+            case "ESCALATE":
+                newStatus = ApplicationStatus.ESCALATED;
+                break;
+            default:
+                return ResponseEntity.badRequest().body("Invalid decision.");
+        }
+
+        app.setStatus(newStatus);
+        loanApplicationRepository.save(app);
+
+        // Audit Logging
+        String noteDetails = "Decision: " + request.getDecision();
+        if (request.getRejectionReason() != null && !request.getRejectionReason().isBlank()) {
+            noteDetails += " | Reason: " + request.getRejectionReason();
+        }
+        if (request.getInternalNotes() != null && !request.getInternalNotes().isBlank()) {
+            noteDetails += " | Notes: " + request.getInternalNotes();
+        }
+
+        AuditLog audit = AuditLog.builder()
+                .entityType("LOAN_APPLICATION")
+                .entityId(app.getId())
+                .action(newStatus.name())
+                .performedBy(officer)
+                .oldValue(ApplicationStatus.UNDER_REVIEW.name())
+                .newValue(newStatus.name())
+                .build();
+        // Since we don't have a specific notes field in AuditLog, we can store it in newValue or a similar construct.
+        // But for simplicity, we'll serialize the state to newValue
+        audit.setNewValue("{\"status\":\"" + newStatus.name() + "\", \"details\":\"" + noteDetails + "\"}");
+        
+        auditLogRepository.save(audit);
+
+        return ResponseEntity.ok().build();
     }
 }

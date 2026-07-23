@@ -10,8 +10,9 @@
       <div class="verification-status" [ngClass]="{'all-verified': allVerified}">
         {{ allVerified ? 'All Data Verified' : 'Verification Pending' }}
       </div>
-      <button class="btn btn-success" [disabled]="!allVerified">Approve Application</button>
-      <button class="btn btn-danger">Reject</button>
+      <button class="btn btn-danger" (click)="openModal('REJECT')">Reject</button>
+      <button class="btn btn-outline" (click)="openModal('ESCALATE')">Escalate</button>
+      <button class="btn btn-success" [disabled]="!allVerified" (click)="openModal('APPROVE')">Approve Application</button>
     </div>
   </header>
 
@@ -254,4 +255,66 @@
     </div>
 
   </main>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal-backdrop" *ngIf="activeModal === 'APPROVE'">
+  <div class="modal-content">
+    <h3>Confirm Approval</h3>
+    <p>Are you sure you want to approve application <strong>{{ applicationNumber }}</strong>? This action will formally record your underwriting decision.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-success" (click)="submitDecision()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Confirm Approval' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-backdrop" *ngIf="activeModal === 'REJECT'">
+  <div class="modal-content">
+    <h3>Reject Application</h3>
+    <p>Please select the primary reason for rejecting application <strong>{{ applicationNumber }}</strong>.</p>
+    
+    <div class="form-group">
+      <label>Rejection Reason *</label>
+      <select class="form-control" [(ngModel)]="rejectionReason">
+        <option value="" disabled selected>Select a reason</option>
+        <option value="High Credit Risk">High Credit Risk (Poor ML Score)</option>
+        <option value="Invalid KYC">Invalid or Mismatched KYC Documents</option>
+        <option value="Insufficient Income">Insufficient Income / High DTI</option>
+        <option value="Document Forgery Suspected">Document Forgery Suspected</option>
+        <option value="Policy Violation">General Policy Violation</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-danger" (click)="submitDecision()" [disabled]="!rejectionReason || isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Submit Rejection' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ESCALATE MODAL -->
+<div class="modal-backdrop" *ngIf="activeModal === 'ESCALATE'">
+  <div class="modal-content">
+    <h3>Escalate to Manager</h3>
+    <p>Escalating will move application <strong>{{ applicationNumber }}</strong> out of your queue and flag it for Manager review.</p>
+    
+    <div class="form-group">
+      <label>Internal Notes / Justification *</label>
+      <textarea class="form-control" rows="4" [(ngModel)]="internalNotes" 
+                placeholder="Explain why this requires escalation (e.g., borderline risk, unverified employer...)"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="submitDecision()" [disabled]="!internalNotes.trim() || isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Submit Escalation' }}
+      </button>
+    </div>
+  </div>
 </div>
