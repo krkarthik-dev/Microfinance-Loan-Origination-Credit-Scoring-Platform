@@ -13,7 +13,7 @@ import { DashboardComponent } from './features/borrower/dashboard/dashboard.comp
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'health',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
   {
@@ -54,7 +54,7 @@ const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'health'
+    redirectTo: 'login'
   }
 ];
 
