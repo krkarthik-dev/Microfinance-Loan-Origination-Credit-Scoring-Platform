@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
         <h3>{{ title }}</h3>
         <div class="metric-value">
           <ng-container *ngIf="isCurrency; else regularValue">
-            {{ value | currency:'USD' }}
+            &#8377;{{ value | number:'1.0-0' }}
           </ng-container>
           <ng-template #regularValue>
             {{ value }}

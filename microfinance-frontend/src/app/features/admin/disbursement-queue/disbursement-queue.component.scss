@@ -1,0 +1,16 @@
+/* Disbursement Queue — Component-specific layout only. */
+
+.disbursement-container {
+  min-height: 100vh;
+  background-color: var(--bg-body);
+  padding: var(--spacing-xl);
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-md);
+  }
+}
+
+.page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
