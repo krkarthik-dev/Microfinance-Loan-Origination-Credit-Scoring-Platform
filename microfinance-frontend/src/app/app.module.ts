@@ -28,8 +28,7 @@ import { DisbursementQueueComponent } from './features/admin/disbursement-queue/
     HealthCheckComponent,
     LoginComponent,
     UnauthorizedComponent,
-    ForceChangePasswordComponent,
-    DisbursementQueueComponent
+    ForceChangePasswordComponent
   ],
   imports: [
     BrowserModule,
