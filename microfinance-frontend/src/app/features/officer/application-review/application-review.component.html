@@ -162,6 +162,27 @@
       </div>
 
       <!-- Documents Section -->
+      <div class="review-section">
+        <div class="section-header">
+          <h3>Document Verification</h3>
+        </div>
+        
+        <div class="document-list">
+          
+          <!-- PAN Card -->
+          <div class="document-item">
+            <div class="doc-info">
+              <span class="doc-title">PAN Card</span>
+              <span class="doc-meta">Declared: {{ details.panNumber }}</span>
+            </div>
+            <div class="doc-actions">
+              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">👁 View</button>
+              <button class="btn btn-sm" 
+                      [ngClass]="verifications.panCard ? 'btn-outline-success' : 'btn-primary'"
+                      (click)="toggleVerification('panCard')">
+                {{ verifications.panCard ? 'Review' : 'Approve' }}
+              </button>
+            </div>
           </div>
 
           <!-- Aadhaar Card -->
