@@ -37,9 +37,10 @@ export class StaffManagementComponent implements OnInit {
   ngOnInit(): void {
     this.fetchStaff();
     this.createForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      role: ['ROLE_OFFICER', [Validators.required]]
+      fullName: ['', Validators.required],
+      role: ['ROLE_OFFICER', Validators.required],
+      temporaryPassword: ['']
     });
   }
 

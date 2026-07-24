@@ -40,15 +40,20 @@ public class AdminStaffService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email is already registered");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username is already taken");
+        // Since username now maps to Full Name, we skip the exact username unique check, 
+        // or we check if there's a conflict and append a number. But since User.username has unique constraint,
+        // let's just check uniqueness. In a real system we'd map it to a separate Profile.
+        if (userRepository.existsByUsername(request.getFullName())) {
+            throw new IllegalArgumentException("Full Name (Username) is already taken. Please add an initial or number.");
         }
 
-        String tempPassword = generateRandomPassword();
+        String tempPassword = (request.getTemporaryPassword() != null && !request.getTemporaryPassword().isBlank()) 
+                              ? request.getTemporaryPassword() 
+                              : generateRandomPassword();
 
         User user = User.builder()
                 .email(request.getEmail())
-                .username(request.getUsername())
+                .username(request.getFullName())
                 .passwordHash(passwordEncoder.encode(tempPassword))
                 .role(request.getRole() != null ? request.getRole() : UserRole.ROLE_OFFICER)
                 .active(true)

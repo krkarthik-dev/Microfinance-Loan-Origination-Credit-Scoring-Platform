@@ -12,6 +12,7 @@ import com.microfinance.enums.UserRole;
 @AllArgsConstructor
 public class StaffCreationRequestDTO {
     private String email;
-    private String username; // Or we can generate this based on email
+    private String fullName;
+    private String temporaryPassword;
     private UserRole role;
 }
