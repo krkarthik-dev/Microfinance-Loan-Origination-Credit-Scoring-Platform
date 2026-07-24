@@ -104,6 +104,13 @@ const routes: Routes = [
     title: 'Loan Products | Microfinance'
   },
   {
+    path: 'admin/staff',
+    loadComponent: () => import('./features/admin/staff-management/staff-management.component').then(m => m.StaffManagementComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_ADMIN'] },
+    title: 'Staff Management | Microfinance'
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }

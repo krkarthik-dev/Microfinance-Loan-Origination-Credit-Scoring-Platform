@@ -1,0 +1,113 @@
+<div class="staff-management-page fade-in">
+  <header class="page-header">
+    <div class="header-content">
+      <div class="title-area">
+        <h1>Staff Access Management</h1>
+        <p>Manage internal user accounts and Role-Based Access Control.</p>
+      </div>
+      <div class="actions-area">
+        <button class="btn btn-primary" (click)="openCreateModal()">+ Create Staff</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    
+    <!-- Success/Error Alerts -->
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+      <div *ngIf="generatedPassword" class="password-box">
+        <strong>Temporary Password: </strong>
+        <code>{{ generatedPassword }}</code>
+      </div>
+    </div>
+    
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Create Staff Modal -->
+    <div class="modal-overlay" *ngIf="showCreateModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Create New Staff Account</h3>
+          <button class="close-btn" (click)="closeCreateModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="createForm" (ngSubmit)="createStaff()" *ngIf="!generatedPassword">
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" formControlName="username" class="form-control" placeholder="e.g. jdoe" />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" formControlName="email" class="form-control" placeholder="e.g. john.doe@microfinance.com" />
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <select formControlName="role" class="form-control">
+                <option value="ROLE_OFFICER">Loan Officer</option>
+                <option value="ROLE_ADMIN">Administrator</option>
+              </select>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-outline" (click)="closeCreateModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="createForm.invalid || isCreating">
+                {{ isCreating ? 'Creating...' : 'Create Account' }}
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="generatedPassword" class="success-state">
+            <h4>Account Created!</h4>
+            <p>Please securely share this temporary password with the employee. They will be forced to change it on their first login.</p>
+            <div class="password-box-large">
+              <code>{{ generatedPassword }}</code>
+            </div>
+            <button class="btn btn-primary mt-3" (click)="closeCreateModal()">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Staff Action Modal -->
+    <div class="modal-overlay" *ngIf="showActionModal">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3>Manage: {{ selectedStaff?.username }}</h3>
+          <button class="close-btn" (click)="closeActionModal()">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+          <p>Email: {{ selectedStaff?.email }}</p>
+          <p>Status: <strong [class.text-danger]="!selectedStaff?.active" [class.text-success]="selectedStaff?.active">{{ selectedStaff?.active ? 'Active' : 'Disabled' }}</strong></p>
+          
+          <div class="action-buttons">
+            <button class="btn btn-outline w-100 mb-2" (click)="resetPassword()">Reset Password</button>
+            <button class="btn w-100" [ngClass]="selectedStaff?.active ? 'btn-danger' : 'btn-success'" (click)="toggleStaffStatus()">
+              {{ selectedStaff?.active ? 'Disable Account' : 'Enable Account' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Staff Grid (AC1) -->
+    <section class="card-panel">
+      <div class="state-container" *ngIf="isLoading">
+        <div class="loader"></div>
+        <p>Loading staff accounts...</p>
+      </div>
+
+      <ng-container *ngIf="!isLoading && staffList.length > 0">
+        <app-data-table
+          [columns]="staffColumns"
+          [data]="staffList"
+          [isRowClickable]="true"
+          (rowClick)="openActionModal($event)">
+        </app-data-table>
+        <p class="hint-text text-center mt-2">Click any row to manage the staff account (Disable/Enable/Reset Password).</p>
+      </ng-container>
+    </section>
+
+  </main>
+</div>

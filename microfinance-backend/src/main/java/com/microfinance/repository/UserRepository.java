@@ -29,4 +29,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** Get all active users by role — used for admin staff management. */
     List<User> findByRoleAndActiveTrue(UserRole role);
+
+    /** Get all users by a list of roles. */
+    List<User> findByRoleIn(List<UserRole> roles);
 }

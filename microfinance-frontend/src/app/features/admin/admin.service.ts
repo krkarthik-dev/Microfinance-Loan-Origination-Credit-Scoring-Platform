@@ -41,4 +41,24 @@ export class AdminService {
   updateProductApr(id: number, interestRatePa: number): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/products/${id}/apr`, { interestRatePa });
   }
+
+  getAllStaff(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/staff`);
+  }
+
+  createStaff(staffData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/staff`, staffData);
+  }
+
+  disableStaff(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/staff/${id}/disable`, {});
+  }
+
+  enableStaff(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/staff/${id}/enable`, {});
+  }
+
+  resetStaffPassword(id: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/staff/${id}/reset-password`, {});
+  }
 }
