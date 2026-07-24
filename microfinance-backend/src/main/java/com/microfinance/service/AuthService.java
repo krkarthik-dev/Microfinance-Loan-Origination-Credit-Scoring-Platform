@@ -53,6 +53,7 @@ public class AuthService {
                 .orElse("ROLE_APPLICANT");
 
         User user = userRepository.findByEmail(loginRequest.getEmail())
+                .or(() -> userRepository.findByUsername(loginRequest.getEmail()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         log.info("User {} authenticated successfully. Issued JWT with role: {}, mustChange: {}", 
@@ -60,7 +61,7 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(jwt)
-                .email(loginRequest.getEmail())
+                .email(user.getEmail())
                 .role(role)
                 .mustChangePassword(user.isMustChangePassword())
                 .build();

@@ -20,19 +20,18 @@ import java.time.LocalDateTime;
  * the users table but represent different roles — JPA handles this via
  * two separate @ManyToOne mappings with distinct join columns.
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "loan_applications")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class LoanApplication {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class LoanApplication extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
+
 
     /** Human-readable identifier e.g., MF-2026-00001 */
     @Column(name = "application_number", nullable = false, unique = true, length = 20)
@@ -108,11 +107,4 @@ public class LoanApplication {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

@@ -234,25 +234,11 @@
     </div>
 
     <!-- RIGHT PANE: Document Viewer -->
-    <div class="viewer-pane">
-      <div class="viewer-header">
-        <h3>Document Viewer: {{ activeDocumentTitle }}</h3>
-      </div>
-      <div class="viewer-body">
-        <div class="empty-viewer" *ngIf="!activeDocumentUrl">
-          <p>Select a document from the left pane to view it here.</p>
-        </div>
-        
-        <object *ngIf="activeDocumentUrl" 
-                [data]="activeDocumentUrl" 
-                type="application/pdf" 
-                width="100%" 
-                height="100%">
-          <p>It appears your browser doesn't support embedded PDFs or images in object tags. 
-             <a [href]="activeDocumentUrl" target="_blank">Click here to open it.</a></p>
-        </object>
-      </div>
-    </div>
+    <app-document-viewer
+      class="viewer-pane-container"
+      [title]="activeDocumentTitle"
+      [documentUrl]="activeDocumentUrl">
+    </app-document-viewer>
 
   </main>
 </div>

@@ -10,8 +10,6 @@ import { HealthCheckComponent } from './pages/health-check/health-check.componen
 import { LoginComponent } from './pages/login/login.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
-import { DashboardComponent } from './features/borrower/dashboard/dashboard.component';
-import { ProfileSetupComponent } from './features/borrower/profile-setup/profile-setup.component';
 import { ForceChangePasswordComponent } from './features/auth/force-change-password/force-change-password.component';
 
 /**
@@ -29,7 +27,6 @@ import { ForceChangePasswordComponent } from './features/auth/force-change-passw
     HealthCheckComponent,
     LoginComponent,
     UnauthorizedComponent,
-    DashboardComponent,
     ForceChangePasswordComponent
   ],
   imports: [
@@ -37,8 +34,7 @@ import { ForceChangePasswordComponent } from './features/auth/force-change-passw
     CommonModule,
     HttpClientModule,
     ReactiveFormsModule,
-    AppRoutingModule,
-    ProfileSetupComponent
+    AppRoutingModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

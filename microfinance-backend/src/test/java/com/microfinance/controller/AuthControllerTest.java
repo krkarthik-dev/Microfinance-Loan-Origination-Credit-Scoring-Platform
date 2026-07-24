@@ -48,6 +48,15 @@ class AuthControllerTest {
                 .active(true)
                 .build();
         userRepository.save(user);
+
+        User officer = User.builder()
+            .username("testofficer")
+            .email("officer@test.com")
+            .passwordHash(passwordEncoder.encode("officer123"))
+            .role(UserRole.ROLE_OFFICER)
+            .active(true)
+            .build();
+        userRepository.save(officer);
     }
 
     @Test
@@ -76,6 +85,20 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldAuthenticateOfficerUsingUsername() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("testofficer");
+        loginRequest.setPassword("officer123");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("officer@test.com"))
+                .andExpect(jsonPath("$.role").value("ROLE_OFFICER"));
     }
 
     @Test

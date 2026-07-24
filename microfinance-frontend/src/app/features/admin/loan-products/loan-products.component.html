@@ -1,0 +1,68 @@
+<div class="loan-products-page fade-in">
+  <header class="page-header">
+    <div class="header-content">
+      <div class="title-area">
+        <h1>Global Interest Rate Configuration</h1>
+        <p>Manage Annual Percentage Rates (APR) for all loan products.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Edit Modal overlay (AC2) -->
+    <div class="modal-overlay" *ngIf="editingProduct">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit APR: {{ editingProduct.productName }}</h3>
+          <button class="close-btn" (click)="cancelEdit()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="editForm" (ngSubmit)="saveProduct()">
+            <div class="form-group">
+              <label>Annual Percentage Rate (APR %)</label>
+              <input type="number" step="0.01" formControlName="interestRatePa" class="form-control" />
+              <small class="hint-text">Current APR: {{ editingProduct.interestRatePa }}%</small>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="button" class="btn btn-outline" (click)="cancelEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="editForm.invalid || isSaving">
+                {{ isSaving ? 'Saving...' : 'Save Configuration' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Grid (AC1) -->
+    <section class="card-panel">
+      <div class="state-container" *ngIf="isLoading">
+        <div class="loader"></div>
+        <p>Loading loan products...</p>
+      </div>
+
+      <ng-container *ngIf="!isLoading && products.length > 0">
+        <app-data-table
+          [columns]="productColumns"
+          [data]="products"
+          [isRowClickable]="true"
+          (rowClick)="editProduct($event)"
+          (actionClick)="editProduct($event)"
+          emptyMessage="No loan products configured.">
+        </app-data-table>
+        <p class="hint-text text-center mt-2">Click any row to edit the product's APR.</p>
+      </ng-container>
+    </section>
+
+  </main>
+</div>

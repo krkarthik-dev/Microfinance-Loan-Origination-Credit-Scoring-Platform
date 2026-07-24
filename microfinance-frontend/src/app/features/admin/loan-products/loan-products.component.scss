@@ -1,0 +1,52 @@
+
+.loan-products-page {
+  min-height: 100vh;
+  background-color: var(--background-light);
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+  
+  .header-content {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+    h1 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 1.8rem;
+    }
+
+    p {
+      margin: 0.5rem 0 0 0;
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+  }
+}
+
+.card-panel {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.hint-text {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 1rem;
+}
+
+.text-center {
+  text-align: center;
+}

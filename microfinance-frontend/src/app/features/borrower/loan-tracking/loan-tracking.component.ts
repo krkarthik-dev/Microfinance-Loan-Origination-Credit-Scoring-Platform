@@ -4,16 +4,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BorrowerService } from '../borrower.service';
 import { Subscription, interval } from 'rxjs';
 import { switchMap, startWith } from 'rxjs/operators';
-
-interface TrackerStep {
-  key: string;
-  label: string;
-}
+import { LifecycleTrackerComponent } from '../../../shared/components/lifecycle-tracker/lifecycle-tracker.component';
 
 @Component({
   selector: 'app-loan-tracking',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LifecycleTrackerComponent],
   templateUrl: './loan-tracking.component.html',
   styleUrls: ['./loan-tracking.component.scss']
 })
@@ -21,21 +17,9 @@ export class LoanTrackingComponent implements OnInit, OnDestroy {
   applicationNumber: string | null = null;
   currentStatus: string = 'DRAFT';
   isRejected: boolean = false;
+  isDirect: boolean = false;
   
   private pollingSub?: Subscription;
-
-  // AC2: Exact sequential flow
-  readonly STEPS: TrackerStep[] = [
-    { key: 'started', label: 'Application started' },
-    { key: 'draft', label: 'Draft' },
-    { key: 'submitted', label: 'Submitted' },
-    { key: 'kyc', label: 'KYC verification' },
-    { key: 'doc', label: 'Doc verification' },
-    { key: 'approval', label: 'Approval' },
-    { key: 'closing', label: 'Closing' },
-    { key: 'disbursement', label: 'Disbursement' },
-    { key: 'emi', label: 'EMI repayment' }
-  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -69,6 +53,7 @@ export class LoanTrackingComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (res) => {
         this.currentStatus = res.status;
+        this.isDirect = res.isDirect === true;
         this.isRejected = (this.currentStatus === 'REJECTED' || this.currentStatus === 'FINAL_REJECTED');
         
         // Stop polling if we reach terminal states where immediate async updates stop
@@ -84,43 +69,6 @@ export class LoanTrackingComponent implements OnInit, OnDestroy {
         console.error('Failed to poll status', err);
       }
     });
-  }
-
-  /**
-   * Maps the backend ApplicationStatus to the index of our 9-step tracker.
-   */
-  get currentStepIndex(): number {
-    switch (this.currentStatus) {
-      case 'DRAFT': return 1;
-      case 'SUBMITTED': return 2;
-      case 'RISK_ASSESSMENT': return 3; // KYC Verification
-      case 'UNDER_REVIEW': 
-      case 'ESCALATED': return 4;       // Doc Verification
-      case 'APPROVED': 
-      case 'FINAL_APPROVED': return 5;  // Approval
-      case 'CLOSING': return 6;         // Closing
-      case 'DISBURSEMENT': return 7;    // Disbursement
-      case 'ACTIVE': return 8;          // EMI Repayment
-      case 'REJECTED':
-      case 'FINAL_REJECTED':
-        return 4; // Stop at doc verification failure
-      default: return 0;
-    }
-  }
-
-  isStepCompleted(index: number): boolean {
-    if (this.isRejected) {
-      return index < this.currentStepIndex;
-    }
-    return index <= this.currentStepIndex;
-  }
-
-  isStepCurrent(index: number): boolean {
-    return index === this.currentStepIndex && !this.isRejected;
-  }
-
-  isStepFailed(index: number): boolean {
-    return this.isRejected && index === this.currentStepIndex;
   }
 
   goToDashboard(): void {

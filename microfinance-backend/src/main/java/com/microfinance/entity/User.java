@@ -15,19 +15,16 @@ import java.time.LocalDateTime;
  * are stored separately in {@link UserProfile} to conform to 3NF
  * (no transitive dependency between credentials and personal info).
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "users")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)
     private String username;
@@ -50,12 +47,4 @@ public class User {
     @Column(name = "must_change_password", nullable = false)
     @Builder.Default
     private boolean mustChangePassword = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

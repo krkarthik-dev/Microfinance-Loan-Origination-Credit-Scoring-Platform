@@ -21,6 +21,7 @@ public class KycDocumentService {
 
     private final KycDocumentRepository kycDocumentRepository;
     private final UserRepository userRepository;
+    private final DocumentStorageService documentStorageService;
 
     @Transactional
     public KycUploadResponse uploadDocument(String username, DocumentType documentType, MultipartFile file) throws IOException {
@@ -45,9 +46,9 @@ public class KycDocumentService {
             throw new IllegalStateException("Cannot overwrite a verified document.");
         }
 
-        document.setFileData(file.getBytes());
-        document.setContentType(file.getContentType());
-        document.setFileName(file.getOriginalFilename());
+        document.setFileData(documentStorageService.extractBytes(file));
+        document.setContentType(documentStorageService.extractContentType(file));
+        document.setFileName(documentStorageService.extractFileName(file));
         document.setFileSizeBytes(file.getSize());
 
         KycDocument saved = kycDocumentRepository.save(document);
@@ -91,7 +92,7 @@ public class KycDocumentService {
                 .fileName(document.getFileName())
                 .fileSizeBytes(document.getFileSizeBytes())
                 .verified(document.isVerified())
-                .uploadedAt(document.getUploadedAt())
+                .uploadedAt(document.getCreatedAt())
                 .build();
     }
 }

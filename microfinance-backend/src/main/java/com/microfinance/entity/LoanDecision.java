@@ -13,19 +13,17 @@ import java.time.LocalDateTime;
  * through the lifecycle (e.g., ESCALATED by officer, then FINAL_APPROVED by manager).
  * Each record is immutable — decisions are never updated, only new ones appended.
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "loan_decisions")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class LoanDecision {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class LoanDecision extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id", nullable = false)

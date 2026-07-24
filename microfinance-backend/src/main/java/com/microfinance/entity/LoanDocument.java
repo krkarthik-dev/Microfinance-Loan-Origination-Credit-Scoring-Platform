@@ -10,19 +10,17 @@ import java.time.LocalDateTime;
  * Stores uploaded documents tied to a specific loan application.
  * Each document is stored as binary data (BYTEA) in PostgreSQL.
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "loan_documents")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class LoanDocument {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class LoanDocument extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id", nullable = false)
@@ -41,7 +39,4 @@ public class LoanDocument {
     @Column(name = "file_data", nullable = false, columnDefinition = "BYTEA")
     private byte[] fileData;
 
-    @CreationTimestamp
-    @Column(name = "uploaded_at", nullable = false, updatable = false)
-    private LocalDateTime uploadedAt;
 }

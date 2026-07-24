@@ -11,19 +11,17 @@ import java.time.LocalDateTime;
  *
  * Actual document bytes are stored directly in PostgreSQL (BYTEA).
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "kyc_documents")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class KycDocument {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class KycDocument extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     /** The borrower who uploaded this document */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,10 +52,6 @@ public class KycDocument {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "verified_by")
     private User verifiedBy;
-
-    @Column(name = "uploaded_at", nullable = false)
-    @Builder.Default
-    private LocalDateTime uploadedAt = LocalDateTime.now();
 
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;

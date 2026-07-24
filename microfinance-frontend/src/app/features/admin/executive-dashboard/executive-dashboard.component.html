@@ -1,0 +1,114 @@
+<div class="executive-dashboard fade-in">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="title-area">
+        <h1>Executive Dashboard</h1>
+        <p>Portfolio Health & Analytics</p>
+      </div>
+      <div class="actions-area">
+        <button class="btn btn-primary" routerLink="/admin/products" style="margin-right: 10px;">Manage Loan Products</button>
+        <button class="btn btn-outline" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    
+    <!-- Loading/Error States -->
+    <div class="state-container" *ngIf="isLoading">
+      <div class="loader"></div>
+      <p>Loading analytics...</p>
+    </div>
+
+    <div class="state-container error-state" *ngIf="!isLoading && errorMessage">
+      <div class="icon-warning">⚠</div>
+      <p>{{ errorMessage }}</p>
+      <button class="btn btn-secondary" (click)="fetchMetrics()">Try Again</button>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !errorMessage && metrics">
+      
+      <!-- Top Level KPIs (AC2) -->
+      <div class="metrics-grid">
+        <app-metric-card 
+          title="MTD Disbursed" 
+          [value]="metrics.mtdDisbursedAmount" 
+          icon="💰" 
+          type="outstanding"
+          [isCurrency]="true">
+        </app-metric-card>
+
+        <app-metric-card 
+          title="Pending Escalations" 
+          [value]="metrics.pendingEscalations" 
+          icon="⚠" 
+          type="pending">
+        </app-metric-card>
+
+        <div class="metric-card custom-metric">
+          <div class="card-icon">📉</div>
+          <div class="card-content">
+            <h3>System Rejection Rate</h3>
+            <div class="value">{{ metrics.systemRejectionRate }}%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-content-grid">
+        <!-- Risk Distribution Chart (AC3) -->
+        <section class="card-panel risk-panel">
+          <h2>Risk Distribution</h2>
+          <p class="subtitle">Active portfolio breakdown by ML tier</p>
+          
+          <div class="chart-container" *ngIf="totalRiskCount > 0; else noRiskData">
+            <!-- Native CSS Horizontal Stacked Bar -->
+            <div class="stacked-bar">
+              <div class="bar-segment" *ngFor="let item of riskTiers" 
+                   [style.width.%]="item.percentage"
+                   [style.background-color]="riskColors[item.tier]"
+                   [title]="item.tier + ': ' + item.count + ' (' + (item.percentage | number:'1.0-1') + '%)'">
+              </div>
+            </div>
+            
+            <!-- Legend -->
+            <div class="legend">
+              <div class="legend-item" *ngFor="let item of riskTiers">
+                <span class="color-dot" [style.background-color]="riskColors[item.tier]"></span>
+                <span class="label">{{ item.tier }}</span>
+                <span class="value">{{ item.percentage | number:'1.0-1' }}%</span>
+                <span class="count">({{ item.count }})</span>
+              </div>
+            </div>
+          </div>
+          
+          <ng-template #noRiskData>
+            <div class="empty-state">
+              <p>No risk data available yet.</p>
+            </div>
+          </ng-template>
+        </section>
+
+        <!-- Audit Snapshot (AC4) -->
+        <section class="card-panel audit-panel">
+          <h2>Recent Audit Snapshot</h2>
+          <p class="subtitle">Latest system activities</p>
+          
+          <div class="audit-list" *ngIf="metrics.recentActivity && metrics.recentActivity.length > 0; else noLogs">
+            <app-data-table
+              [columns]="auditColumns"
+              [data]="metrics.recentActivity">
+            </app-data-table>
+          </div>
+          
+          <ng-template #noLogs>
+            <div class="empty-state">
+              <p>No recent activity found.</p>
+            </div>
+          </ng-template>
+        </section>
+      </div>
+      
+    </ng-container>
+  </main>
+</div>

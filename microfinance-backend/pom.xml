@@ -113,6 +113,12 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
+        <!-- ==================== AOP ==================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!-- ==================== PDF GENERATION ==================== -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OfficerService } from '../officer.service';
 import { Subscription } from 'rxjs';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { TokenService } from '../../../core/services/token.service';
+import { DocumentViewerComponent } from '../../../shared/components/document-viewer/document-viewer.component';
 
 @Component({
   selector: 'app-application-review',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DocumentViewerComponent],
   templateUrl: './application-review.component.html',
   styleUrls: ['./application-review.component.scss']
 })
@@ -36,7 +37,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   };
 
   // Document Viewer state
-  activeDocumentUrl: SafeResourceUrl | null = null;
+  activeDocumentUrl: string = '';
   activeDocumentTitle: string = 'Select a document to view';
 
   // Modal States
@@ -48,8 +49,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private officerService: OfficerService,
-    private sanitizer: DomSanitizer
+    private officerService: OfficerService
   ) {}
 
   ngOnInit(): void {
@@ -108,15 +108,13 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
 
   viewKycDocument(id: number, title: string): void {
     if (!id) return;
-    const url = this.officerService.getKycDocumentUrl(id);
-    this.activeDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.activeDocumentUrl = this.officerService.getKycDocumentUrl(id);
     this.activeDocumentTitle = title;
   }
 
   viewLoanDocument(id: number, title: string): void {
     if (!id) return;
-    const url = this.officerService.getLoanDocumentUrl(id);
-    this.activeDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.activeDocumentUrl = this.officerService.getLoanDocumentUrl(id);
     this.activeDocumentTitle = title;
   }
 

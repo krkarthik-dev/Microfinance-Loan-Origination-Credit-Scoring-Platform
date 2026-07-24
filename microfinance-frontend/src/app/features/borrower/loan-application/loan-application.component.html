@@ -83,10 +83,26 @@
           <select id="purpose" formControlName="purpose" class="form-control"
                   [class.is-invalid]="isReqInvalid('purpose')">
             <option value="">Select Purpose</option>
-            <option *ngFor="let p of purposes" [value]="p">{{ p }}</option>
+            <option *ngFor="let p of loanProducts" [value]="p.productName">{{ p.productName }}</option>
           </select>
           <div class="invalid-feedback" *ngIf="isReqInvalid('purpose')">
             Please select a loan purpose.
+          </div>
+        </div>
+
+        <!-- EMI Preview Panel -->
+        <div class="emi-preview-panel" *ngIf="estimatedEmi">
+          <div class="emi-header">
+            <h4>Estimated Monthly Payment</h4>
+            <span class="rate-badge">{{ selectedProductRate }}% p.a.</span>
+          </div>
+          <div class="emi-amount">
+            <span class="currency">&#8377;</span>
+            <span class="amount">{{ estimatedEmi | number }}</span>
+            <span class="duration">/ month</span>
+          </div>
+          <div class="emi-disclaimer">
+            * This is an estimate based on standard rates. Final EMI may vary based on underwriting.
           </div>
         </div>
 

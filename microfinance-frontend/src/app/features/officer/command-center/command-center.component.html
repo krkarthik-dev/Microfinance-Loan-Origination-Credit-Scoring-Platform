@@ -25,43 +25,15 @@
     
     <!-- LOANS TAB -->
     <ng-container *ngIf="activeTab === 'LOANS'">
-      <div class="table-card" *ngIf="!isLoading && !errorMessage">
-        <table class="data-grid">
-          <thead>
-            <tr>
-              <th (click)="sortBy('applicationNumber')">Application ID</th>
-              <th (click)="sortBy('applicantFirstName')">Applicant Name</th>
-              <th (click)="sortBy('appliedAmount')">Amount</th>
-              <th (click)="sortBy('purpose')">Purpose</th>
-              <th (click)="sortBy('creditScore')">ML Score</th>
-              <th (click)="sortBy('riskTier')">Risk Tier</th>
-              <th (click)="sortBy('submittedAt')">Date Applied</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let app of queue" (click)="goToReview(app.applicationNumber)">
-              <td class="font-mono text-indigo">{{ app.applicationNumber }}</td>
-              <td class="font-bold">{{ app.applicantFirstName }} {{ app.applicantLastName }}</td>
-              <td>&#8377;{{ app.appliedAmount | number }}</td>
-              <td>{{ app.purpose }}</td>
-              <td class="font-bold" [ngClass]="{
-                'text-green': app.creditScore >= 750,
-                'text-yellow': app.creditScore >= 600 && app.creditScore < 750,
-                'text-red': app.creditScore < 600
-              }">{{ app.creditScore }}</td>
-              <td>
-                <span class="badge" [ngClass]="'badge-' + (app.riskTier | lowercase)">
-                  {{ app.riskTier }}
-                </span>
-              </td>
-              <td>{{ app.submittedAt | date:'mediumDate' }}</td>
-            </tr>
-            <tr *ngIf="queue.length === 0">
-              <td colspan="7" class="text-center empty-state">No applications currently under review.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <app-data-table
+        *ngIf="!isLoading && !errorMessage"
+        [columns]="loanColumns"
+        [data]="queue"
+        [isRowClickable]="true"
+        (rowClick)="goToReview($event.applicationNumber)"
+        (sort)="sortBy($event)"
+        emptyMessage="No applications currently under review.">
+      </app-data-table>
 
       <div class="loading-state" *ngIf="isLoading">
         <div class="spinner"></div>
@@ -76,35 +48,15 @@
 
     <!-- KYC TAB -->
     <ng-container *ngIf="activeTab === 'KYC'">
-      <div class="table-card" *ngIf="!isKycLoading && !kycErrorMessage">
-        <table class="data-grid">
-          <thead>
-            <tr>
-              <th>Applicant Name</th>
-              <th>Email</th>
-              <th>PAN Number</th>
-              <th>Aadhaar Number</th>
-              <th>Profile Created</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let kyc of pendingKyc" (click)="viewKycDetails(kyc.userId)">
-              <td class="font-bold">{{ kyc.fullName }}</td>
-              <td>{{ kyc.email }}</td>
-              <td class="font-mono">{{ kyc.panNumber }}</td>
-              <td class="font-mono">{{ kyc.aadhaarNumber }}</td>
-              <td>{{ kyc.profileCreatedAt | date:'mediumDate' }}</td>
-              <td>
-                <button class="btn btn-sm btn-primary">Review KYC</button>
-              </td>
-            </tr>
-            <tr *ngIf="pendingKyc.length === 0">
-              <td colspan="6" class="text-center empty-state">No pending KYC verifications.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <app-data-table
+        *ngIf="!isKycLoading && !kycErrorMessage"
+        [columns]="kycColumns"
+        [data]="pendingKyc"
+        [isRowClickable]="true"
+        (rowClick)="viewKycDetails($event.userId)"
+        (actionClick)="viewKycDetails($event.userId)"
+        emptyMessage="No pending KYC verifications.">
+      </app-data-table>
 
       <div class="loading-state" *ngIf="isKycLoading">
         <div class="spinner"></div>

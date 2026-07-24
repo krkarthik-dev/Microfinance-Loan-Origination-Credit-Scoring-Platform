@@ -1,0 +1,44 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface AuditLog {
+  id: number;
+  entityType: string;
+  entityId: number;
+  action: string;
+  performedBy: string;
+  createdAt: string;
+  summary: string;
+}
+
+export interface AdminDashboardMetrics {
+  mtdDisbursedAmount: number;
+  pendingEscalations: number;
+  systemRejectionRate: number;
+  totalApplications: number;
+  recentActivity: AuditLog[];
+  riskDistribution: { [key: string]: number };
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminService {
+  private apiUrl = `${environment.apiUrl}/admin`;
+
+  constructor(private http: HttpClient) {}
+
+  getDashboardMetrics(): Observable<AdminDashboardMetrics> {
+    return this.http.get<AdminDashboardMetrics>(`${this.apiUrl}/dashboard/metrics`);
+  }
+
+  getAllProducts(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/products`);
+  }
+
+  updateProductApr(id: number, interestRatePa: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/products/${id}/apr`, { interestRatePa });
+  }
+}

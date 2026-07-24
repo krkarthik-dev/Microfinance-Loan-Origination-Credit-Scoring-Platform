@@ -21,6 +21,9 @@
                 (click)="onApplyClick()">
           Apply for a New Loan
         </button>
+        <button class="btn btn-outline" style="margin-left: 10px;" (click)="logout()">
+          Logout
+        </button>
         
         <!-- Validation Message displayed right below button -->
         <div class="validation-tooltip" *ngIf="validationMessage">
@@ -59,32 +62,29 @@
     <div class="cards-grid" *ngIf="!isLoading && !errorMessage && metrics">
       
       <!-- Card 1: Active Loans -->
-      <div class="metric-card card-active">
-        <div class="card-icon">💼</div>
-        <div class="card-content">
-          <h3>Active Loans</h3>
-          <div class="metric-value">{{ metrics.activeLoans }}</div>
-        </div>
-      </div>
+      <app-metric-card 
+        title="Active Loans" 
+        [value]="metrics.activeLoans" 
+        icon="💼" 
+        type="active">
+      </app-metric-card>
 
       <!-- Card 2: Total Outstanding -->
-      <div class="metric-card card-outstanding">
-        <div class="card-icon">💰</div>
-        <div class="card-content">
-          <h3>Total Outstanding</h3>
-          <!-- Angular currency pipe formats BigDecimal correctly -->
-          <div class="metric-value">{{ metrics.totalOutstanding | currency:'USD' }}</div>
-        </div>
-      </div>
+      <app-metric-card 
+        title="Total Outstanding" 
+        [value]="metrics.totalOutstanding" 
+        icon="💰" 
+        type="outstanding"
+        [isCurrency]="true">
+      </app-metric-card>
 
       <!-- Card 3: Pending Applications -->
-      <div class="metric-card card-pending">
-        <div class="card-icon">⏳</div>
-        <div class="card-content">
-          <h3>Pending Applications</h3>
-          <div class="metric-value">{{ metrics.pendingApplications }}</div>
-        </div>
-      </div>
+      <app-metric-card 
+        title="Pending Applications" 
+        [value]="metrics.pendingApplications" 
+        icon="⏳" 
+        type="pending">
+      </app-metric-card>
 
     </div>
 
@@ -100,30 +100,11 @@
       </div>
 
       <!-- Data Grid -->
-      <div class="table-container" *ngIf="metrics.recentActivity && metrics.recentActivity.length > 0">
-        <table class="activity-table">
-          <thead>
-            <tr>
-              <th>Loan ID</th>
-              <th>Requested Amount</th>
-              <th>Date Applied</th>
-              <th>Current Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let activity of metrics.recentActivity">
-              <td class="font-medium">{{ activity.loanId }}</td>
-              <td>{{ activity.requestedAmount | currency:'USD' }}</td>
-              <td>{{ activity.dateApplied | date:'mediumDate' }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="'badge-' + (activity.status ? activity.status.toLowerCase() : 'unknown')">
-                  {{ (activity.status || 'Unknown') | titlecase }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <app-data-table
+        *ngIf="metrics.recentActivity && metrics.recentActivity.length > 0"
+        [columns]="activityColumns"
+        [data]="metrics.recentActivity">
+      </app-data-table>
     </section>
   </main>
 

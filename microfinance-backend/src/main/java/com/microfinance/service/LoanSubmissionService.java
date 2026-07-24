@@ -34,6 +34,7 @@ public class LoanSubmissionService {
     private final LoanProductRepository     loanProductRepo;
     private final UserRepository            userRepo;
     private final PdfGenerationService      pdfGenerationService;
+    private final DocumentStorageService    documentStorageService;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -102,15 +103,15 @@ public class LoanSubmissionService {
 
         // 4. Attach signature
         if (signatureFile != null && !signatureFile.isEmpty()) {
-            app.setSignatureImage(signatureFile.getBytes());
-            app.setSignatureContentType(signatureFile.getContentType());
+            app.setSignatureImage(documentStorageService.extractBytes(signatureFile));
+            app.setSignatureContentType(documentStorageService.extractContentType(signatureFile));
         }
 
         // 5. Generate PDF (before final save, so we can embed app number)
         byte[] pdf = pdfGenerationService.generateApplicationPdf(
                 app,
-                signatureFile != null ? signatureFile.getBytes() : null,
-                signatureFile != null ? signatureFile.getContentType() : null
+                documentStorageService.extractBytes(signatureFile),
+                documentStorageService.extractContentType(signatureFile)
         );
         app.setApplicationPdf(pdf);
 
@@ -144,9 +145,9 @@ public class LoanSubmissionService {
         LoanDocument doc = LoanDocument.builder()
                 .application(app)
                 .documentType(type)
-                .fileName(file.getOriginalFilename() != null ? file.getOriginalFilename() : "file")
-                .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
-                .fileData(file.getBytes())
+                .fileName(documentStorageService.extractFileName(file))
+                .contentType(documentStorageService.extractContentType(file))
+                .fileData(documentStorageService.extractBytes(file))
                 .build();
         loanDocumentRepo.save(doc);
     }

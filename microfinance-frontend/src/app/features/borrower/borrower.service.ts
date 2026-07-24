@@ -89,7 +89,7 @@ export class BorrowerService {
   /**
    * Retrieves the current tracking status for a loan application.
    */
-  getLoanStatus(applicationNumber: string): Observable<{ status: string }> {
-    return this.http.get<{ status: string }>(`${this.apiUrl}/loan/${applicationNumber}/status`);
+  getLoanStatus(applicationNumber: string): Observable<{ status: string, isDirect?: boolean }> {
+    return this.http.get<{ status: string, isDirect?: boolean }>(`${this.apiUrl}/loan/${applicationNumber}/status`);
   }
 }

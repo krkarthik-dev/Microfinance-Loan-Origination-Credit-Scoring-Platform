@@ -16,19 +16,17 @@ import java.time.LocalDateTime;
  * and personal information are independent facts about different concerns.
  * One profile per user (1:1 relationship).
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "user_profiles")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class UserProfile {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class UserProfile extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
@@ -82,11 +80,4 @@ public class UserProfile {
     @Builder.Default
     private boolean kycVerified = false;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

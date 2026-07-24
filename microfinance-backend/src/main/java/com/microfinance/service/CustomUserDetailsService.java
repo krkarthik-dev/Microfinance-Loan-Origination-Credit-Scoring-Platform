@@ -24,10 +24,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(identifier)
+            .or(() -> userRepository.findByUsername(identifier))
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found with email: " + email));
+                new UsernameNotFoundException("User not found with email or username: " + identifier));
 
         if (!user.isActive()) {
             throw new UsernameNotFoundException("User account is disabled");

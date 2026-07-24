@@ -90,10 +90,18 @@ const routes: Routes = [
     title: 'Direct Application | Microfinance'
   },
   {
-    path: 'admin',
-    component: HealthCheckComponent, // Stub destination
+    path: 'admin/dashboard',
+    loadComponent: () => import('./features/admin/executive-dashboard/executive-dashboard.component').then(m => m.ExecutiveDashboardComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_ADMIN'] }
+    data: { roles: ['ROLE_ADMIN'] },
+    title: 'Executive Dashboard | Microfinance'
+  },
+  {
+    path: 'admin/products',
+    loadComponent: () => import('./features/admin/loan-products/loan-products.component').then(m => m.LoanProductsComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_ADMIN'] },
+    title: 'Loan Products | Microfinance'
   },
   {
     path: '**',

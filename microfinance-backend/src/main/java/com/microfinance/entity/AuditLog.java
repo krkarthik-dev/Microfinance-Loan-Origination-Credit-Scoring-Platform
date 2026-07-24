@@ -15,19 +15,17 @@ import java.time.LocalDateTime;
  * <p>{@code performedBy} is nullable to support SYSTEM-generated events
  * (e.g., ML scoring completion triggered by the async event listener).
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "audit_logs")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AuditLog {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class AuditLog extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     /** Type of entity affected — e.g., LOAN_APPLICATION, USER, LOAN_PRODUCT */
     @Column(name = "entity_type", nullable = false, length = 50)
@@ -58,7 +56,4 @@ public class AuditLog {
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
 }

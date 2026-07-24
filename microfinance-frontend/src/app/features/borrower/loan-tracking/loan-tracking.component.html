@@ -19,24 +19,11 @@
     </div>
 
     <!-- AC2 & AC3 & AC5: Visual Progress Bar -->
-    <div class="stepper-wrapper">
-      <div class="step" *ngFor="let step of STEPS; let i = index"
-           [class.completed]="isStepCompleted(i)"
-           [class.active]="isStepCurrent(i)"
-           [class.failed]="isStepFailed(i)"
-           [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i)">
-        
-        <div class="step-circle">
-          <span *ngIf="isStepCompleted(i)">✓</span>
-          <span *ngIf="isStepFailed(i)">✕</span>
-          <span *ngIf="!isStepCompleted(i) && !isStepFailed(i)">{{ i + 1 }}</span>
-        </div>
-        <div class="step-label">{{ step.label }}</div>
-        
-        <!-- Connecting Line -->
-        <div class="step-line" *ngIf="i < STEPS.length - 1"></div>
-      </div>
-    </div>
+    <app-lifecycle-tracker
+      [currentStatus]="currentStatus"
+      [isRejected]="isRejected"
+      [isDirect]="isDirect">
+    </app-lifecycle-tracker>
   </div>
 
   <div class="actions">

@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { OfficerService, PendingKyc } from '../officer.service';
+import { DocumentViewerComponent } from '../../../shared/components/document-viewer/document-viewer.component';
 
 @Component({
   selector: 'app-kyc-review',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DocumentViewerComponent],
   templateUrl: './kyc-review.component.html',
   styleUrls: ['./kyc-review.component.scss']
 })
@@ -18,7 +18,8 @@ export class KycReviewComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  activeDocumentUrl: SafeResourceUrl | null = null;
+  // Document Viewer state
+  activeDocumentUrl: string = '';
   activeDocumentTitle: string = 'Select a document to view';
 
   // Modal States
@@ -29,8 +30,7 @@ export class KycReviewComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private officerService: OfficerService,
-    private sanitizer: DomSanitizer
+    private officerService: OfficerService
   ) {}
 
   ngOnInit(): void {
@@ -67,8 +67,7 @@ export class KycReviewComponent implements OnInit {
 
   viewDocument(id: number, title: string): void {
     if (!id) return;
-    const url = this.officerService.getKycDocumentUrl(id);
-    this.activeDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.activeDocumentUrl = this.officerService.getKycDocumentUrl(id);
     this.activeDocumentTitle = title;
   }
 

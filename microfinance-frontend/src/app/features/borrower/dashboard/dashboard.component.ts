@@ -1,10 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { BorrowerService, DashboardMetrics } from '../borrower.service';
+import { ProfileSetupComponent } from '../profile-setup/profile-setup.component';
+import { MetricCardComponent } from '../../../shared/components/metric-card/metric-card.component';
+import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule, ProfileSetupComponent, MetricCardComponent, DataTableComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -12,9 +18,16 @@ export class DashboardComponent implements OnInit {
   userName = '';
   metrics: DashboardMetrics | null = null;
   isLoading = true;
-  errorMessage = '';
-  validationMessage = '';
-  showProfilePopup = false;
+  errorMessage: string = '';
+  validationMessage: string = '';
+  showProfilePopup: boolean = false;
+
+  activityColumns: TableColumn[] = [
+    { key: 'loanId', label: 'Loan ID', class: 'font-medium' },
+    { key: 'requestedAmount', label: 'Requested Amount', format: 'currency' },
+    { key: 'dateApplied', label: 'Date Applied', format: 'date' },
+    { key: 'status', label: 'Current Status', format: 'badge' }
+  ];
 
   constructor(
     private authService: AuthService,
@@ -66,5 +79,9 @@ export class DashboardComponent implements OnInit {
   closeProfilePopup(): void {
     this.showProfilePopup = false;
     this.fetchMetrics(); // Refresh metrics in case KYC was completed
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

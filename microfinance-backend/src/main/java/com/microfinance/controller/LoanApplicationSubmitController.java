@@ -112,7 +112,10 @@ public class LoanApplicationSubmitController {
             Principal principal
     ) {
         return loanApplicationRepo.findByApplicationNumber(applicationNumber)
-                .map(app -> ResponseEntity.ok(Map.of("status", app.getStatus().name())))
+                .map(app -> ResponseEntity.ok(Map.of(
+                        "status", app.getStatus().name(),
+                        "isDirect", app.getLoanOfficer() != null
+                )))
                 .orElse(ResponseEntity.notFound().build());
     }
 }

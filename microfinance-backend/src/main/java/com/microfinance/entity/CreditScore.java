@@ -14,19 +14,17 @@ import java.time.LocalDateTime;
  * Python ML pipeline after a {@code LoanSubmittedEvent} is processed.
  * The score guides the loan officer's decision.
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "credit_scores")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CreditScore {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class CreditScore extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id", nullable = false, unique = true)

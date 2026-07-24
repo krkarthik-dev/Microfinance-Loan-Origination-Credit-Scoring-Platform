@@ -36,6 +36,9 @@ class ApplicantDashboardServiceTest {
     @Mock
     private UserProfileRepository userProfileRepository;
 
+    @Mock
+    private com.microfinance.repository.KycDocumentRepository kycDocumentRepository;
+
     @InjectMocks
     private ApplicantDashboardService applicantDashboardService;
 
@@ -66,8 +69,14 @@ class ApplicantDashboardServiceTest {
         UserProfile mockProfile = UserProfile.builder()
                 .panNumber("ABCDE1234F")
                 .aadhaarNumber("123456789012")
+                .kycVerified(true)
                 .build();
         when(userProfileRepository.findByUserId(100L)).thenReturn(Optional.of(mockProfile));
+
+        when(kycDocumentRepository.findByUserIdAndDocumentType(100L, com.microfinance.enums.DocumentType.PAN))
+                .thenReturn(Optional.of(new com.microfinance.entity.KycDocument()));
+        when(kycDocumentRepository.findByUserIdAndDocumentType(100L, com.microfinance.enums.DocumentType.AADHAAR))
+                .thenReturn(Optional.of(new com.microfinance.entity.KycDocument()));
 
         // Act
         DashboardMetricsDto metrics = applicantDashboardService.getDashboardMetrics(username);

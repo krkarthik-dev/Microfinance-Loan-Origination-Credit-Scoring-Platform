@@ -42,10 +42,19 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     // US16: Officer Dashboard Query
     @Query("SELECT new com.microfinance.dto.OfficerApplicationSummaryDTO(" +
-           "a.applicationNumber, a.applicant.firstName, a.applicant.lastName, " +
+           "a.applicationNumber, p.firstName, p.lastName, " +
            "a.appliedAmount, a.tenureMonths, a.purpose, a.submittedAt, " +
            "c.creditScore, c.riskTier) " +
-           "FROM LoanApplication a LEFT JOIN CreditScore c ON c.application = a " +
+           "FROM LoanApplication a " +
+           "JOIN UserProfile p ON p.user = a.applicant " +
+           "LEFT JOIN CreditScore c ON c.application = a " +
            "WHERE a.status = :status")
     List<OfficerApplicationSummaryDTO> findSummariesByStatus(@Param("status") ApplicationStatus status);
+
+    // US26: Admin Dashboard Queries
+    @Query("SELECT COALESCE(SUM(l.approvedAmount), 0) FROM LoanApplication l WHERE l.status IN :statuses AND l.updatedAt >= :startDate")
+    BigDecimal sumApprovedAmountByStatusInAndUpdatedAtAfter(@Param("statuses") List<ApplicationStatus> statuses, @Param("startDate") java.time.LocalDateTime startDate);
+
+    @Query("SELECT COUNT(l) FROM LoanApplication l WHERE l.status IN :statuses")
+    long countByStatusIn(@Param("statuses") List<ApplicationStatus> statuses);
 }

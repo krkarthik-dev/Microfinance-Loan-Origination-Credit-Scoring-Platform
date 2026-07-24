@@ -6,11 +6,12 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TokenService } from '../../../core/services/token.service';
+import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-command-center',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent],
   templateUrl: './command-center.component.html',
   styleUrls: ['./command-center.component.scss']
 })
@@ -18,6 +19,16 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   queue: ApplicationSummary[] = [];
   isLoading = true;
   errorMessage = '';
+
+  loanColumns: TableColumn[] = [
+    { key: 'applicationNumber', label: 'Application ID', class: 'font-mono text-indigo', sortable: true },
+    { key: 'applicantName', label: 'Applicant Name', class: 'font-bold', sortable: true, valueGetter: (row: any) => `${row.applicantFirstName} ${row.applicantLastName}` },
+    { key: 'appliedAmount', label: 'Amount', format: 'rupee', sortable: true },
+    { key: 'purpose', label: 'Purpose', sortable: true },
+    { key: 'creditScore', label: 'ML Score', format: 'score', sortable: true },
+    { key: 'riskTier', label: 'Risk Tier', format: 'badge', sortable: true },
+    { key: 'submittedAt', label: 'Date Applied', format: 'date', sortable: true }
+  ];
   
   // Sorting state
   sortColumn: keyof ApplicationSummary | 'creditScore' = 'creditScore'; 
@@ -27,6 +38,15 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   pendingKyc: PendingKyc[] = [];
   isKycLoading = true;
   kycErrorMessage = '';
+
+  kycColumns: TableColumn[] = [
+    { key: 'fullName', label: 'Applicant Name', class: 'font-bold' },
+    { key: 'email', label: 'Email' },
+    { key: 'panNumber', label: 'PAN Number', class: 'font-mono' },
+    { key: 'aadhaarNumber', label: 'Aadhaar Number', class: 'font-mono' },
+    { key: 'profileCreatedAt', label: 'Profile Created', format: 'date' },
+    { key: 'action', label: 'Action', format: 'action' }
+  ];
 
   // Tabs
   activeTab: 'LOANS' | 'KYC' = 'LOANS';
@@ -90,12 +110,13 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   /**
    * AC4: Manual Sorting Override
    */
-  sortBy(column: keyof ApplicationSummary): void {
-    if (this.sortColumn === column) {
+  sortBy(column: string): void {
+    const colKey = column as keyof ApplicationSummary;
+    if (this.sortColumn === colKey) {
       // Toggle direction
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      this.sortColumn = column;
+      this.sortColumn = colKey;
       this.sortDirection = 'desc'; // Default to desc on new column click
     }
     this.sortQueue();

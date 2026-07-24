@@ -76,19 +76,11 @@
     </div>
 
     <!-- Right Pane: Document Viewer -->
-    <div class="viewer-pane fade-in" *ngIf="!isLoading && details">
-      <div class="viewer-header">
-        <h3>Document Viewer: {{ activeDocumentTitle }}</h3>
-      </div>
-      <div class="viewer-body">
-        <div *ngIf="!activeDocumentUrl" class="empty-viewer">
-          Select a document from the left pane to view it here.
-        </div>
-        <object *ngIf="activeDocumentUrl" [data]="activeDocumentUrl" type="application/pdf" width="100%" height="100%">
-          <p>Your browser does not support PDFs or Images here. <a [href]="activeDocumentUrl" target="_blank">Download instead.</a></p>
-        </object>
-      </div>
-    </div>
+    <app-document-viewer
+      class="viewer-pane-container"
+      [title]="activeDocumentTitle"
+      [documentUrl]="activeDocumentUrl">
+    </app-document-viewer>
 
   </main>
 </div>

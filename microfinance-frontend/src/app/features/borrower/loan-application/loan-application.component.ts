@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BorrowerService } from '../borrower.service';
 import { OfficerService } from '../../officer/officer.service';
+import { ProductService } from '../../../core/services/product.service';
 
 export interface UploadedFile {
   file: File;
@@ -59,10 +60,8 @@ export class LoanApplicationComponent implements OnInit {
   isOfficerMode = false;
   borrowerEmail: string | null = null;
 
-  purposes = [
-    'Agriculture', 'Small Business Setup', 'Medical Emergency',
-    'Education', 'Home Repair'
-  ];
+  loanProducts: any[] = [];
+  isLoadingProducts = true;
 
   private readonly DOC_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
   private readonly IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -73,15 +72,30 @@ export class LoanApplicationComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private borrowerService: BorrowerService,
-    private officerService: OfficerService
+    private officerService: OfficerService,
+    private productService: ProductService
   ) {}
 
   ngOnInit(): void { 
     this.initForms(); 
+    this.fetchLoanProducts();
     this.route.paramMap.subscribe(params => {
       if (params.has('email')) {
         this.isOfficerMode = true;
         this.borrowerEmail = params.get('email');
+      }
+    });
+  }
+
+  private fetchLoanProducts(): void {
+    this.productService.getActiveProducts().subscribe({
+      next: (products) => {
+        this.loanProducts = products;
+        this.isLoadingProducts = false;
+      },
+      error: (err) => {
+        console.error('Failed to fetch loan products', err);
+        this.isLoadingProducts = false;
       }
     });
   }
@@ -107,6 +121,35 @@ export class LoanApplicationComponent implements OnInit {
   isReqInvalid(f: string): boolean {
     const c = this.loanRequirementsForm.get(f);
     return !!(c && c.invalid && (c.dirty || c.touched));
+  }
+
+  get estimatedEmi(): number | null {
+    const principal = this.loanRequirementsForm.get('principalAmount')?.value;
+    const months = this.loanRequirementsForm.get('tenureMonths')?.value;
+    const purpose = this.loanRequirementsForm.get('purpose')?.value;
+
+    if (!principal || !months || !purpose) return null;
+
+    const selectedProduct = this.loanProducts.find(p => p.productName === purpose);
+    if (!selectedProduct) return null;
+
+    const annualRate = selectedProduct.interestRatePa;
+
+    const p = parseFloat(principal);
+    const r = annualRate / 12 / 100;
+    const n = parseInt(months, 10);
+
+    if (p <= 0 || n <= 0) return null;
+
+    const emi = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    return Math.round(emi);
+  }
+
+  get selectedProductRate(): number | null {
+    const purpose = this.loanRequirementsForm.get('purpose')?.value;
+    if (!purpose) return null;
+    const selectedProduct = this.loanProducts.find(p => p.productName === purpose);
+    return selectedProduct ? selectedProduct.interestRatePa : null;
   }
 
   // ── Step 2 ──

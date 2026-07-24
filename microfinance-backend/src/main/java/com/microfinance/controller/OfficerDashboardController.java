@@ -376,7 +376,7 @@ public class OfficerDashboardController {
                 .city("Unknown")
                 .state("Unknown")
                 .pincode("000000")
-                .kycVerified(false)
+                .kycVerified(true) // US25: Officer verifies KYC during walk-in creation
                 .build();
         
         userProfileRepository.save(profile);
@@ -427,6 +427,24 @@ public class OfficerDashboardController {
                     incomeCert, photo, guarantorId, otherDocs,
                     signature
             );
+
+            // US25 AC1: Assign the officer and create Audit Log
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            User officer = userRepository.findByEmail(auth.getName()).orElse(null);
+            
+            if (officer != null) {
+                saved.setLoanOfficer(officer);
+                loanApplicationRepository.save(saved);
+
+                AuditLog audit = AuditLog.builder()
+                        .entityType("LOAN_APPLICATION")
+                        .entityId(saved.getId())
+                        .action("DIRECT_DEAL_SUBMITTED")
+                        .performedBy(officer)
+                        .newValue("{\"email\":\"" + email + "\", \"officer_id\":" + officer.getId() + "}")
+                        .build();
+                auditLogRepository.save(audit);
+            }
 
             // Return the generated PDF directly as a downloadable file
             byte[] pdfBytes = saved.getApplicationPdf();

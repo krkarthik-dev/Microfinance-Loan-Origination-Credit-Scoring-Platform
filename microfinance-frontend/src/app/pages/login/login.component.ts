@@ -27,7 +27,7 @@ export class LoginComponent implements OnInit {
     }
 
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -64,7 +64,7 @@ export class LoginComponent implements OnInit {
     const role = this.authService.getRole();
     switch (role) {
       case 'ROLE_ADMIN':
-        this.router.navigate(['/admin']);
+        this.router.navigate(['/admin/dashboard']);
         break;
       case 'ROLE_OFFICER':
         this.router.navigate(['/officer']);

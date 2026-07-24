@@ -15,19 +15,17 @@ import java.time.LocalDateTime;
  * loan applications. Defines the financial parameters (amount range,
  * interest rate, tenure) that govern a loan type.
  */
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "loan_products")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class LoanProduct {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class LoanProduct extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @Column(name = "product_name", nullable = false, unique = true, length = 100)
     private String productName;
@@ -60,11 +58,4 @@ public class LoanProduct {
     @Builder.Default
     private boolean active = true;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

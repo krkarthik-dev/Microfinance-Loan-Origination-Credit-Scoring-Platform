@@ -85,51 +85,7 @@
   padding: 0 2rem;
 }
 
-.grid-container {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
 
-.cc-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-
-  th {
-    background-color: #f3f4f6;
-    padding: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #4b5563;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid #e5e7eb;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #e5e7eb;
-    }
-  }
-
-  td {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    vertical-align: middle;
-  }
-
-  .cursor-pointer {
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
-  }
-
-  tbody tr:hover {
-    background-color: #f3f4f6;
-  }
-}
 
 .risk-col {
   position: relative;

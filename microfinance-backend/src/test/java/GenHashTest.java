@@ -1,0 +1,1 @@
+import org.junit.jupiter.api.Test; import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; public class GenHashTest { @Test public void gen() { System.out.println("HASH_START=" + new BCryptPasswordEncoder().encode("test123") + "=HASH_END"); } }
