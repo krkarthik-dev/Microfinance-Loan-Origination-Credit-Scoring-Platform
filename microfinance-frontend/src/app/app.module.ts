@@ -12,6 +12,7 @@ import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.compone
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { ForceChangePasswordComponent } from './features/auth/force-change-password/force-change-password.component';
 import { DisbursementQueueComponent } from './features/admin/disbursement-queue/disbursement-queue.component';
+import { GlobalNavbarComponent } from './shared/components/global-navbar/global-navbar.component';
 
 /**
  * Root application module for the Microfinance Loan Origination Platform.
@@ -35,7 +36,8 @@ import { DisbursementQueueComponent } from './features/admin/disbursement-queue/
     CommonModule,
     HttpClientModule,
     ReactiveFormsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    GlobalNavbarComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

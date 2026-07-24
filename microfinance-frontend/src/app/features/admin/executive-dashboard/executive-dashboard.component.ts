@@ -76,8 +76,4 @@ export class ExecutiveDashboardComponent implements OnInit {
       percentage: this.getRiskPercentage(count as number)
     }));
   }
-
-  logout(): void {
-    this.authService.logout();
-  }
 }

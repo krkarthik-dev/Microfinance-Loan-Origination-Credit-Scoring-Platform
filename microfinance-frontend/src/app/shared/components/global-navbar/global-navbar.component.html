@@ -1,0 +1,92 @@
+<nav class="global-navbar">
+  <div class="navbar-container">
+    
+    <!-- BRAND (Left) -->
+    <div class="navbar-brand" routerLink="/">
+      <span class="brand-icon">M</span>
+      <span class="brand-text">Microfinance</span>
+    </div>
+
+    <!-- NAVIGATION LINKS (Center) -->
+    <div class="navbar-links">
+      
+      <!-- Borrower Links -->
+      <ng-container *ngIf="role === 'ROLE_APPLICANT'">
+        <a routerLink="/applicant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Dashboard</a>
+      </ng-container>
+
+      <!-- Officer Links -->
+      <ng-container *ngIf="role === 'ROLE_OFFICER'">
+        <a routerLink="/officer" routerLinkActive="active" class="nav-link">Command Center</a>
+      </ng-container>
+
+      <!-- Admin Links -->
+      <ng-container *ngIf="role === 'ROLE_ADMIN'">
+        <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
+        <a routerLink="/admin/disbursements" routerLinkActive="active" class="nav-link">Disbursements</a>
+        <a routerLink="/admin/staff" routerLinkActive="active" class="nav-link">Staff</a>
+        <a routerLink="/admin/products" routerLinkActive="active" class="nav-link">Products</a>
+      </ng-container>
+
+    </div>
+
+    <!-- USER CONTROLS (Right) -->
+    <div class="navbar-controls">
+      
+      <!-- Notification Bell (Borrowers only for now based on US37/US31 logic, but can be global) -->
+      <div class="notifications-wrapper" *ngIf="role === 'ROLE_APPLICANT'">
+        <button class="icon-btn" (click)="toggleNotifications()" aria-label="Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+        </button>
+
+        <div class="dropdown-menu notif-menu" *ngIf="showNotifications">
+          <div class="dropdown-header">
+            <h4>Notifications</h4>
+          </div>
+          <div class="dropdown-body">
+            <div class="empty-state" *ngIf="notifications.length === 0">
+              No new notifications
+            </div>
+            <div class="dropdown-item" *ngFor="let notif of notifications" 
+                 [class.unread]="!notif.isRead"
+                 (click)="handleNotificationClick(notif)">
+              <div class="notif-content">
+                <p>{{ notif.message }}</p>
+                <span class="notif-time">{{ notif.createdAt | date:'short' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Icon Dropdown -->
+      <div class="profile-wrapper">
+        <button class="profile-btn" (click)="toggleProfileMenu()">
+          {{ userInitials }}
+        </button>
+        
+        <div class="dropdown-menu profile-menu" *ngIf="showProfileMenu">
+          <div class="profile-header">
+            <span class="profile-name">{{ userName }}</span>
+            <span class="profile-role">{{ role?.replace('ROLE_', '') }}</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" (click)="$event.preventDefault()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            Account Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item text-danger" (click)="logout()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</nav>

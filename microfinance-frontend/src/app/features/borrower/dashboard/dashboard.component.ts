@@ -33,10 +33,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   validationMessage: string = '';
   showProfilePopup: boolean = false;
   
-  notifications: NotificationItem[] = [];
-  unreadCount = 0;
-  showNotifications = false;
-
   private sub?: Subscription;
 
   activityColumns: TableColumn[] = [
@@ -57,7 +53,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     this.userName = user?.sub?.split('@')[0] || 'Borrower';
     this.fetchMetrics();
-    this.fetchNotifications();
   }
 
   ngOnDestroy(): void {
@@ -101,47 +96,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   closeProfilePopup(): void {
     this.showProfilePopup = false;
     this.fetchMetrics(); // Refresh metrics in case KYC was completed
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
-
-  fetchNotifications(): void {
-    this.http.get<NotificationItem[]>(`${environment.apiUrl}/notifications`).subscribe({
-      next: (data) => {
-        this.notifications = data;
-        this.unreadCount = data.filter(n => !n.isRead).length;
-      },
-      error: (err) => console.error('Failed to load notifications', err)
-    });
-  }
-
-  toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
-  }
-
-  handleNotificationClick(notif: NotificationItem): void {
-    this.showNotifications = false;
-    if (!notif.isRead) {
-      this.http.put(`${environment.apiUrl}/notifications/${notif.id}/read`, {}).subscribe({
-        next: () => {
-          notif.isRead = true;
-          this.unreadCount = Math.max(0, this.unreadCount - 1);
-          if (notif.linkUrl) {
-            this.router.navigateByUrl(notif.linkUrl);
-          }
-        },
-        error: (err) => {
-          console.error('Error marking as read', err);
-          if (notif.linkUrl) {
-            this.router.navigateByUrl(notif.linkUrl);
-          }
-        }
-      });
-    } else if (notif.linkUrl) {
-      this.router.navigateByUrl(notif.linkUrl);
-    }
   }
 }
 
