@@ -54,15 +54,10 @@ export class LoanTrackingComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.currentStatus = res.status;
         this.isDirect = res.isDirect === true;
-        this.isRejected = (this.currentStatus === 'REJECTED' || this.currentStatus === 'FINAL_REJECTED');
-        
-        // Stop polling if we reach terminal states where immediate async updates stop
-        if (this.currentStatus === 'UNDER_REVIEW' || this.currentStatus === 'APPROVED' || 
-            this.currentStatus === 'FINAL_APPROVED' || this.isRejected) {
-          // In a real app we might still poll infrequently, but here we can stop aggressive polling
-          // once ML finishes and it hits the Officer's queue (UNDER_REVIEW).
-          // We'll keep polling so it can progress through Approval -> Closing, etc. if triggered by officer.
-          // So let's NOT unsubscribe, keep it alive.
+        this.isRejected = this.currentStatus === 'REJECTED';
+
+        if (this.currentStatus === 'ACTIVE_REPAYMENT' || this.isRejected || this.currentStatus === 'WITHDRAWN') {
+          this.pollingSub?.unsubscribe();
         }
       },
       error: (err) => {

@@ -59,11 +59,18 @@ export class ProfileSetupComponent implements OnInit {
   panUploadError: string | null = null;
   aadhaarUploadError: string | null = null;
   
+  panPreviewTimestamp = Date.now();
+  aadhaarPreviewTimestamp = Date.now();
+  
   apiUrl = environment.apiUrl;
 
   // Track drag states
   isPanDragOver = false;
   isAadhaarDragOver = false;
+
+  get isKycVerified(): boolean {
+    return !!(this.panDocument?.verified && this.aadhaarDocument?.verified);
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -208,6 +215,9 @@ export class ProfileSetupComponent implements OnInit {
   // ==========================================
 
   loadDocumentMetadata() {
+    this.panPreviewTimestamp = Date.now();
+    this.aadhaarPreviewTimestamp = Date.now();
+
     this.borrowerService.getKycDocumentMetadata('PAN').subscribe({
       next: (res) => this.panDocument = res,
       error: () => this.panDocument = null
@@ -279,9 +289,11 @@ export class ProfileSetupComponent implements OnInit {
         next: (res) => {
           if (type === 'PAN') {
             this.panDocument = res;
+            this.panPreviewTimestamp = Date.now();
             this.isUploadingPan = false;
           } else {
             this.aadhaarDocument = res;
+            this.aadhaarPreviewTimestamp = Date.now();
             this.isUploadingAadhaar = false;
           }
         },
@@ -354,8 +366,8 @@ export class ProfileSetupComponent implements OnInit {
   }
 
   getPreviewUrl(documentType: string): string {
-    // Generate unique URL with timestamp to bust cache after re-upload
-    return `${this.apiUrl}/applicant/kyc/${documentType}/view?t=${new Date().getTime()}`;
+    const ts = documentType === 'PAN' ? this.panPreviewTimestamp : this.aadhaarPreviewTimestamp;
+    return `${this.apiUrl}/applicant/kyc/${documentType}/view?t=${ts}`;
   }
 
   isPdf(doc: KycUploadResponse | null): boolean {

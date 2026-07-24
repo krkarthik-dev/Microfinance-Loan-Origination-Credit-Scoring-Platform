@@ -25,7 +25,8 @@ const routes: Routes = [
   },
   { 
     path: 'login', 
-    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) 
+    component: LoginComponent,
+    title: 'Sign In | Microfinance Platform'
   },
   { 
     path: 'register', 

@@ -39,8 +39,8 @@ public class LoanScoringEventListener {
         LoanApplication application = loanApplicationRepository.findById(event.getApplicationId())
                 .orElseThrow(() -> new IllegalStateException("Application not found"));
 
-        // 1. Update status to RISK_ASSESSMENT
-        application.setStatus(ApplicationStatus.RISK_ASSESSMENT);
+        // 1. Mark the application as under review while the score is calculated.
+        application.setStatus(ApplicationStatus.UNDER_REVIEW);
         loanApplicationRepository.save(application);
 
         try {

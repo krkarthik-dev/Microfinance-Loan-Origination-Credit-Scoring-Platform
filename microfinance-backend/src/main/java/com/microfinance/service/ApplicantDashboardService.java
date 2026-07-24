@@ -48,14 +48,18 @@ public class ApplicantDashboardService {
         List<ApplicationStatus> pendingStatuses = Arrays.asList(
                 ApplicationStatus.DRAFT,
                 ApplicationStatus.SUBMITTED,
-                ApplicationStatus.UNDER_REVIEW
+                ApplicationStatus.PENDING_KYC,
+                ApplicationStatus.UNDER_REVIEW,
+                ApplicationStatus.INFO_REQUESTED,
+                ApplicationStatus.PENDING_MANAGER_APPROVAL,
+                ApplicationStatus.CLOSING
         );
         int pendingApplications = loanApplicationRepository.countByApplicantIdAndStatusIn(applicantId, pendingStatuses);
 
         // 2. Active Loans Count
         List<ApplicationStatus> activeStatuses = Arrays.asList(
                 ApplicationStatus.APPROVED,
-                ApplicationStatus.FINAL_APPROVED
+                ApplicationStatus.ACTIVE_REPAYMENT
         );
         int activeLoans = loanApplicationRepository.countByApplicantIdAndStatusIn(applicantId, activeStatuses);
 

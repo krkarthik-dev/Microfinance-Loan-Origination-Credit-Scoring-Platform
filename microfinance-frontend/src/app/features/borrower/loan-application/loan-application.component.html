@@ -61,7 +61,7 @@
           <div class="invalid-feedback" *ngIf="isReqInvalid('principalAmount')">
             <span *ngIf="reqF['principalAmount'].errors?.['required']">Amount is required.</span>
             <span *ngIf="reqF['principalAmount'].errors?.['min']">Minimum amount is &#8377;1,000.</span>
-            <span *ngIf="reqF['principalAmount'].errors?.['max']">Maximum amount is &#8377;5,00,000.</span>
+            <span *ngIf="reqF['principalAmount'].errors?.['max']">Maximum amount is &#8377;50,00,000.</span>
           </div>
         </div>
 

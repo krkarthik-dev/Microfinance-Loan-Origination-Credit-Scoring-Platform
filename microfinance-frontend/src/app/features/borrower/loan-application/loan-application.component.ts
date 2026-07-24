@@ -102,7 +102,7 @@ export class LoanApplicationComponent implements OnInit {
 
   private initForms(): void {
     this.loanRequirementsForm = this.fb.group({
-      principalAmount: ['', [Validators.required, Validators.min(1000), Validators.max(500000)]],
+      principalAmount: ['', [Validators.required, Validators.min(1000), Validators.max(5000000)]],
       tenureMonths: [12, [Validators.required]],
       purpose: ['', Validators.required]
     });
@@ -297,18 +297,18 @@ export class LoanApplicationComponent implements OnInit {
         // Extract application number from response header
         const appNumber = response.headers.get('X-Application-Number');
         if (appNumber) {
+           // Create an object URL for the PDF blob to download it automatically
+           const blob = new Blob([response.body], { type: 'application/pdf' });
+           const url = window.URL.createObjectURL(blob);
+           const a = document.createElement('a');
+           a.href = url;
+           a.download = `${appNumber}_application.pdf`;
+           document.body.appendChild(a);
+           a.click();
+           document.body.removeChild(a);
+           window.URL.revokeObjectURL(url);
+           
           if (this.isOfficerMode) {
-             // Create an object URL for the PDF blob to download it automatically
-             const blob = new Blob([response.body], { type: 'application/pdf' });
-             const url = window.URL.createObjectURL(blob);
-             const a = document.createElement('a');
-             a.href = url;
-             a.download = `${appNumber}_application.pdf`;
-             document.body.appendChild(a);
-             a.click();
-             document.body.removeChild(a);
-             window.URL.revokeObjectURL(url);
-             
              // Then redirect back to officer dashboard
              this.router.navigate(['/officer']);
           } else {
@@ -319,9 +319,25 @@ export class LoanApplicationComponent implements OnInit {
           this.submissionError = 'Submission succeeded, but tracking ID was missing.';
         }
       },
-      error: (err) => {
+      error: async (err) => {
         this.isSubmitting = false;
-        this.submissionError = 'Submission failed. Please try again.';
+        
+        let errorMsg = 'Submission failed. Please try again.';
+        if (err.error instanceof Blob) {
+            try {
+                const text = await err.error.text();
+                const json = JSON.parse(text);
+                errorMsg = `Submission failed: ${json.message || json.error}`;
+            } catch (e) {
+                // Ignore parse errors, fallback to default message
+            }
+        } else if (err.error && err.error.message) {
+            errorMsg = `Submission failed: ${err.error.message}`;
+        } else if (err.error && err.error.error) {
+            errorMsg = `Submission failed: ${err.error.error}`;
+        }
+        
+        this.submissionError = errorMsg;
         console.error('Submission error:', err);
       }
     });

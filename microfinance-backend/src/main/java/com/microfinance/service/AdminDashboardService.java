@@ -35,15 +35,15 @@ public class AdminDashboardService {
         // 1. MTD Disbursed Amount (Active loans updated this month)
         LocalDateTime startOfMonth = YearMonth.now().atDay(1).atStartOfDay();
         BigDecimal mtdDisbursed = loanApplicationRepository.sumApprovedAmountByStatusInAndUpdatedAtAfter(
-                List.of(ApplicationStatus.ACTIVE), startOfMonth);
+                List.of(ApplicationStatus.ACTIVE_REPAYMENT), startOfMonth);
 
         // 2. Total Pending Escalations
-        long pendingEscalations = loanApplicationRepository.countByStatus(ApplicationStatus.ESCALATED);
+        long pendingEscalations = loanApplicationRepository.countByStatus(ApplicationStatus.PENDING_MANAGER_APPROVAL);
 
         // 3. System Rejection Rate
         long totalApplications = loanApplicationRepository.count();
         long rejectedApplications = loanApplicationRepository.countByStatusIn(
-                List.of(ApplicationStatus.REJECTED, ApplicationStatus.FINAL_REJECTED));
+                List.of(ApplicationStatus.REJECTED));
         
         double rejectionRate = 0.0;
         if (totalApplications > 0) {

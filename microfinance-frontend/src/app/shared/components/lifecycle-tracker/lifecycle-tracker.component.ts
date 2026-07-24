@@ -16,12 +16,16 @@ interface TrackerStep {
            [class.completed]="isStepCompleted(i)"
            [class.active]="isStepCurrent(i)"
            [class.failed]="isStepFailed(i)"
+           [class.warning]="isStepWarning(i)"
+           [class.terminal]="isStepTerminal(i)"
            [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i)">
         
         <div class="step-circle">
           <span *ngIf="isStepCompleted(i)">✓</span>
           <span *ngIf="isStepFailed(i)">✕</span>
-          <span *ngIf="!isStepCompleted(i) && !isStepFailed(i)">{{ i + 1 }}</span>
+          <span *ngIf="isStepWarning(i)">!</span>
+          <span *ngIf="isStepTerminal(i)">—</span>
+          <span *ngIf="!isStepCompleted(i) && !isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">{{ i + 1 }}</span>
         </div>
         <div class="step-label">{{ step.label }}</div>
         
@@ -114,7 +118,8 @@ interface TrackerStep {
       }
     }
 
-    .step.failed {
+    .step.failed,
+    .step.terminal {
       .step-circle {
         background-color: var(--danger, #ef4444);
         border-color: var(--danger, #ef4444);
@@ -122,6 +127,18 @@ interface TrackerStep {
       }
       .step-label {
         color: var(--danger, #ef4444);
+        font-weight: 700;
+      }
+    }
+
+    .step.warning {
+      .step-circle {
+        background-color: #f59e0b;
+        border-color: #f59e0b;
+        color: white;
+      }
+      .step-label {
+        color: #b45309;
         font-weight: 700;
       }
     }
@@ -168,15 +185,13 @@ export class LifecycleTrackerComponent implements OnChanges {
   @Input() isDirect: boolean = false;
 
   readonly STEPS: TrackerStep[] = [
-    { key: 'started', label: 'Application started' },
     { key: 'draft', label: 'Draft' },
     { key: 'submitted', label: 'Submitted' },
-    { key: 'kyc', label: 'KYC verification' },
-    { key: 'doc', label: 'Doc verification' },
+    { key: 'kyc', label: 'KYC' },
+    { key: 'review', label: 'Under Review' },
     { key: 'approval', label: 'Approval' },
     { key: 'closing', label: 'Closing' },
-    { key: 'disbursement', label: 'Disbursement' },
-    { key: 'emi', label: 'EMI repayment' }
+    { key: 'repayment', label: 'Repayment' }
   ];
 
   currentStepIndex: number = 0;
@@ -187,24 +202,17 @@ export class LifecycleTrackerComponent implements OnChanges {
 
   private calculateStepIndex(): void {
     switch (this.currentStatus) {
-      case 'DRAFT': this.currentStepIndex = 1; break;
-      case 'SUBMITTED': this.currentStepIndex = 2; break;
-      case 'RISK_ASSESSMENT': 
-        this.currentStepIndex = this.isDirect ? 5 : 3; 
-        break;
-      case 'UNDER_REVIEW': 
-      case 'ESCALATED': 
-        this.currentStepIndex = this.isDirect ? 5 : 4; 
-        break;
-      case 'APPROVED': 
-      case 'FINAL_APPROVED': this.currentStepIndex = 5; break;
-      case 'CLOSING': this.currentStepIndex = 6; break;
-      case 'DISBURSEMENT': this.currentStepIndex = 7; break;
-      case 'ACTIVE': this.currentStepIndex = 8; break;
+      case 'DRAFT': this.currentStepIndex = 0; break;
+      case 'SUBMITTED': this.currentStepIndex = 1; break;
+      case 'PENDING_KYC': this.currentStepIndex = 2; break;
+      case 'UNDER_REVIEW':
+      case 'INFO_REQUESTED': this.currentStepIndex = 3; break;
+      case 'PENDING_MANAGER_APPROVAL':
+      case 'APPROVED': this.currentStepIndex = 4; break;
+      case 'CLOSING': this.currentStepIndex = 5; break;
+      case 'ACTIVE_REPAYMENT': this.currentStepIndex = 6; break;
       case 'REJECTED':
-      case 'FINAL_REJECTED':
-        this.currentStepIndex = 4;
-        break;
+      case 'WITHDRAWN': this.currentStepIndex = 3; break;
       default: this.currentStepIndex = 0; break;
     }
   }
@@ -217,10 +225,19 @@ export class LifecycleTrackerComponent implements OnChanges {
   }
 
   isStepCurrent(index: number): boolean {
-    return index === this.currentStepIndex && !this.isRejected;
+    return index === this.currentStepIndex && !this.isRejected &&
+      this.currentStatus !== 'INFO_REQUESTED' && this.currentStatus !== 'WITHDRAWN';
   }
 
   isStepFailed(index: number): boolean {
     return this.isRejected && index === this.currentStepIndex;
+  }
+
+  isStepWarning(index: number): boolean {
+    return this.currentStatus === 'INFO_REQUESTED' && index === this.currentStepIndex;
+  }
+
+  isStepTerminal(index: number): boolean {
+    return this.currentStatus === 'WITHDRAWN' && index === this.currentStepIndex;
   }
 }

@@ -20,6 +20,7 @@ public class OfficerApplicationDetailDTO {
     // Application Basic
     private Long applicationId;
     private String applicationNumber;
+    private String status;
     private LocalDateTime submittedAt;
     
     // Profile Data (Section A)

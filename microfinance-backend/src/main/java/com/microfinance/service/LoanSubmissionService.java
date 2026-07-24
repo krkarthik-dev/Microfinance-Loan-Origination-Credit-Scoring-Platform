@@ -97,7 +97,7 @@ public class LoanSubmissionService {
                 .guarantorAadhaar(guarantorAadhaar)
                 .guarantorPan(guarantorPan)
                 .termsAccepted(true)
-                .status(ApplicationStatus.DRAFT)
+                .status(ApplicationStatus.SUBMITTED)
                 .submittedAt(LocalDateTime.now())
                 .build();
 

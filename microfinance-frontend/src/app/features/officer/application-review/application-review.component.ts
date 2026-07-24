@@ -43,7 +43,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   activeDocumentTitle: string = 'Select a document to view';
 
   // Modal States
-  activeModal: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'FINAL_APPROVE' | 'FINAL_REJECT' | null = null;
+  activeModal: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'REQUEST_INFO' | null = null;
   rejectionReason: string = '';
   internalNotes: string = '';
   isSubmitting = false;
@@ -112,18 +112,48 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
 
   viewKycDocument(id: number, title: string): void {
     if (!id) return;
-    this.activeDocumentUrl = this.officerService.getKycDocumentUrl(id);
-    this.activeDocumentTitle = title;
+    this.activeDocumentTitle = 'Loading...';
+    
+    if (this.activeDocumentUrl && this.activeDocumentUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.activeDocumentUrl);
+    }
+
+    this.officerService.getKycDocumentBlob(id).subscribe({
+      next: (blob: Blob) => {
+        this.activeDocumentUrl = URL.createObjectURL(blob);
+        this.activeDocumentTitle = title;
+      },
+      error: (err) => {
+        console.error('Failed to load document', err);
+        this.activeDocumentTitle = 'Failed to load document';
+        this.activeDocumentUrl = '';
+      }
+    });
   }
 
   viewLoanDocument(id: number, title: string): void {
     if (!id) return;
-    this.activeDocumentUrl = this.officerService.getLoanDocumentUrl(id);
-    this.activeDocumentTitle = title;
+    this.activeDocumentTitle = 'Loading...';
+    
+    if (this.activeDocumentUrl && this.activeDocumentUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.activeDocumentUrl);
+    }
+
+    this.officerService.getLoanDocumentBlob(id).subscribe({
+      next: (blob: Blob) => {
+        this.activeDocumentUrl = URL.createObjectURL(blob);
+        this.activeDocumentTitle = title;
+      },
+      error: (err) => {
+        console.error('Failed to load document', err);
+        this.activeDocumentTitle = 'Failed to load document';
+        this.activeDocumentUrl = '';
+      }
+    });
   }
 
   // Underwriting Actions
-  openModal(type: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'FINAL_APPROVE' | 'FINAL_REJECT'): void {
+  openModal(type: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'REQUEST_INFO'): void {
     this.activeModal = type;
     this.rejectionReason = '';
     this.internalNotes = '';
@@ -134,12 +164,12 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   }
 
   submitDecision(): void {
-    if ((this.activeModal === 'REJECT' || this.activeModal === 'FINAL_REJECT') && !this.rejectionReason) {
+    if (this.activeModal === 'REJECT' && !this.rejectionReason) {
       alert('Please select a rejection reason.');
       return;
     }
-    if (this.activeModal === 'ESCALATE' && !this.internalNotes.trim()) {
-      alert('Please provide internal notes for escalation.');
+    if ((this.activeModal === 'ESCALATE' || this.activeModal === 'REQUEST_INFO') && !this.internalNotes.trim()) {
+      alert(this.activeModal === 'REQUEST_INFO' ? 'Please specify the documents needed.' : 'Please provide internal notes for escalation.');
       return;
     }
 
@@ -147,8 +177,8 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
     
     const payload = {
       decision: this.activeModal!,
-      rejectionReason: (this.activeModal === 'REJECT' || this.activeModal === 'FINAL_REJECT') ? this.rejectionReason : undefined,
-      internalNotes: this.activeModal === 'ESCALATE' ? this.internalNotes : undefined
+      rejectionReason: this.activeModal === 'REJECT' ? this.rejectionReason : undefined,
+      internalNotes: (this.activeModal === 'ESCALATE' || this.activeModal === 'REQUEST_INFO') ? this.internalNotes : undefined
     };
 
     this.officerService.submitDecision(this.applicationNumber, payload).subscribe({

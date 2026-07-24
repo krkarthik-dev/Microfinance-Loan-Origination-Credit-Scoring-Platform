@@ -1,7 +1,6 @@
 package com.microfinance.controller;
 
 import com.microfinance.dto.OfficerApplicationDetailDTO;
-import com.microfinance.dto.OfficerApplicationDetailDTO;
 import com.microfinance.dto.OfficerApplicationSummaryDTO;
 import com.microfinance.dto.OfficerDecisionRequestDTO;
 import com.microfinance.dto.PendingKycDTO;
@@ -46,6 +45,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/officer")
@@ -70,8 +70,21 @@ public class OfficerDashboardController {
      */
     @GetMapping("/applications/queue")
     @PreAuthorize("hasRole('OFFICER')")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<OfficerApplicationSummaryDTO>> getUnderReviewApplications() {
-        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findSummariesByStatus(ApplicationStatus.UNDER_REVIEW);
+        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findAll().stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.SUBMITTED || 
+                               app.getStatus() == ApplicationStatus.PENDING_KYC || 
+                               app.getStatus() == ApplicationStatus.UNDER_REVIEW)
+                .map(app -> OfficerApplicationSummaryDTO.builder()
+                        .applicationId(app.getId())
+                        .applicationNumber(app.getApplicationNumber())
+                        .applicantName(app.getApplicant().getUsername())
+                        .appliedAmount(app.getAppliedAmount())
+                        .status(app.getStatus().name())
+                        .submittedAt(app.getSubmittedAt())
+                        .build())
+                .collect(Collectors.toList());
         return ResponseEntity.ok(queue);
     }
 
@@ -80,6 +93,7 @@ public class OfficerDashboardController {
      */
     @GetMapping("/applications/{applicationNumber}/details")
     @PreAuthorize("hasRole('OFFICER')")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getApplicationDetails(@PathVariable String applicationNumber) {
         Optional<LoanApplication> appOpt = loanApplicationRepository.findByApplicationNumber(applicationNumber);
         if (appOpt.isEmpty()) {
@@ -116,6 +130,7 @@ public class OfficerDashboardController {
         OfficerApplicationDetailDTO dto = OfficerApplicationDetailDTO.builder()
                 .applicationId(app.getId())
                 .applicationNumber(app.getApplicationNumber())
+                .status(app.getStatus().name())
                 .submittedAt(app.getSubmittedAt())
                 .firstName(profile.getFirstName())
                 .lastName(profile.getLastName())
@@ -151,6 +166,21 @@ public class OfficerDashboardController {
                 .otherDocuments(otherDocs)
                 .build();
 
+        if (app.getStatus() == ApplicationStatus.SUBMITTED || app.getStatus() == ApplicationStatus.PENDING_KYC) {
+            app.setStatus(ApplicationStatus.UNDER_REVIEW);
+            loanApplicationRepository.save(app);
+            
+            AuditLog audit = AuditLog.builder()
+                .entityType("LOAN_APPLICATION")
+                .entityId(app.getId())
+                .action("REVIEW_STARTED")
+                .performedBy(userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElse(null))
+                .oldValue(ApplicationStatus.SUBMITTED.name())
+                .newValue(ApplicationStatus.UNDER_REVIEW.name())
+                .build();
+            auditLogRepository.save(audit);
+        }
+        
         return ResponseEntity.ok(dto);
     }
 
@@ -200,33 +230,30 @@ public class OfficerDashboardController {
         }
 
         LoanApplication app = appOpt.get();
-        if (app.getStatus() != ApplicationStatus.UNDER_REVIEW) {
-            return ResponseEntity.badRequest().body("Application is not in UNDER_REVIEW status.");
+        if (app.getStatus() != ApplicationStatus.UNDER_REVIEW && app.getStatus() != ApplicationStatus.PENDING_MANAGER_APPROVAL) {
+            return ResponseEntity.badRequest().body("Application is not in a valid state for decisions.");
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User officer = userRepository.findByEmail(auth.getName()).orElse(null);
 
+        ApplicationStatus oldStatus = app.getStatus();
         ApplicationStatus newStatus;
         boolean addToDisbursementQueue = false;
 
         switch (request.getDecision().toUpperCase()) {
             case "APPROVE":
-                newStatus = ApplicationStatus.APPROVED;
-                addToDisbursementQueue = true;
+                newStatus = ApplicationStatus.CLOSING;
+                addToDisbursementQueue = true; // Still add to disbursement queue or handle later? Actually US 43 AC4 says Direct Closing: transitions directly to CLOSING. We can add to queue here, or admin will handle it from CLOSING state. Let's keep adding it to queue for now so Admin can see it.
                 break;
             case "REJECT":
                 newStatus = ApplicationStatus.REJECTED;
                 break;
             case "ESCALATE":
-                newStatus = ApplicationStatus.ESCALATED;
+                newStatus = ApplicationStatus.PENDING_MANAGER_APPROVAL;
                 break;
-            case "FINAL_APPROVE":
-                newStatus = ApplicationStatus.FINAL_APPROVED;
-                addToDisbursementQueue = true;
-                break;
-            case "FINAL_REJECT":
-                newStatus = ApplicationStatus.FINAL_REJECTED;
+            case "REQUEST_INFO":
+                newStatus = ApplicationStatus.INFO_REQUESTED;
                 break;
             default:
                 return ResponseEntity.badRequest().body("Invalid decision.");
@@ -249,7 +276,7 @@ public class OfficerDashboardController {
                 .entityId(app.getId())
                 .action(newStatus.name())
                 .performedBy(officer)
-                .oldValue(ApplicationStatus.UNDER_REVIEW.name())
+                .oldValue(oldStatus.name())
                 .newValue(newStatus.name())
                 .build();
         // Since we don't have a specific notes field in AuditLog, we can store it in newValue or a similar construct.
@@ -277,6 +304,7 @@ public class OfficerDashboardController {
      */
     @GetMapping("/kyc/pending")
     @PreAuthorize("hasRole('OFFICER')")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<PendingKycDTO>> getPendingKyc() {
         List<UserProfile> pendingProfiles = userProfileRepository.findByKycVerifiedFalse();
         

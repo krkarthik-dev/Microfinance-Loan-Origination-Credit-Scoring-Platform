@@ -10,20 +10,21 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
     <div class="viewer-pane">
       <div class="viewer-header">
         <h3>Document Viewer: {{ title || 'None Selected' }}</h3>
+        <a *ngIf="documentUrl" [href]="safeUrl" target="_blank" class="btn btn-sm btn-outline">
+          <i class="icon-external-link"></i> Open in New Tab
+        </a>
       </div>
       <div class="viewer-body">
         <div class="empty-viewer" *ngIf="!documentUrl">
           <p>{{ emptyMessage }}</p>
         </div>
         
-        <object *ngIf="documentUrl" 
-                [data]="safeUrl" 
-                type="application/pdf" 
+        <iframe *ngIf="documentUrl" 
+                [src]="safeUrl" 
                 width="100%" 
-                height="100%">
-          <p>It appears your browser doesn't support embedded PDFs or images in object tags. 
-             <a [href]="safeUrl" target="_blank">Click here to open it.</a></p>
-        </object>
+                height="100%"
+                frameborder="0">
+        </iframe>
       </div>
     </div>
   `,
@@ -45,10 +46,33 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
       background: #f9fafb;
       border-radius: 12px 12px 0 0;
 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
       h3 {
         margin: 0;
         font-size: 1.125rem;
         color: #111827;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        border-radius: 6px;
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        transition: all 0.2s;
+        
+        &:hover {
+          background: #f3f4f6;
+          border-color: #9ca3af;
+        }
       }
     }
 
@@ -72,9 +96,10 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
       color: #6b7280;
     }
     
-    object {
+    iframe {
       border-radius: 8px;
       flex: 1;
+      background: white;
     }
   `]
 })

@@ -36,6 +36,9 @@ public class CorsConfig {
         // Allow cookies and credentials (required for JWT bearer tokens)
         configuration.setAllowCredentials(true);
 
+        // Expose custom headers to the frontend (like the tracking ID for successful submissions)
+        configuration.setExposedHeaders(List.of("X-Application-Number"));
+
         // Cache preflight response for 1 hour (reduces OPTIONS requests)
         configuration.setMaxAge(3600L);
 

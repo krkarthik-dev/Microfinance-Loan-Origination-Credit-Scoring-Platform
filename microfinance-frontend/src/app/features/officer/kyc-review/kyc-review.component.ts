@@ -67,8 +67,23 @@ export class KycReviewComponent implements OnInit {
 
   viewDocument(id: number, title: string): void {
     if (!id) return;
-    this.activeDocumentUrl = this.officerService.getKycDocumentUrl(id);
-    this.activeDocumentTitle = title;
+    this.activeDocumentTitle = 'Loading...';
+    
+    if (this.activeDocumentUrl && this.activeDocumentUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.activeDocumentUrl);
+    }
+
+    this.officerService.getKycDocumentBlob(id).subscribe({
+      next: (blob: Blob) => {
+        this.activeDocumentUrl = URL.createObjectURL(blob);
+        this.activeDocumentTitle = title;
+      },
+      error: (err) => {
+        console.error('Failed to load document', err);
+        this.activeDocumentTitle = 'Failed to load document';
+        this.activeDocumentUrl = '';
+      }
+    });
   }
 
   openModal(type: 'APPROVE' | 'REJECT'): void {

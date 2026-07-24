@@ -54,7 +54,7 @@ public class LoanApplicationSubmitController {
             @RequestParam("incomeCert")    MultipartFile incomeCert,
             @RequestParam("photo")         MultipartFile photo,
             @RequestParam("guarantorId")   MultipartFile guarantorId,
-            @RequestParam(value = "otherDocs", required = false) MultipartFile[] otherDocs,
+            @RequestParam(value = "otherDocs", required = false) java.util.List<MultipartFile> otherDocs,
             // Step 4 – Signature
             @RequestParam("signature") MultipartFile signature
     ) {
@@ -64,7 +64,7 @@ public class LoanApplicationSubmitController {
                     principalAmount, tenureMonths, purpose,
                     guarantorName, guarantorAddress, guarantorCity, guarantorZip,
                     guarantorAadhaar, guarantorPan,
-                    incomeCert, photo, guarantorId, otherDocs,
+                    incomeCert, photo, guarantorId, otherDocs != null ? otherDocs.toArray(new MultipartFile[0]) : null,
                     signature
             );
 

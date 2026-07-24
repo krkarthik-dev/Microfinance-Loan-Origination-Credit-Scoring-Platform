@@ -51,7 +51,7 @@ public class PdfGenerationService {
 
                 // Section 1 – Loan Requirements
                 y = drawSectionHeader(cs, fontBold, "1. LOAN REQUIREMENTS", y);
-                y = drawField(cs, fontBold, fontRegular, "Principal Amount (₹):", formatAmount(app.getAppliedAmount()), y);
+                y = drawField(cs, fontBold, fontRegular, "Principal Amount (INR):", formatAmount(app.getAppliedAmount()), y);
                 y = drawField(cs, fontBold, fontRegular, "Tenure:", app.getTenureMonths() + " months", y);
                 y = drawField(cs, fontBold, fontRegular, "Purpose:", app.getPurpose(), y);
                 y -= 10;
@@ -209,6 +209,6 @@ public class PdfGenerationService {
 
     private String formatAmount(java.math.BigDecimal amount) {
         if (amount == null) return "N/A";
-        return "₹" + String.format("%,.2f", amount);
+        return "INR " + String.format("%,.2f", amount);
     }
 }

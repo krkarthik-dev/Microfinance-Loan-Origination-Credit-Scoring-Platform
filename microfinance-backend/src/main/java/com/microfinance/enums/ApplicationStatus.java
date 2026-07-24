@@ -3,50 +3,20 @@ package com.microfinance.enums;
 /**
  * Loan application lifecycle states.
  *
- * <p>State transitions are strictly controlled and must follow the defined flow:
- * <pre>
- * DRAFT → SUBMITTED → RISK_ASSESSMENT → UNDER_REVIEW
- *                                            ↓
- *                               APPROVED / REJECTED / ESCALATED
- *                                            ↓ (if ESCALATED)
- *                               FINAL_APPROVED / FINAL_REJECTED
- * </pre>
+ * <p>State transitions are strictly controlled and follow the production loan flow:
+ * DRAFT, SUBMITTED, KYC, review, approval, closing, and repayment.
  */
 public enum ApplicationStatus {
 
-    /** Application created but not yet submitted by the borrower. */
     DRAFT,
-
-    /** Formally submitted — awaiting ML credit scoring. */
     SUBMITTED,
-
-    /** ML model is executing asynchronously. */
-    RISK_ASSESSMENT,
-
-    /** Score received; assigned to a loan officer for review. */
+    PENDING_KYC,
     UNDER_REVIEW,
-
-    /** Loan officer approved the application. */
+    INFO_REQUESTED,
+    PENDING_MANAGER_APPROVAL,
     APPROVED,
-
-    /** Loan officer rejected the application. */
-    REJECTED,
-
-    /** Loan officer escalated to manager for final decision. */
-    ESCALATED,
-
-    /** Manager gave final approval on escalated application. */
-    FINAL_APPROVED,
-
-    /** Manager gave final rejection on escalated application. */
-    FINAL_REJECTED,
-
-    /** Pre-disbursement checks and document signing. */
     CLOSING,
-
-    /** Funds are being transferred to the borrower. */
-    DISBURSEMENT,
-
-    /** Loan is disbursed and in active repayment phase. */
-    ACTIVE
+    ACTIVE_REPAYMENT,
+    REJECTED,
+    WITHDRAWN
 }

@@ -61,17 +61,17 @@ export class OfficerService {
   }
 
   /**
-   * Constructs the URL for viewing a KYC document.
+   * Fetches a KYC document as a Blob (required for JWT auth in iframes)
    */
-  getKycDocumentUrl(id: number): string {
-    return `${this.apiUrl}/documents/kyc/${id}`;
+  getKycDocumentBlob(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/documents/kyc/${id}`, { responseType: 'blob' });
   }
 
   /**
-   * Constructs the URL for viewing a Loan document.
+   * Fetches a Loan document as a Blob
    */
-  getLoanDocumentUrl(id: number): string {
-    return `${this.apiUrl}/documents/loan/${id}`;
+  getLoanDocumentBlob(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/documents/loan/${id}`, { responseType: 'blob' });
   }
 
   /**

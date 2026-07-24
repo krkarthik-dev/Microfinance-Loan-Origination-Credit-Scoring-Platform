@@ -10,12 +10,17 @@
   <div class="tracker-card">
     <div class="status-summary">
       <span class="status-label">Current Status:</span>
-      <span class="status-value" [ngClass]="{'rejected': isRejected}">
-        {{ isRejected ? 'Rejected' : currentStatus | titlecase }}
+      <span class="status-value" [ngClass]="{'rejected': isRejected, 'info-requested': currentStatus === 'INFO_REQUESTED'}">
+        {{ currentStatus === 'WITHDRAWN' ? 'Withdrawn' : (isRejected ? 'Rejected' : currentStatus | titlecase) }}
       </span>
-      <span class="polling-indicator" *ngIf="currentStatus === 'SUBMITTED' || currentStatus === 'RISK_ASSESSMENT'">
+      <span class="polling-indicator" *ngIf="currentStatus !== 'ACTIVE_REPAYMENT' && !isRejected && currentStatus !== 'WITHDRAWN'">
         <span class="dot"></span> Polling for updates...
       </span>
+    </div>
+
+    <div class="info-request-alert" *ngIf="currentStatus === 'INFO_REQUESTED'">
+      <strong>Documents need attention.</strong>
+      Please re-upload the blurry or missing documents from your application page.
     </div>
 
     <!-- AC2 & AC3 & AC5: Visual Progress Bar -->

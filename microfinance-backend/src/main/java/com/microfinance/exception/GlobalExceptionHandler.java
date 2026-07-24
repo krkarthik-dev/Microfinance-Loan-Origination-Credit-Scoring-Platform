@@ -14,6 +14,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.multipart.MultipartException;
 
 @ControllerAdvice
 @Slf4j
@@ -65,6 +68,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
         log.warn("Authentication failed: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", "Invalid credentials.", request.getRequestURI());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingParams(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        log.warn("Missing parameter: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Missing parameter: " + ex.getParameterName(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<Object> handleMissingPart(MissingServletRequestPartException ex, HttpServletRequest request) {
+        log.warn("Missing part: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Missing part: " + ex.getRequestPartName(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<Object> handleMultipartException(MultipartException ex, HttpServletRequest request) {
+        log.warn("Multipart Error: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

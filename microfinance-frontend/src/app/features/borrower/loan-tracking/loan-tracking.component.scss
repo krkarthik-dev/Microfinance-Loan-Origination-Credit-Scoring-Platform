@@ -85,6 +85,11 @@
       color: var(--danger-hover);
     }
 
+    &.info-requested {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
     &.active {
       background: var(--secondary-light);
       color: var(--success-hover);

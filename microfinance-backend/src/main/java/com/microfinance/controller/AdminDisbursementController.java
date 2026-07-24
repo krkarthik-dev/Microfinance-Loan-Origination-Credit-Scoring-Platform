@@ -80,10 +80,10 @@ public class AdminDisbursementController {
         queueItem.setProcessedAt(LocalDateTime.now());
         disbursementQueueRepository.save(queueItem);
 
-        // 2. Update Loan Application Status to ACTIVE
+        // 2. Update Loan Application Status to ACTIVE_REPAYMENT
         LoanApplication app = queueItem.getLoanApplication();
         ApplicationStatus oldStatus = app.getStatus();
-        app.setStatus(ApplicationStatus.ACTIVE);
+        app.setStatus(ApplicationStatus.ACTIVE_REPAYMENT);
         loanApplicationRepository.save(app);
 
         // 3. Audit Logging
@@ -93,7 +93,7 @@ public class AdminDisbursementController {
                 .action("MANUAL_DISBURSEMENT")
                 .performedBy(admin)
                 .oldValue(oldStatus.name())
-                .newValue(ApplicationStatus.ACTIVE.name())
+                .newValue(ApplicationStatus.ACTIVE_REPAYMENT.name())
                 .build();
         auditLogRepository.save(audit);
 
