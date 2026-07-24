@@ -10,9 +10,28 @@
       <div class="verification-status" [ngClass]="{'all-verified': allVerified}">
         {{ allVerified ? 'All Data Verified' : 'Verification Pending' }}
       </div>
-      <button class="btn btn-danger" (click)="openModal('REJECT')">Reject</button>
-      <button class="btn btn-outline" (click)="openModal('ESCALATE')">Escalate</button>
-      <button class="btn btn-success" [disabled]="!allVerified" (click)="openModal('APPROVE')">Approve Application</button>
+      <div class="action-buttons">
+            <!-- Officer View -->
+            <ng-container *ngIf="!isAdmin">
+              <button class="btn btn-outline mb-2 w-100" (click)="openModal('ESCALATE')">Escalate to Manager</button>
+              <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-danger w-50" (click)="openModal('REJECT')">Reject</button>
+                <button class="btn btn-success w-50" [disabled]="!allVerified" (click)="openModal('APPROVE')">Approve Loan</button>
+              </div>
+            </ng-container>
+
+            <!-- Admin View (US30) -->
+            <ng-container *ngIf="isAdmin && details.status === 'ESCALATED'">
+              <p class="text-center text-muted mb-2">Final Adjudication Required</p>
+              <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-danger w-50" (click)="openModal('FINAL_REJECT')">Final Reject</button>
+                <button class="btn btn-success w-50" (click)="openModal('FINAL_APPROVE')">Final Approve</button>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="isAdmin && details.status !== 'ESCALATED'">
+               <p class="text-center text-muted mb-2">Application is currently {{details.status}}</p>
+            </ng-container>
+          </div>
     </div>
   </header>
 
@@ -143,27 +162,6 @@
       </div>
 
       <!-- Documents Section -->
-      <div class="review-section">
-        <div class="section-header">
-          <h3>Document Verification</h3>
-        </div>
-        
-        <div class="document-list">
-          
-          <!-- PAN Card -->
-          <div class="document-item">
-            <div class="doc-info">
-              <span class="doc-title">PAN Card</span>
-              <span class="doc-meta">Declared: {{ details.panNumber }}</span>
-            </div>
-            <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">👁 View</button>
-              <button class="btn btn-sm" 
-                      [ngClass]="verifications.panCard ? 'btn-outline-success' : 'btn-primary'"
-                      (click)="toggleVerification('panCard')">
-                {{ verifications.panCard ? 'Review' : 'Approve' }}
-              </button>
-            </div>
           </div>
 
           <!-- Aadhaar Card -->
@@ -244,10 +242,10 @@
 </div>
 
 <!-- APPROVE MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'APPROVE'">
+<div class="modal-backdrop" *ngIf="activeModal === 'APPROVE' || activeModal === 'FINAL_APPROVE'">
   <div class="modal-content">
-    <h3>Confirm Approval</h3>
-    <p>Are you sure you want to approve application <strong>{{ applicationNumber }}</strong>? This action will formally record your underwriting decision.</p>
+    <h3>Confirm {{ activeModal === 'FINAL_APPROVE' ? 'Final ' : '' }}Approval</h3>
+    <p>Are you sure you want to {{ activeModal === 'FINAL_APPROVE' ? 'final ' : '' }}approve application <strong>{{ applicationNumber }}</strong>? This action will formally record your underwriting decision.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
       <button class="btn btn-success" (click)="submitDecision()" [disabled]="isSubmitting">
@@ -258,9 +256,9 @@
 </div>
 
 <!-- REJECT MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'REJECT'">
+<div class="modal-backdrop" *ngIf="activeModal === 'REJECT' || activeModal === 'FINAL_REJECT'">
   <div class="modal-content">
-    <h3>Reject Application</h3>
+    <h3>{{ activeModal === 'FINAL_REJECT' ? 'Final ' : '' }}Reject Application</h3>
     <p>Please select the primary reason for rejecting application <strong>{{ applicationNumber }}</strong>.</p>
     
     <div class="form-group">

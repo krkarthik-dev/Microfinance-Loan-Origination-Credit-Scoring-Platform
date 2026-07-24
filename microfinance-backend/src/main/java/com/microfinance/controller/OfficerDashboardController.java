@@ -61,6 +61,7 @@ public class OfficerDashboardController {
     private final AuditLogRepository auditLogRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoanSubmissionService loanSubmissionService;
+    private final com.microfinance.repository.DisbursementQueueRepository disbursementQueueRepository;
 
     /**
      * US16: Returns a list of all applications currently in the UNDER_REVIEW state.
@@ -188,7 +189,7 @@ public class OfficerDashboardController {
      * US20: Process Officer underwriting decision.
      */
     @PutMapping("/applications/{applicationNumber}/decision")
-    @PreAuthorize("hasRole('OFFICER')")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
     public ResponseEntity<?> submitDecision(
             @PathVariable String applicationNumber,
             @RequestBody OfficerDecisionRequestDTO request) {
@@ -207,15 +208,25 @@ public class OfficerDashboardController {
         User officer = userRepository.findByEmail(auth.getName()).orElse(null);
 
         ApplicationStatus newStatus;
+        boolean addToDisbursementQueue = false;
+
         switch (request.getDecision().toUpperCase()) {
             case "APPROVE":
                 newStatus = ApplicationStatus.APPROVED;
+                addToDisbursementQueue = true;
                 break;
             case "REJECT":
                 newStatus = ApplicationStatus.REJECTED;
                 break;
             case "ESCALATE":
                 newStatus = ApplicationStatus.ESCALATED;
+                break;
+            case "FINAL_APPROVE":
+                newStatus = ApplicationStatus.FINAL_APPROVED;
+                addToDisbursementQueue = true;
+                break;
+            case "FINAL_REJECT":
+                newStatus = ApplicationStatus.FINAL_REJECTED;
                 break;
             default:
                 return ResponseEntity.badRequest().body("Invalid decision.");
@@ -246,6 +257,17 @@ public class OfficerDashboardController {
         audit.setNewValue("{\"status\":\"" + newStatus.name() + "\", \"details\":\"" + noteDetails + "\"}");
         
         auditLogRepository.save(audit);
+
+        // AC4: Disbursement Queue Routing
+        if (addToDisbursementQueue) {
+            com.microfinance.entity.DisbursementQueue queueItem = com.microfinance.entity.DisbursementQueue.builder()
+                    .loanApplication(app)
+                    .approvedAmount(app.getAppliedAmount()) // Here we assume approved amount is full applied amount
+                    .status("PENDING_DISBURSEMENT")
+                    .queuedAt(LocalDateTime.now())
+                    .build();
+            disbursementQueueRepository.save(queueItem);
+        }
 
         return ResponseEntity.ok().build();
     }

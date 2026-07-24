@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OfficerService } from '../officer.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Subscription } from 'rxjs';
 import { TokenService } from '../../../core/services/token.service';
 import { DocumentViewerComponent } from '../../../shared/components/document-viewer/document-viewer.component';
@@ -21,6 +22,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   errorMessage = '';
 
   private sub?: Subscription;
+  isAdmin: boolean = false;
 
   // Verification state (Toggle between 'Approve' and 'Review')
   // true = Approved, false = Pending Review
@@ -41,7 +43,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   activeDocumentTitle: string = 'Select a document to view';
 
   // Modal States
-  activeModal: 'APPROVE' | 'REJECT' | 'ESCALATE' | null = null;
+  activeModal: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'FINAL_APPROVE' | 'FINAL_REJECT' | null = null;
   rejectionReason: string = '';
   internalNotes: string = '';
   isSubmitting = false;
@@ -49,7 +51,8 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private officerService: OfficerService
+    private officerService: OfficerService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +61,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
       this.router.navigate(['/officer']);
       return;
     }
+    this.isAdmin = this.authService.getRole() === 'ROLE_ADMIN';
     this.loadDetails();
   }
 
@@ -119,7 +123,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   }
 
   // Underwriting Actions
-  openModal(type: 'APPROVE' | 'REJECT' | 'ESCALATE'): void {
+  openModal(type: 'APPROVE' | 'REJECT' | 'ESCALATE' | 'FINAL_APPROVE' | 'FINAL_REJECT'): void {
     this.activeModal = type;
     this.rejectionReason = '';
     this.internalNotes = '';
@@ -130,7 +134,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   }
 
   submitDecision(): void {
-    if (this.activeModal === 'REJECT' && !this.rejectionReason) {
+    if ((this.activeModal === 'REJECT' || this.activeModal === 'FINAL_REJECT') && !this.rejectionReason) {
       alert('Please select a rejection reason.');
       return;
     }
@@ -143,7 +147,7 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
     
     const payload = {
       decision: this.activeModal!,
-      rejectionReason: this.activeModal === 'REJECT' ? this.rejectionReason : undefined,
+      rejectionReason: (this.activeModal === 'REJECT' || this.activeModal === 'FINAL_REJECT') ? this.rejectionReason : undefined,
       internalNotes: this.activeModal === 'ESCALATE' ? this.internalNotes : undefined
     };
 
@@ -163,6 +167,10 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/officer']);
+    if (this.isAdmin) {
+      this.router.navigate(['/admin/dashboard']);
+    } else {
+      this.router.navigate(['/officer']);
+    }
   }
 }
