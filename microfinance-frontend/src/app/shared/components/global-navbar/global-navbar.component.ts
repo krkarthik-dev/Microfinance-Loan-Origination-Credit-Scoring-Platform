@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { BorrowerService } from '../../../features/borrower/borrower.service';
+import { OfficerService } from '../../../features/officer/officer.service';
 import { environment } from '../../../../environments/environment';
 
 interface NotificationItem {
@@ -32,11 +33,14 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
 
   notifications: NotificationItem[] = [];
   unreadCount = 0;
+  pendingKycCount = 0;
   private notifSub?: Subscription;
+  private officerSub?: Subscription;
 
   constructor(
     private authService: AuthService,
     private borrowerService: BorrowerService,
+    private officerService: OfficerService,
     private router: Router,
     private http: HttpClient,
     private eRef: ElementRef
@@ -54,11 +58,22 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
     if (this.role === 'ROLE_APPLICANT') {
       this.fetchNotifications();
     }
+    
+    if (this.role === 'ROLE_OFFICER') {
+      this.officerSub = this.officerService.pendingKycCount$.subscribe(
+        count => this.pendingKycCount = count
+      );
+      // Fetch initial data which triggers the subject
+      this.officerService.getPendingKyc().subscribe();
+    }
   }
 
   ngOnDestroy(): void {
     if (this.notifSub) {
       this.notifSub.unsubscribe();
+    }
+    if (this.officerSub) {
+      this.officerSub.unsubscribe();
     }
   }
 

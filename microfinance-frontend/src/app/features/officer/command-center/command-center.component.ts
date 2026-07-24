@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { OfficerService, ApplicationSummary, PendingKyc } from '../officer.service';
 import { Subscription } from 'rxjs';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TokenService } from '../../../core/services/token.service';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
@@ -64,6 +64,7 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     private officerService: OfficerService,
     private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private tokenService: TokenService,
     private fb: FormBuilder
   ) {
@@ -81,6 +82,15 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadQueue();
     this.fetchPendingKyc();
+
+    // Listen to fragments for navigation commands
+    this.route.fragment.subscribe(fragment => {
+      if (fragment === 'create-direct-deal') {
+        this.openDirectApplicationModal();
+      } else if (fragment === 'pending-kyc') {
+        this.activeTab = 'KYC';
+      }
+    });
   }
 
   ngOnDestroy(): void {

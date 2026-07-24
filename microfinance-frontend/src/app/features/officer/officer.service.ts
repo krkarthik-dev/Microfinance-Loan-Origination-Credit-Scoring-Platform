@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface ApplicationSummary {
@@ -41,6 +42,7 @@ export interface PendingKyc {
 })
 export class OfficerService {
   private apiUrl = `${environment.apiUrl}/officer`;
+  public pendingKycCount$ = new BehaviorSubject<number>(0);
 
   constructor(private http: HttpClient) {}
 
@@ -83,7 +85,9 @@ export class OfficerService {
    * US21: Fetch all users pending KYC verification.
    */
   getPendingKyc(): Observable<PendingKyc[]> {
-    return this.http.get<PendingKyc[]>(`${this.apiUrl}/kyc/pending`);
+    return this.http.get<PendingKyc[]>(`${this.apiUrl}/kyc/pending`).pipe(
+      tap(data => this.pendingKycCount$.next(data.length))
+    );
   }
 
   /**
