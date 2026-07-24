@@ -31,7 +31,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isLoading = true;
   errorMessage: string = '';
   validationMessage: string = '';
-  showProfilePopup: boolean = false;
   
   private sub?: Subscription;
 
@@ -88,14 +87,4 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     this.router.navigate(['/applicant/apply']);
   }
-
-  openProfilePopup(): void {
-    this.showProfilePopup = true;
-  }
-
-  closeProfilePopup(): void {
-    this.showProfilePopup = false;
-    this.fetchMetrics(); // Refresh metrics in case KYC was completed
-  }
 }
-

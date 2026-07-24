@@ -62,6 +62,13 @@ const routes: Routes = [
     title: 'Loan Tracking | Microfinance'
   },
   {
+    path: 'applicant/profile',
+    loadComponent: () => import('./features/borrower/profile-setup/profile-setup.component').then(m => m.ProfileSetupComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Profile & KYC | Microfinance'
+  },
+  {
     path: 'officer',
     loadComponent: () => import('./features/officer/command-center/command-center.component').then(m => m.CommandCenterComponent),
     canActivate: [AuthGuard, RoleGuard],
@@ -124,7 +131,11 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, {
+    anchorScrolling: 'enabled',
+    scrollPositionRestoration: 'enabled',
+    scrollOffset: [0, 80] // Account for the sticky global navbar
+  })],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

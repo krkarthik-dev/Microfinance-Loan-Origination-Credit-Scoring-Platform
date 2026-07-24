@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { BorrowerService } from '../../../features/borrower/borrower.service';
 import { environment } from '../../../../environments/environment';
 
 interface NotificationItem {
@@ -35,6 +36,7 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private borrowerService: BorrowerService,
     private router: Router,
     private http: HttpClient,
     private eRef: ElementRef
@@ -80,6 +82,20 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  onApplyClick(event: Event): void {
+    event.preventDefault();
+    this.borrowerService.getDashboardMetrics().subscribe({
+      next: (metrics) => {
+        if (metrics.profileComplete) {
+          this.router.navigate(['/applicant/apply']);
+        } else {
+          this.router.navigate(['/applicant'], { fragment: 'kyc-warning' });
+        }
+      },
+      error: (err) => console.error('Failed to verify KYC status', err)
+    });
   }
 
   fetchNotifications(): void {

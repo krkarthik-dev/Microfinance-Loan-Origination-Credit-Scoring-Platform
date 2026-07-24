@@ -2,7 +2,7 @@
   <div class="navbar-container">
     
     <!-- BRAND (Left) -->
-    <div class="navbar-brand" routerLink="/">
+    <div class="navbar-brand" [routerLink]="role === 'ROLE_APPLICANT' ? '/applicant' : '/'">
       <span class="brand-icon">M</span>
       <span class="brand-text">Microfinance</span>
     </div>
@@ -12,7 +12,10 @@
       
       <!-- Borrower Links -->
       <ng-container *ngIf="role === 'ROLE_APPLICANT'">
-        <a routerLink="/applicant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Dashboard</a>
+        <a routerLink="/applicant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">My Dashboard</a>
+        <a routerLink="/applicant/profile" routerLinkActive="active" class="nav-link">Profile & KYC</a>
+        <a href="javascript:void(0)" (click)="onApplyClick($event)" class="nav-link">Apply for a Loan</a>
+        <a routerLink="/applicant" fragment="recent-activity" class="nav-link">Recent Activity</a>
       </ng-container>
 
       <!-- Officer Links -->

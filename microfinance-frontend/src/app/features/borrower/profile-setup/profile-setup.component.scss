@@ -4,9 +4,11 @@
 }
 
 .profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 2rem;
   background-color: var(--bg-white, #ffffff);
-  color: var(--text-main, #111827); /* Ensure text is dark and visible */
+  color: var(--text-main, #111827);
 }
 
 .profile-header {

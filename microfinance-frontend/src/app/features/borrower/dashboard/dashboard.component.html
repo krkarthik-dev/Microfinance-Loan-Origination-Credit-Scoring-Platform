@@ -2,7 +2,7 @@
   <!-- Hero Section -->
   <header class="dashboard-header">
     <div class="welcome-text-group" style="display: flex; align-items: center; gap: 1rem;">
-      <button class="profile-icon-btn" (click)="openProfilePopup()" title="Profile & KYC Settings">
+      <button class="profile-icon-btn" routerLink="/applicant/profile" title="Profile & KYC Settings">
         <svg xmlns="http://www.w3.org/2001/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
@@ -46,13 +46,13 @@
     </div>
 
     <!-- KYC Warning Banner -->
-    <div class="warning-banner" *ngIf="!isLoading && !errorMessage && metrics && !metrics.profileComplete">
+    <div id="kyc-warning" class="warning-banner" *ngIf="!isLoading && !errorMessage && metrics && !metrics.profileComplete">
       <div class="banner-icon">🔒</div>
       <div class="banner-content">
         <h3>Action Required</h3>
         <p>Complete your Profile & KYC (PAN and Aadhaar) to unlock lending features.</p>
       </div>
-      <button class="btn btn-secondary banner-btn" (click)="openProfilePopup()">Complete KYC</button>
+      <button class="btn btn-secondary banner-btn" routerLink="/applicant/profile">Complete KYC</button>
     </div>
 
     <!-- AC2: Summary Cards -->
@@ -86,7 +86,7 @@
     </div>
 
     <!-- AC1, AC2, AC3, AC4: Recent Activity Table -->
-    <section class="recent-activity-section" *ngIf="!isLoading && !errorMessage && metrics">
+    <section id="recent-activity" class="recent-activity-section" *ngIf="!isLoading && !errorMessage && metrics">
       <h2>Recent Activity</h2>
       
       <!-- Empty State -->
@@ -104,12 +104,4 @@
       </app-data-table>
     </section>
   </main>
-
-  <!-- Profile Popup Modal -->
-  <div class="modal-overlay" *ngIf="showProfilePopup">
-    <div class="modal-content">
-      <button class="close-btn" (click)="closeProfilePopup()">&times;</button>
-      <app-profile-setup (closePopup)="closeProfilePopup()"></app-profile-setup>
-    </div>
-  </div>
 </div>

@@ -31,8 +31,6 @@ function minimumAgeValidator(minAge: number) {
   styleUrls: ['./profile-setup.component.scss']
 })
 export class ProfileSetupComponent implements OnInit {
-  @Output() closePopup = new EventEmitter<void>();
-  
   profileForm!: FormGroup;
   isLoading = true;
   isSaving = false;
@@ -158,6 +156,16 @@ export class ProfileSetupComponent implements OnInit {
     }
   }
 
+  onCancel(): void {
+    if (this.hasExistingProfile) {
+      this.isEditMode = false;
+      this.profileForm.disable();
+      this.errorMessage = '';
+    } else {
+      this.router.navigate(['/applicant']);
+    }
+  }
+
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
@@ -184,7 +192,7 @@ export class ProfileSetupComponent implements OnInit {
         // Load document metadata to show upload zones
         this.loadDocumentMetadata();
         setTimeout(() => {
-          this.closePopup.emit();
+          this.router.navigate(['/applicant']);
         }, 1500);
       },
       error: (err) => {
@@ -357,7 +365,7 @@ export class ProfileSetupComponent implements OnInit {
 
   onSaveAndVerify(): void {
     // In the future, this can call an API to mark KYC as "pending officer review".
-    // For now, it just acts as a confirmation and closes the popup.
-    this.closePopup.emit();
+    // For now, it just acts as a confirmation and returns to dashboard.
+    this.router.navigate(['/applicant']);
   }
 }
