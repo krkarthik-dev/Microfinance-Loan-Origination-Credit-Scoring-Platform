@@ -127,10 +127,31 @@
 .loader {
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(30, 60, 114, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  border-top-color: #1e3c72;
+  border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  
+  p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+  }
+  
+  .link-primary {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 600;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 @keyframes spin {

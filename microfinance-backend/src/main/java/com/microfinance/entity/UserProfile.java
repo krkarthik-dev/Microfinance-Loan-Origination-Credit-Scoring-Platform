@@ -38,28 +38,28 @@ public class UserProfile extends BaseEntity {
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
-    @Column(name = "date_of_birth", nullable = false)
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     private String gender;
 
-    @Column(name = "phone_number", nullable = false, unique = true, length = 15)
+    @Column(name = "phone_number", unique = true, length = 15)
     private String phoneNumber;
 
-    @Column(name = "address_line1", nullable = false, length = 255)
+    @Column(name = "address_line1", length = 255)
     private String addressLine1;
 
     @Column(name = "address_line2", length = 255)
     private String addressLine2;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String city;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String state;
 
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     private String pincode;
 
     /** PAN card number in format ABCDE1234F */

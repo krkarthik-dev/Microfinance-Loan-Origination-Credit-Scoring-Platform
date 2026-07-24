@@ -32,6 +32,16 @@ export class AuthService {
     );
   }
 
+  register(data: any): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/signup`, data).pipe(
+      tap(response => {
+        if (response && response.token) {
+          this.tokenService.setToken(response.token);
+        }
+      })
+    );
+  }
+
   changePassword(payload: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/change-password`, payload);
   }

@@ -3,6 +3,7 @@ package com.microfinance.controller;
 import com.microfinance.dto.ChangePasswordRequestDTO;
 import com.microfinance.dto.LoginRequest;
 import com.microfinance.dto.LoginResponse;
+import com.microfinance.dto.SignupRequestDTO;
 import com.microfinance.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         LoginResponse jwtResponse = authService.login(loginRequest);
+        return ResponseEntity.ok(jwtResponse);
+    }
+
+    /**
+     * AC4: Registers a new borrower and returns a JWT.
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<LoginResponse> registerUser(@Valid @RequestBody SignupRequestDTO signupRequest) {
+        LoginResponse jwtResponse = authService.register(signupRequest);
         return ResponseEntity.ok(jwtResponse);
     }
 

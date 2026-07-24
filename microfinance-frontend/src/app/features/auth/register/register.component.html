@@ -1,0 +1,130 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo">
+        <span class="logo-icon">M</span>
+      </div>
+      <h2>Create an Account</h2>
+      <p>Join Microfinance to apply for loans easily.</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="firstName" 
+              formControlName="firstName" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': f['firstName'].touched && f['firstName'].errors }"
+              placeholder="John">
+          </div>
+          <div *ngIf="f['firstName'].touched && f['firstName'].errors" class="invalid-feedback">
+            First name is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="lastName" 
+              formControlName="lastName" 
+              class="form-control" 
+              [ngClass]="{ 'is-invalid': f['lastName'].touched && f['lastName'].errors }"
+              placeholder="Doe">
+          </div>
+          <div *ngIf="f['lastName'].touched && f['lastName'].errors" class="invalid-feedback">
+            Last name is required.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email" 
+            class="form-control with-icon" 
+            [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].errors }"
+            placeholder="name@example.com">
+        </div>
+        <div *ngIf="f['email'].touched && f['email'].errors" class="invalid-feedback">
+          <span *ngIf="f['email'].errors['required']">Email is required.</span>
+          <span *ngIf="f['email'].errors['email']">Enter a valid email address.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password" 
+            class="form-control with-icon" 
+            [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].errors }"
+            placeholder="••••••••">
+        </div>
+        <div *ngIf="f['password'].touched && f['password'].errors" class="invalid-feedback">
+          <span *ngIf="f['password'].errors['required']">Password is required.</span>
+          <span *ngIf="f['password'].errors['minlength']">Password must be at least 8 characters.</span>
+          <span *ngIf="f['password'].errors['pattern']">Password must contain uppercase, lowercase, number, and special character.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            formControlName="confirmPassword" 
+            class="form-control with-icon" 
+            [ngClass]="{ 'is-invalid': (f['confirmPassword'].touched && f['confirmPassword'].errors) }"
+            placeholder="••••••••">
+        </div>
+        <div *ngIf="f['confirmPassword'].touched && f['confirmPassword'].errors" class="invalid-feedback">
+          <span *ngIf="f['confirmPassword'].errors['required']">Please confirm your password.</span>
+          <span *ngIf="f['confirmPassword'].errors['passwordMismatch']">Passwords do not match.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="registerForm.invalid || isSubmitting">
+        <span *ngIf="!isSubmitting">Sign Up</span>
+        <span *ngIf="isSubmitting" class="spinner"></span>
+      </button>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a routerLink="/login" class="link-primary">Sign In</a></p>
+      </div>
+    </form>
+  </div>
+</div>

@@ -23,10 +23,13 @@ const routes: Routes = [
     component: HealthCheckComponent,
     title: 'System Health | Microfinance Platform'
   },
-  {
-    path: 'login',
-    component: LoginComponent,
-    title: 'Sign In | Microfinance Platform'
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) 
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent) 
   },
   {
     path: 'force-change-password',

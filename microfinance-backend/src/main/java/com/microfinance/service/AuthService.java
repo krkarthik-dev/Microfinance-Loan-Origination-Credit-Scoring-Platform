@@ -4,8 +4,12 @@ import com.microfinance.dto.ChangePasswordRequestDTO;
 import com.microfinance.dto.LoginRequest;
 import com.microfinance.dto.LoginResponse;
 import com.microfinance.entity.User;
+import com.microfinance.entity.UserProfile;
+import com.microfinance.enums.UserRole;
+import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
 import com.microfinance.security.JwtTokenProvider;
+import com.microfinance.dto.SignupRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +28,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -65,6 +70,43 @@ public class AuthService {
                 .role(role)
                 .mustChangePassword(user.isMustChangePassword())
                 .build();
+    }
+
+    /**
+     * AC4: Registers a new borrower and returns a JWT instantly.
+     */
+    public LoginResponse register(SignupRequestDTO request) {
+        log.info("Registering new user with email: {}", request.getEmail());
+        
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        User user = User.builder()
+                .username(request.getEmail())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(UserRole.ROLE_APPLICANT)
+                .active(true)
+                .mustChangePassword(false)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        UserProfile profile = UserProfile.builder()
+                .user(savedUser)
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .build();
+
+        userProfileRepository.save(profile);
+
+        // Authenticate the newly created user to generate JWT
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(request.getEmail());
+        loginRequest.setPassword(request.getPassword());
+        
+        return login(loginRequest);
     }
 
     /**
