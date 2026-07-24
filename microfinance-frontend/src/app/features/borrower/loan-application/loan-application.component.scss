@@ -568,6 +568,15 @@
     color: #9ca3af;
     margin: 0 0 0.6rem 0;
   }
+
+  @media (max-width: 480px) {
+    padding: 1.5rem 0.5rem;
+    min-height: 150px;
+    
+    .dz-icon {
+      font-size: 2rem;
+    }
+  }
 }
 
 .doc-thumb {

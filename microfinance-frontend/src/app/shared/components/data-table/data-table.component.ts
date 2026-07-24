@@ -91,12 +91,15 @@ export interface TableColumn {
       background-color: var(--bg-white, #ffffff);
       border-radius: var(--border-radius-lg, 8px);
       box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
-      overflow: hidden;
       border: 1px solid #e5e7eb;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .data-grid {
       width: 100%;
+      min-width: 700px;
       border-collapse: collapse;
       text-align: left;
     }

@@ -7,22 +7,30 @@
       <span class="brand-text">Microfinance</span>
     </div>
 
-    <!-- NAVIGATION LINKS (Center) -->
-    <div class="navbar-links">
+    <!-- HAMBURGER ICON (Mobile Only) -->
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path *ngIf="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        <path *ngIf="isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- NAVIGATION LINKS (Center/Slide-out on Mobile) -->
+    <div class="navbar-links" [class.mobile-open]="isMobileMenuOpen">
       
       <!-- Borrower Links -->
       <ng-container *ngIf="role === 'ROLE_APPLICANT'">
-        <a routerLink="/applicant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">My Dashboard</a>
-        <a routerLink="/applicant/profile" routerLinkActive="active" class="nav-link">Profile & KYC</a>
-        <a href="javascript:void(0)" (click)="onApplyClick($event)" class="nav-link">Apply for a Loan</a>
-        <a routerLink="/applicant" fragment="recent-activity" class="nav-link">Recent Activity</a>
+        <a routerLink="/applicant" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">My Dashboard</a>
+        <a routerLink="/applicant/profile" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">Profile & KYC</a>
+        <a href="javascript:void(0)" (click)="onApplyClick($event); closeMobileMenu()" class="nav-link">Apply for a Loan</a>
+        <a routerLink="/applicant" fragment="recent-activity" class="nav-link" (click)="closeMobileMenu()">Recent Activity</a>
       </ng-container>
 
       <!-- Officer Links -->
       <ng-container *ngIf="role === 'ROLE_OFFICER'">
-        <a routerLink="/officer" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Underwriting Queue</a>
-        <a routerLink="/officer" fragment="create-direct-deal" class="nav-link">+ Create Direct Deal</a>
-        <a routerLink="/officer" fragment="pending-kyc" class="nav-link" style="position: relative;">
+        <a routerLink="/officer" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">Underwriting Queue</a>
+        <a routerLink="/officer" fragment="create-direct-deal" class="nav-link" (click)="closeMobileMenu()">+ Create Direct Deal</a>
+        <a routerLink="/officer" fragment="pending-kyc" class="nav-link" style="position: relative;" (click)="closeMobileMenu()">
           Pending KYC Verification
           <span class="badge" *ngIf="pendingKycCount > 0" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.65rem;">
             {{ pendingKycCount }}
@@ -32,16 +40,16 @@
 
       <!-- Admin Links -->
       <ng-container *ngIf="role === 'ROLE_ADMIN'">
-        <a routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Analytics</a>
-        <a routerLink="/admin/disbursements" routerLinkActive="active" class="nav-link" style="position: relative;">
+        <a routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">Analytics</a>
+        <a routerLink="/admin/disbursements" routerLinkActive="active" class="nav-link" style="position: relative;" (click)="closeMobileMenu()">
           Escalation Queue
           <span class="badge" *ngIf="pendingEscalationsCount > 0" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.65rem;">
             {{ pendingEscalationsCount }}
           </span>
         </a>
-        <a routerLink="/admin/staff" routerLinkActive="active" class="nav-link">Staff Management</a>
-        <a routerLink="/admin/products" routerLinkActive="active" class="nav-link">Loan Configuration</a>
-        <a routerLink="/admin/dashboard" fragment="system-audit" class="nav-link">System Audit</a>
+        <a routerLink="/admin/staff" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">Staff Management</a>
+        <a routerLink="/admin/products" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">Loan Configuration</a>
+        <a routerLink="/admin/dashboard" fragment="system-audit" class="nav-link" (click)="closeMobileMenu()">System Audit</a>
       </ng-container>
 
     </div>

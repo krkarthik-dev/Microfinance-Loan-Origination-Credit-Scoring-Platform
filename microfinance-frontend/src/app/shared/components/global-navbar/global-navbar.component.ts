@@ -36,6 +36,7 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
   unreadCount = 0;
   pendingKycCount = 0;
   pendingEscalationsCount = 0;
+  isMobileMenuOpen = false;
   private notifSub?: Subscription;
   private officerSub?: Subscription;
   private adminSub?: Subscription;
@@ -100,11 +101,24 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  @HostListener('document:click', ['$event'])
-  clickout(event: any) {
-    if(!this.eRef.nativeElement.contains(event.target)) {
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    if (this.isMobileMenuOpen) {
       this.showProfileMenu = false;
       this.showNotifications = false;
+    }
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClick(event: Event): void {
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.showProfileMenu = false;
+      this.showNotifications = false;
+      this.isMobileMenuOpen = false;
     }
   }
 

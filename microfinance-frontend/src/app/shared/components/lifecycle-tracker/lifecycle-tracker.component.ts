@@ -125,6 +125,41 @@ interface TrackerStep {
         font-weight: 700;
       }
     }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .stepper-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 1rem;
+      }
+
+      .step {
+        flex-direction: row;
+        width: 100%;
+        margin-bottom: 2.5rem;
+        justify-content: flex-start;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      .step-line {
+        top: 40px;
+        left: 19px;
+        width: 3px;
+        height: calc(100% + 2.5rem - 40px);
+      }
+
+      .step-label {
+        margin-top: 0;
+        margin-left: 1.5rem;
+        text-align: left;
+        max-width: none;
+        padding-top: 0.5rem; // Align nicely with circle
+      }
+    }
   `]
 })
 export class LifecycleTrackerComponent implements OnChanges {
