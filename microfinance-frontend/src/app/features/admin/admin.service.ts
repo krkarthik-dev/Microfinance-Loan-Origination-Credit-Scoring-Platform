@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface AuditLog {
@@ -27,11 +28,14 @@ export interface AdminDashboardMetrics {
 })
 export class AdminService {
   private apiUrl = `${environment.apiUrl}/admin`;
+  public pendingEscalationsCount$ = new BehaviorSubject<number>(0);
 
   constructor(private http: HttpClient) {}
 
   getDashboardMetrics(): Observable<AdminDashboardMetrics> {
-    return this.http.get<AdminDashboardMetrics>(`${this.apiUrl}/dashboard/metrics`);
+    return this.http.get<AdminDashboardMetrics>(`${this.apiUrl}/dashboard/metrics`).pipe(
+      tap(data => this.pendingEscalationsCount$.next(data.pendingEscalations || 0))
+    );
   }
 
   getAllProducts(): Observable<any[]> {

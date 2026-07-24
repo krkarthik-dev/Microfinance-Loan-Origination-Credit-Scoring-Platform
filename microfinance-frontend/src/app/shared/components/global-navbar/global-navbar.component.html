@@ -2,7 +2,7 @@
   <div class="navbar-container">
     
     <!-- BRAND (Left) -->
-    <div class="navbar-brand" [routerLink]="role === 'ROLE_APPLICANT' ? '/applicant' : '/'">
+    <div class="navbar-brand" [routerLink]="getHomeRoute()">
       <span class="brand-icon">M</span>
       <span class="brand-text">Microfinance</span>
     </div>
@@ -32,10 +32,16 @@
 
       <!-- Admin Links -->
       <ng-container *ngIf="role === 'ROLE_ADMIN'">
-        <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
-        <a routerLink="/admin/disbursements" routerLinkActive="active" class="nav-link">Disbursements</a>
-        <a routerLink="/admin/staff" routerLinkActive="active" class="nav-link">Staff</a>
-        <a routerLink="/admin/products" routerLinkActive="active" class="nav-link">Products</a>
+        <a routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Analytics</a>
+        <a routerLink="/admin/disbursements" routerLinkActive="active" class="nav-link" style="position: relative;">
+          Escalation Queue
+          <span class="badge" *ngIf="pendingEscalationsCount > 0" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.65rem;">
+            {{ pendingEscalationsCount }}
+          </span>
+        </a>
+        <a routerLink="/admin/staff" routerLinkActive="active" class="nav-link">Staff Management</a>
+        <a routerLink="/admin/products" routerLinkActive="active" class="nav-link">Loan Configuration</a>
+        <a routerLink="/admin/dashboard" fragment="system-audit" class="nav-link">System Audit</a>
       </ng-container>
 
     </div>

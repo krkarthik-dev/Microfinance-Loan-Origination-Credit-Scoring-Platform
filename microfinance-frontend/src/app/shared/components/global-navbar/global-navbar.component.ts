@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { BorrowerService } from '../../../features/borrower/borrower.service';
 import { OfficerService } from '../../../features/officer/officer.service';
+import { AdminService } from '../../../features/admin/admin.service';
 import { environment } from '../../../../environments/environment';
 
 interface NotificationItem {
@@ -34,13 +35,16 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
   notifications: NotificationItem[] = [];
   unreadCount = 0;
   pendingKycCount = 0;
+  pendingEscalationsCount = 0;
   private notifSub?: Subscription;
   private officerSub?: Subscription;
+  private adminSub?: Subscription;
 
   constructor(
     private authService: AuthService,
     private borrowerService: BorrowerService,
     private officerService: OfficerService,
+    private adminService: AdminService,
     private router: Router,
     private http: HttpClient,
     private eRef: ElementRef
@@ -66,6 +70,22 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
       // Fetch initial data which triggers the subject
       this.officerService.getPendingKyc().subscribe();
     }
+
+    if (this.role === 'ROLE_ADMIN') {
+      this.adminSub = this.adminService.pendingEscalationsCount$.subscribe(
+        count => this.pendingEscalationsCount = count
+      );
+      this.adminService.getDashboardMetrics().subscribe();
+    }
+  }
+
+  getHomeRoute(): string {
+    switch (this.role) {
+      case 'ROLE_APPLICANT': return '/applicant';
+      case 'ROLE_OFFICER': return '/officer';
+      case 'ROLE_ADMIN': return '/admin/dashboard';
+      default: return '/';
+    }
   }
 
   ngOnDestroy(): void {
@@ -74,6 +94,9 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
     }
     if (this.officerSub) {
       this.officerSub.unsubscribe();
+    }
+    if (this.adminSub) {
+      this.adminSub.unsubscribe();
     }
   }
 
