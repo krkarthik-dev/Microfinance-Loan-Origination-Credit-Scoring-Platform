@@ -1,11 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
 import { BorrowerService, DashboardMetrics } from '../borrower.service';
 import { ProfileSetupComponent } from '../profile-setup/profile-setup.component';
 import { MetricCardComponent } from '../../../shared/components/metric-card/metric-card.component';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
+
+interface NotificationItem {
+  id: number;
+  message: string;
+  linkUrl: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -14,13 +25,19 @@ import { DataTableComponent, TableColumn } from '../../../shared/components/data
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   userName = '';
   metrics: DashboardMetrics | null = null;
   isLoading = true;
   errorMessage: string = '';
   validationMessage: string = '';
   showProfilePopup: boolean = false;
+  
+  notifications: NotificationItem[] = [];
+  unreadCount = 0;
+  showNotifications = false;
+
+  private sub?: Subscription;
 
   activityColumns: TableColumn[] = [
     { key: 'loanId', label: 'Loan ID', class: 'font-medium' },
@@ -32,14 +49,19 @@ export class DashboardComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private borrowerService: BorrowerService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
-    // Use part of email (sub) as fallback for name if user details don't have a specific name
     this.userName = user?.sub?.split('@')[0] || 'Borrower';
     this.fetchMetrics();
+    this.fetchNotifications();
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 
   fetchMetrics(): void {
@@ -84,4 +106,42 @@ export class DashboardComponent implements OnInit {
   logout(): void {
     this.authService.logout();
   }
+
+  fetchNotifications(): void {
+    this.http.get<NotificationItem[]>(`${environment.apiUrl}/notifications`).subscribe({
+      next: (data) => {
+        this.notifications = data;
+        this.unreadCount = data.filter(n => !n.isRead).length;
+      },
+      error: (err) => console.error('Failed to load notifications', err)
+    });
+  }
+
+  toggleNotifications(): void {
+    this.showNotifications = !this.showNotifications;
+  }
+
+  handleNotificationClick(notif: NotificationItem): void {
+    this.showNotifications = false;
+    if (!notif.isRead) {
+      this.http.put(`${environment.apiUrl}/notifications/${notif.id}/read`, {}).subscribe({
+        next: () => {
+          notif.isRead = true;
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+          if (notif.linkUrl) {
+            this.router.navigateByUrl(notif.linkUrl);
+          }
+        },
+        error: (err) => {
+          console.error('Error marking as read', err);
+          if (notif.linkUrl) {
+            this.router.navigateByUrl(notif.linkUrl);
+          }
+        }
+      });
+    } else if (notif.linkUrl) {
+      this.router.navigateByUrl(notif.linkUrl);
+    }
+  }
 }
+

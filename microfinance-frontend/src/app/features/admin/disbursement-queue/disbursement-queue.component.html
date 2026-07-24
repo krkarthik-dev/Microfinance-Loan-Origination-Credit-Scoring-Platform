@@ -1,0 +1,66 @@
+<div class="disbursement-container fade-in">
+  <header class="page-header">
+    <div class="title-area">
+      <h1>Disbursement Queue</h1>
+      <p>Manage manual offline payouts for approved applications</p>
+    </div>
+    <div class="actions-area">
+      <button class="btn btn-outline" (click)="loadQueue()">↻ Refresh</button>
+      <button class="btn btn-ghost ml-2" routerLink="/admin/dashboard">← Back to Dashboard</button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading queue...</p>
+    </div>
+
+    <div *ngIf="errorMessage && !isLoading" class="error-state">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage" class="queue-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>App Number</th>
+              <th>Applicant</th>
+              <th>Approved Amount</th>
+              <th>Queued Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of queueItems">
+              <td><strong>{{ item.applicationNumber }}</strong></td>
+              <td>{{ item.applicantName }}</td>
+              <td class="font-bold text-success">&#8377;{{ item.approvedAmount | number }}</td>
+              <td>{{ item.queuedAt | date:'medium' }}</td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="item.status === 'PENDING_DISBURSEMENT' ? 'badge-warning' : 'badge-primary'">
+                  {{ item.status }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-success" 
+                        [disabled]="item.status !== 'PENDING_DISBURSEMENT'"
+                        (click)="markAsDisbursed(item)">
+                  {{ item.status === 'PENDING_DISBURSEMENT' ? 'Mark as Disbursed' : 'Processing...' }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="queueItems.length === 0">
+              <td colspan="6" class="text-center empty-message">
+                No applications currently pending disbursement.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>

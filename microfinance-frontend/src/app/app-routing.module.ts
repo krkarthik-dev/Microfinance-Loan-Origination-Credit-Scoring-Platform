@@ -111,6 +111,13 @@ const routes: Routes = [
     title: 'Staff Management | Microfinance'
   },
   {
+    path: 'admin/disbursements',
+    loadComponent: () => import('./features/admin/disbursement-queue/disbursement-queue.component').then(m => m.DisbursementQueueComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_ADMIN'] },
+    title: 'Disbursement Queue | Microfinance'
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }
