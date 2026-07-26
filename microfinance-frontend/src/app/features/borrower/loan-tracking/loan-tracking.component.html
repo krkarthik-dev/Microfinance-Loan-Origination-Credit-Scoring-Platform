@@ -1,13 +1,19 @@
 <div class="tracker-container fade-in">
   <!-- AC1: Success Message & Header -->
-  <div class="tracker-header">
+  <div class="tracker-header" *ngIf="!errorMessage">
     <div class="success-icon">🎉</div>
     <h2>Application Submitted Successfully!</h2>
     <p>Your application <strong class="app-num">{{ applicationNumber }}</strong> is now being processed.</p>
     <p class="subtitle">Track the real-time progress of your loan below.</p>
   </div>
 
-  <div class="tracker-card">
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-icon" style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+    <h2>{{ errorMessage }}</h2>
+    <p>We could not retrieve the tracking details for Loan ID: <strong>{{ applicationNumber }}</strong>. Please try again later.</p>
+  </div>
+
+  <div class="tracker-card" *ngIf="!errorMessage">
     <div class="status-summary">
       <span class="status-label">Current Status:</span>
       <span class="status-value" [ngClass]="{'rejected': isRejected, 'info-requested': currentStatus === 'INFO_REQUESTED'}">
@@ -18,20 +24,116 @@
       </span>
     </div>
 
-    <div class="info-request-alert" *ngIf="currentStatus === 'INFO_REQUESTED'">
-      <strong>Documents need attention.</strong>
-      Please re-upload the blurry or missing documents from your application page.
+    <div class="actionable-panel fade-in" *ngIf="currentStatus === 'INFO_REQUESTED'">
+      <div class="panel-header">
+        <span class="warning-icon">⚠️</span>
+        <h3>Action Required</h3>
+      </div>
+      <div class="panel-body">
+        <div class="officer-notes" *ngIf="correctionRequests.length > 0; else genericNote">
+          <h4>Requested Corrections:</h4>
+          <ul class="correction-list-borrower">
+            <li *ngFor="let req of correctionRequests">
+              <strong>{{ req.section }}:</strong> {{ req.comments }}
+            </li>
+          </ul>
+        </div>
+        <ng-template #genericNote>
+          <div class="officer-notes">
+            <h4>Loan Officer Notes:</h4>
+            <p>{{ officerNotes }}</p>
+          </div>
+        </ng-template>
+        
+        <div class="upload-section" style="margin-top: 20px; text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+          <p style="margin-bottom: 16px; color: #475569; font-size: 0.95rem;">You have targeted corrections requiring your review. Open the correction workspace to update fields and upload replacement documents.</p>
+          <button class="btn btn-primary btn-lg" (click)="openCorrectionWorkspace()" style="padding: 12px 28px; font-size: 1rem; font-weight: 600;">
+            Review & Submit Corrections →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="withdrawn-panel fade-in" *ngIf="currentStatus === 'WITHDRAWN'">
+      <div class="panel-header">
+        <span class="warning-icon">🚫</span>
+        <h3>Application Withdrawn</h3>
+      </div>
+      <div class="panel-body">
+        <p>You have permanently withdrawn this loan application. It is no longer under review by the institution and has been removed from all active underwriting queues.</p>
+      </div>
     </div>
 
     <!-- AC2 & AC3 & AC5: Visual Progress Bar -->
     <app-lifecycle-tracker
       [currentStatus]="currentStatus"
       [isRejected]="isRejected"
-      [isDirect]="isDirect">
+      [isDirect]="isDirect"
+      [auditTrail]="auditTrail">
     </app-lifecycle-tracker>
+
+    <!-- AC3: Detailed History Accordion -->
+    <div class="history-accordion fade-in">
+      <div class="accordion-header" (click)="toggleHistory()">
+        <h3><span class="history-icon">🕒</span> View Status History</h3>
+        <span class="chevron" [class.expanded]="historyExpanded">▼</span>
+      </div>
+      
+      <div class="accordion-content" *ngIf="historyExpanded">
+        <div class="history-timeline">
+          <div class="timeline-item" *ngFor="let log of auditTrail">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <div class="timeline-date">{{ log.createdAt | date:'medium' }}</div>
+              <div class="timeline-action">
+                Application moved to <strong>{{ formatAction(log.newValue || log.action) | titlecase }}</strong>
+              </div>
+              <div class="timeline-user" *ngIf="log.performedBy">
+                Updated by: {{ log.performedBy.firstName }} {{ log.performedBy.lastName }}
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" *ngIf="auditTrail.length === 0">
+            <div class="timeline-content text-muted">No history available yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="actions">
+  <div class="actions" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 20px;">
     <button class="btn btn-ghost" (click)="goToDashboard()">← Back to Dashboard</button>
+    <!-- AC1 & AC2: Conditional Withdraw Application Button -->
+    <button *ngIf="canWithdraw" class="btn btn-danger-outline" (click)="openWithdrawModal()">
+      ⚠️ Withdraw Application
+    </button>
+  </div>
+</div>
+
+<!-- AC3: Confirmation Safeguard Modal -->
+<div class="modal-overlay fade-in" *ngIf="showWithdrawModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-icon-danger">⚠️</div>
+      <h3>Withdraw Loan Application</h3>
+    </div>
+    <div class="modal-body">
+      <p class="warning-text">
+        Are you sure you want to withdraw this application? This action is <strong>permanent and cannot be undone</strong>.
+      </p>
+      <p class="sub-text">
+        Once withdrawn, your application will be immediately canceled and removed from all Loan Officer and Manager active review queues.
+      </p>
+      <div *ngIf="withdrawError" class="alert alert-danger" style="margin-top: 1rem; color: #dc2626; background: #fef2f2; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem;">
+        {{ withdrawError }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" [disabled]="isWithdrawing" (click)="closeWithdrawModal()">Cancel</button>
+      <button class="btn btn-danger" [disabled]="isWithdrawing" (click)="confirmWithdraw()">
+        <span *ngIf="isWithdrawing" class="spinner-border spinner-border-sm mr-1"></span>
+        Confirm Withdrawal
+      </button>
+    </div>
   </div>
 </div>

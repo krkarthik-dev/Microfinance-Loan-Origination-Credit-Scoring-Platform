@@ -21,6 +21,10 @@ import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.LoanDocumentRepository;
 import com.microfinance.repository.UserProfileRepository;
 import com.microfinance.repository.UserRepository;
+import com.microfinance.repository.CorrectionRequestRepository;
+import com.microfinance.entity.CorrectionRequest;
+import com.microfinance.repository.SystemNotificationRepository;
+import com.microfinance.entity.SystemNotification;
 import com.microfinance.service.LoanSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -62,6 +66,9 @@ public class OfficerDashboardController {
     private final PasswordEncoder passwordEncoder;
     private final LoanSubmissionService loanSubmissionService;
     private final com.microfinance.repository.DisbursementQueueRepository disbursementQueueRepository;
+    private final CorrectionRequestRepository correctionRequestRepository;
+    private final SystemNotificationRepository systemNotificationRepository;
+    private final com.microfinance.service.RepaymentService repaymentService;
 
     /**
      * US16: Returns a list of all applications currently in the UNDER_REVIEW state.
@@ -72,19 +79,36 @@ public class OfficerDashboardController {
     @PreAuthorize("hasRole('OFFICER')")
     @Transactional(readOnly = true)
     public ResponseEntity<List<OfficerApplicationSummaryDTO>> getUnderReviewApplications() {
-        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findAll().stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.SUBMITTED || 
-                               app.getStatus() == ApplicationStatus.PENDING_KYC || 
-                               app.getStatus() == ApplicationStatus.UNDER_REVIEW)
-                .map(app -> OfficerApplicationSummaryDTO.builder()
-                        .applicationId(app.getId())
-                        .applicationNumber(app.getApplicationNumber())
-                        .applicantName(app.getApplicant().getUsername())
-                        .appliedAmount(app.getAppliedAmount())
-                        .status(app.getStatus().name())
-                        .submittedAt(app.getSubmittedAt())
-                        .build())
-                .collect(Collectors.toList());
+        List<ApplicationStatus> statuses = List.of(
+                ApplicationStatus.SUBMITTED,
+                ApplicationStatus.PENDING_KYC,
+                ApplicationStatus.UNDER_REVIEW
+        );
+        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findSummariesByStatuses(statuses);
+        
+        return ResponseEntity.ok(queue);
+    }
+
+    @GetMapping("/applications/approved")
+    @PreAuthorize("hasRole('OFFICER')")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<OfficerApplicationSummaryDTO>> getApprovedApplications() {
+        List<ApplicationStatus> statuses = List.of(
+                ApplicationStatus.APPROVED,
+                ApplicationStatus.CLOSING
+        );
+        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findSummariesByStatuses(statuses);
+        return ResponseEntity.ok(queue);
+    }
+
+    @GetMapping("/applications/rejected")
+    @PreAuthorize("hasRole('OFFICER')")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<OfficerApplicationSummaryDTO>> getRejectedApplications() {
+        List<ApplicationStatus> statuses = List.of(
+                ApplicationStatus.REJECTED
+        );
+        List<OfficerApplicationSummaryDTO> queue = loanApplicationRepository.findSummariesByStatuses(statuses);
         return ResponseEntity.ok(queue);
     }
 
@@ -93,7 +117,7 @@ public class OfficerDashboardController {
      */
     @GetMapping("/applications/{applicationNumber}/details")
     @PreAuthorize("hasRole('OFFICER')")
-    @Transactional(readOnly = true)
+    @Transactional
     public ResponseEntity<?> getApplicationDetails(@PathVariable String applicationNumber) {
         Optional<LoanApplication> appOpt = loanApplicationRepository.findByApplicationNumber(applicationNumber);
         if (appOpt.isEmpty()) {
@@ -126,6 +150,12 @@ public class OfficerDashboardController {
         // Calculate EMI manually for display
         BigDecimal emi = calculateEmi(app.getAppliedAmount(), app.getLoanProduct().getInterestRatePa(), app.getTenureMonths());
         BigDecimal totalPayable = emi.multiply(BigDecimal.valueOf(app.getTenureMonths()));
+
+        List<String> recentlyCorrected = correctionRequestRepository.findByLoanApplicationId(app.getId()).stream()
+                .filter(CorrectionRequest::isResolved)
+                .map(CorrectionRequest::getSection)
+                .distinct()
+                .collect(Collectors.toList());
 
         OfficerApplicationDetailDTO dto = OfficerApplicationDetailDTO.builder()
                 .applicationId(app.getId())
@@ -164,6 +194,7 @@ public class OfficerDashboardController {
                 .photoDocumentId(photoDocId)
                 .guarantorIdDocumentId(guarantorDocId)
                 .otherDocuments(otherDocs)
+                .recentlyCorrectedSections(recentlyCorrected)
                 .build();
 
         if (app.getStatus() == ApplicationStatus.SUBMITTED || app.getStatus() == ApplicationStatus.PENDING_KYC) {
@@ -214,6 +245,87 @@ public class OfficerDashboardController {
                         .body(doc.getFileData()))
                 .orElse(ResponseEntity.notFound().build());
     }
+    @PostMapping("/applications/{applicationNumber}/disburse")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    @Transactional
+    public ResponseEntity<?> initiateDisbursement(@PathVariable String applicationNumber) {
+        Optional<LoanApplication> appOpt = loanApplicationRepository.findByApplicationNumber(applicationNumber);
+        if (appOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        LoanApplication app = appOpt.get();
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByEmail(auth.getName()).orElse(null);
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        // Evaluate Dual-Approval Rule
+        com.microfinance.entity.CreditScore cs = creditScoreRepository.findByApplicationId(app.getId()).orElse(null);
+        boolean requiresDualApproval = app.getAppliedAmount().compareTo(new BigDecimal("1000000")) > 0 || (cs != null && "HIGH".equals(cs.getRiskTier()));
+        
+        // SoD Check
+        if (requiresDualApproval && !isAdmin) {
+            AuditLog audit = AuditLog.builder()
+                    .entityType("LOAN_APPLICATION")
+                    .entityId(app.getId())
+                    .action("UNAUTHORIZED_DISBURSEMENT_ATTEMPT")
+                    .performedBy(currentUser)
+                    .oldValue(app.getStatus().name())
+                    .newValue(app.getStatus().name())
+                    .build();
+            auditLogRepository.save(audit);
+            return ResponseEntity.status(403).body("Forbidden: High-liability loans require Manager approval for disbursement.");
+        }
+
+        // Find in queue
+        Optional<com.microfinance.entity.DisbursementQueue> queueOpt = disbursementQueueRepository.findAll().stream()
+                .filter(q -> q.getLoanApplication().getId().equals(app.getId()) && "PENDING_DISBURSEMENT".equals(q.getStatus()))
+                .findFirst();
+                
+        if (queueOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("No pending disbursement found for this application.");
+        }
+
+        com.microfinance.entity.DisbursementQueue queueItem = queueOpt.get();
+
+        // 1. Mark Queue Item as COMPLETED
+        queueItem.setStatus("COMPLETED");
+        queueItem.setProcessedAt(LocalDateTime.now());
+        disbursementQueueRepository.save(queueItem);
+
+        // 2. Update Loan Application Status to ACTIVE_REPAYMENT
+        ApplicationStatus oldStatus = app.getStatus();
+        app.setStatus(ApplicationStatus.ACTIVE_REPAYMENT);
+        loanApplicationRepository.save(app);
+
+        // 3. Audit Logging
+        AuditLog audit = AuditLog.builder()
+                .entityType("LOAN_APPLICATION")
+                .entityId(app.getId())
+                .action("MANUAL_DISBURSEMENT")
+                .performedBy(currentUser)
+                .oldValue(oldStatus.name())
+                .newValue(ApplicationStatus.ACTIVE_REPAYMENT.name())
+                .build();
+        auditLogRepository.save(audit);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/applications/{applicationNumber}/audit-trail")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<AuditLog>> getApplicationAuditTrail(@PathVariable String applicationNumber) {
+        Optional<LoanApplication> appOpt = loanApplicationRepository.findByApplicationNumber(applicationNumber);
+        if (appOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<AuditLog> logs = auditLogRepository.findAll().stream()
+                .filter(log -> "LOAN_APPLICATION".equals(log.getEntityType()) && log.getEntityId().equals(appOpt.get().getId()))
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(logs);
+    }
+
 
     /**
      * US20: Process Officer underwriting decision.
@@ -245,6 +357,13 @@ public class OfficerDashboardController {
             case "APPROVE":
                 newStatus = ApplicationStatus.CLOSING;
                 addToDisbursementQueue = true; // Still add to disbursement queue or handle later? Actually US 43 AC4 says Direct Closing: transitions directly to CLOSING. We can add to queue here, or admin will handle it from CLOSING state. Let's keep adding it to queue for now so Admin can see it.
+                break;
+            case "RECOMMEND_APPROVAL":
+                com.microfinance.entity.CreditScore cs = creditScoreRepository.findByApplicationId(app.getId()).orElse(null);
+                if (app.getAppliedAmount().compareTo(new BigDecimal("1000000")) <= 0 && (cs == null || !"HIGH".equals(cs.getRiskTier()))) {
+                    return ResponseEntity.badRequest().body("Application does not meet dual-approval criteria.");
+                }
+                newStatus = ApplicationStatus.PENDING_MANAGER_APPROVAL;
                 break;
             case "REJECT":
                 newStatus = ApplicationStatus.REJECTED;
@@ -284,6 +403,29 @@ public class OfficerDashboardController {
         audit.setNewValue("{\"status\":\"" + newStatus.name() + "\", \"details\":\"" + noteDetails + "\"}");
         
         auditLogRepository.save(audit);
+
+        // US53: Save Granular Correction Requests & US54 AC1: Notification Gateway
+        if (newStatus == ApplicationStatus.INFO_REQUESTED) {
+            if (request.getCorrectionRequests() != null) {
+                request.getCorrectionRequests().forEach(cr -> {
+                    CorrectionRequest correctionRequest = CorrectionRequest.builder()
+                            .loanApplication(app)
+                            .section(cr.getSection())
+                            .comments(cr.getComments())
+                            .resolved(false)
+                            .build();
+                    correctionRequestRepository.save(correctionRequest);
+                });
+            }
+            
+            SystemNotification notification = SystemNotification.builder()
+                    .user(app.getApplicant())
+                    .message("Action Required: Loan Officer requested corrections for loan " + app.getApplicationNumber())
+                    .linkUrl("/applicant/loan/" + app.getApplicationNumber() + "/corrections")
+                    .isRead(false)
+                    .build();
+            systemNotificationRepository.save(notification);
+        }
 
         // AC4: Disbursement Queue Routing
         if (addToDisbursementQueue) {
@@ -511,6 +653,36 @@ public class OfficerDashboardController {
         } catch (java.io.IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(java.util.Map.of("error", "Failed to generate application PDF: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/disbursed-loans")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    public ResponseEntity<?> getDisbursedLoans(Authentication authentication) {
+        return ResponseEntity.ok(repaymentService.getOfficerDisbursedLoans(authentication.getName()));
+    }
+
+    @GetMapping("/loans/{applicationNumber}/repayment-schedule")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    public ResponseEntity<?> getOfficerRepaymentSchedule(@PathVariable String applicationNumber) {
+        try {
+            return ResponseEntity.ok(repaymentService.getOfficerRepaymentSchedule(applicationNumber));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/loans/{applicationNumber}/installments/{installmentId}/pay")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    public ResponseEntity<?> collectInstallmentPayment(
+            @PathVariable String applicationNumber,
+            @PathVariable Long installmentId,
+            @RequestBody com.microfinance.dto.PaymentCollectionRequestDto request,
+            Authentication authentication) {
+        try {
+            return ResponseEntity.ok(repaymentService.markInstallmentAsPaid(applicationNumber, installmentId, request, authentication.getName()));
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
     }
 }

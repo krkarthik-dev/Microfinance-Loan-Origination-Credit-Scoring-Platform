@@ -63,7 +63,10 @@
         title="Active Loans" 
         [value]="metrics.activeLoans" 
         icon="💼" 
-        type="active">
+        type="active"
+        (click)="navigateToActiveLoans()"
+        style="cursor: pointer;"
+        title="Click to view all active loans">
       </app-metric-card>
 
       <!-- Card 2: Total Outstanding -->
@@ -100,7 +103,8 @@
       <app-data-table
         *ngIf="metrics.recentActivity && metrics.recentActivity.length > 0"
         [columns]="activityColumns"
-        [data]="metrics.recentActivity">
+        [data]="metrics.recentActivity"
+        (linkClick)="onLinkClick($event)">
       </app-data-table>
     </section>
   </main>

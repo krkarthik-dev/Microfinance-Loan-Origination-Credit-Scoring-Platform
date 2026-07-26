@@ -1,0 +1,86 @@
+<div class="active-loans-container">
+  <!-- Header -->
+  <div class="header-card">
+    <div class="header-content">
+      <div>
+        <span class="badge badge-success">Active Repayment</span>
+        <h1>My Active Loans</h1>
+        <p class="subtitle">View and manage all your ongoing disbursed loan accounts.</p>
+      </div>
+      <button class="btn btn-secondary" (click)="goToDashboard()">← Back to Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading active loans...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger">
+    <span>{{ errorMessage }}</span>
+    <button class="btn btn-sm btn-outline mt-2" (click)="fetchActiveLoans()">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && !errorMessage && activeLoans.length === 0" class="empty-state">
+    <div class="empty-icon">💳</div>
+    <h3>No Active Loans Found</h3>
+    <p>You currently do not have any active loans in the repayment phase.</p>
+    <button class="btn btn-primary mt-3" (click)="goToDashboard()">Go to Dashboard</button>
+  </div>
+
+  <!-- Data Grid -->
+  <div *ngIf="!isLoading && !errorMessage && activeLoans.length > 0" class="table-card">
+    <div class="table-header">
+      <h2>Disbursed Accounts ({{ activeLoans.length }})</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="loans-table">
+        <thead>
+          <tr>
+            <th>Loan ID</th>
+            <th>Purpose</th>
+            <th>Principal Amount</th>
+            <th>Disbursed Date</th>
+            <th>Tenure / EMI</th>
+            <th>Interest Rate</th>
+            <th>Current Outstanding Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loan of activeLoans">
+            <td>
+              <a href="javascript:void(0)" class="loan-link" (click)="goToRepayment(loan.loanId)">
+                {{ loan.loanId }}
+                <span class="link-arrow">↗</span>
+              </a>
+            </td>
+            <td>
+              <span class="purpose-badge">{{ loan.purpose || 'General Purpose' }}</span>
+            </td>
+            <td class="amount font-semibold">
+              ₹{{ loan.principalAmount | number:'1.2-2' }}
+            </td>
+            <td class="date-cell">
+              {{ loan.disbursedDate | date:'mediumDate' }}
+            </td>
+            <td>
+              <div class="tenure-cell">
+                <strong>₹{{ loan.monthlyEmi | number:'1.2-2' }}/mo</strong>
+                <span>{{ loan.tenureMonths }} Months</span>
+              </div>
+            </td>
+            <td>
+              <span class="rate-badge">{{ loan.interestRate }}% p.a.</span>
+            </td>
+            <td class="amount outstanding-balance">
+              ₹{{ loan.currentOutstandingBalance | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

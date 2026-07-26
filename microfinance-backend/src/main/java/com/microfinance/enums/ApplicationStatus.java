@@ -18,5 +18,7 @@ public enum ApplicationStatus {
     CLOSING,
     ACTIVE_REPAYMENT,
     REJECTED,
-    WITHDRAWN
+    WITHDRAWN,
+    COMPLETED,
+    CLOSED_PAID_IN_FULL
 }

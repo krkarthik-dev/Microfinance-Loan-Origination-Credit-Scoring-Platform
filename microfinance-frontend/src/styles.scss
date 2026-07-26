@@ -1,147 +1,135 @@
 /* ==========================================================================
    MICROFINANCE PLATFORM — GLOBAL DESIGN SYSTEM
-   Single source of truth for all colors, typography, spacing, and components.
-   All component SCSSes should reference these tokens only.
+   Premium Light Mode Theme
    ========================================================================== */
 
 /* ── GOOGLE FONTS ──────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 /* ── CSS CUSTOM PROPERTIES (DESIGN TOKENS) ─────────────────────────────────── */
 :root {
-  /* Primary Brand — Indigo */
-  --primary-color:      #4f46e5;
-  --primary-hover:      #4338ca;
-  --primary-light:      #eef2ff;
-  --primary-ring:       rgba(79, 70, 229, 0.12);
+  /* Primary Brand — Vibrant Indigo */
+  --primary-color:      #4338ca;
+  --primary-hover:      #3730a3;
+  --primary-light:      #e0e7ff;
+  --primary-ring:       rgba(67, 56, 202, 0.2);
+  --primary-gradient:   linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
 
   /* Secondary — Emerald */
   --secondary-color:    #10b981;
   --secondary-hover:    #059669;
   --secondary-light:    #ecfdf5;
 
-  /* Semantic — Danger */
+  /* Semantic */
   --danger:             #ef4444;
   --danger-hover:       #dc2626;
-  --danger-light:       #fee2e2;
-
-  /* Semantic — Warning */
+  --danger-light:       #fef2f2;
   --warning:            #f59e0b;
   --warning-hover:      #d97706;
   --warning-light:      #fffbeb;
-
-  /* Semantic — Success (alias for secondary) */
   --success:            #10b981;
   --success-hover:      #059669;
   --success-light:      #ecfdf5;
 
-  /* Background & Surface */
-  --bg-body:            #f3f4f6;
-  --bg-light:           #f3f4f6;
+  /* Background & Surface (Light Mode) */
+  --bg-body:            #f8fafc;
+  --bg-light:           #f1f5f9;
   --bg-white:           #ffffff;
   --bg-card:            #ffffff;
+  --glass-bg:           rgba(255, 255, 255, 0.75);
+  --glass-border:       rgba(255, 255, 255, 0.3);
 
-  /* Aliased names used by admin & auth components */
-  --background-light:   #f3f4f6;
+  /* Legacy aliases */
+  --background-light:   #f8fafc;
   --background-card:    #ffffff;
-  --color-background:   #f3f4f6;
+  --color-background:   #f8fafc;
   --color-surface:      #ffffff;
 
   /* Text */
-  --text-main:          #1f2937;
-  --text-muted:         #6b7280;
-  --text-light:         #9ca3af;
+  --text-main:          #0f172a;
+  --text-muted:         #475569;
+  --text-light:         #94a3b8;
 
-  /* Aliased names used by admin & auth components */
-  --text-primary:       #1f2937;
-  --text-secondary:     #6b7280;
-  --color-text:         #1f2937;
-  --color-text-light:   #6b7280;
+  /* Legacy aliases */
+  --text-primary:       #0f172a;
+  --text-secondary:     #475569;
+  --color-text:         #0f172a;
+  --color-text-light:   #475569;
 
   /* Border */
-  --border-color:       #e5e7eb;
-  --border-color-dark:  #d1d5db;
-  --color-border:       #e5e7eb;
-
-  /* Aliased primary names for auth components */
-  --color-primary:      #4f46e5;
-  --color-primary-dark: #4338ca;
+  --border-color:       #e2e8f0;
+  --border-color-dark:  #cbd5e1;
+  --color-border:       #e2e8f0;
 
   /* Typography */
-  --font-family:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-size-xs:       0.75rem;   /* 12px */
-  --font-size-sm:       0.875rem;  /* 14px */
-  --font-size-base:     1rem;      /* 16px */
-  --font-size-lg:       1.125rem;  /* 18px */
-  --font-size-xl:       1.25rem;   /* 20px */
-  --font-size-2xl:      1.5rem;    /* 24px */
-  --font-size-3xl:      1.875rem;  /* 30px */
+  --font-family:        'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs:       0.75rem;
+  --font-size-sm:       0.875rem;
+  --font-size-base:     1rem;
+  --font-size-lg:       1.125rem;
+  --font-size-xl:       1.25rem;
+  --font-size-2xl:      1.5rem;
+  --font-size-3xl:      2rem;
 
   /* Spacing */
   --spacing-xs:         0.25rem;
   --spacing-sm:         0.5rem;
   --spacing-md:         1rem;
   --spacing-lg:         1.5rem;
-  --spacing-xl:         2rem;
-  --spacing-2xl:        3rem;
+  --spacing-xl:         2.5rem;
+  --spacing-2xl:        4rem;
 
   /* Border Radius */
-  --radius-sm:          4px;
-  --radius-md:          8px;
-  --radius-lg:          12px;
-  --radius-xl:          16px;
+  --radius-sm:          6px;
+  --radius-md:          12px;
+  --radius-lg:          16px;
+  --radius-xl:          24px;
   --radius-full:        9999px;
 
-  /* Legacy aliases */
-  --border-radius-md:   8px;
-  --border-radius-lg:   12px;
-
-  /* Shadows */
-  --shadow-xs:          0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm:          0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.07);
-  --shadow-md:          0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
-  --shadow-lg:          0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
-  --shadow-xl:          0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  /* Shadows - Elevated & Premium */
+  --shadow-xs:          0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm:          0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px -1px rgba(15, 23, 42, 0.1);
+  --shadow-md:          0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
+  --shadow-lg:          0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  --shadow-glow:        0 0 20px rgba(67, 56, 202, 0.15);
 
   /* Transitions */
-  --transition-fast:    all 0.15s ease;
-  --transition-base:    all 0.2s ease;
-  --transition-slow:    all 0.3s ease;
+  --transition-fast:    0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal:  0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce:  0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── RESET & BASE ───────────────────────────────────────────────────────────── */
-*, *::before, *::after {
+/* ── GLOBAL RESET & BASE ───────────────────────────────────────────────────── */
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-html, body {
-  height: 100%;
-  width: 100%;
 }
 
 body {
   font-family: var(--font-family);
   background-color: var(--bg-body);
   color: var(--text-main);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
 }
 
-/* ── TYPOGRAPHY ─────────────────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--text-main);
+  letter-spacing: -0.02em;
 }
 
 a {
   color: var(--primary-color);
   text-decoration: none;
-  transition: var(--transition-base);
-  &:hover { color: var(--primary-hover); }
+  transition: color var(--transition-fast);
+  
+  &:hover {
+    color: var(--primary-hover);
+  }
 }
 
 /* ── SCROLLBAR ──────────────────────────────────────────────────────────────── */
@@ -149,10 +137,6 @@ a {
 ::-webkit-scrollbar-track { background: var(--bg-light); }
 ::-webkit-scrollbar-thumb { background: var(--border-color-dark); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ==========================================================================
-   BUTTONS — Complete system
-   ========================================================================== */
 .btn {
   display: inline-flex;
   align-items: center;

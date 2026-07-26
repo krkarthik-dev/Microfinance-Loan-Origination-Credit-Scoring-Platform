@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
@@ -20,7 +21,7 @@ interface NotificationItem {
 @Component({
   selector: 'app-global-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './global-navbar.component.html',
   styleUrls: ['./global-navbar.component.scss']
 })
@@ -37,6 +38,11 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
   pendingKycCount = 0;
   pendingEscalationsCount = 0;
   isMobileMenuOpen = false;
+  
+  // Search Widget
+  searchLoanId: string = '';
+  searchError: string = '';
+
   private notifSub?: Subscription;
   private officerSub?: Subscription;
   private adminSub?: Subscription;
@@ -133,7 +139,37 @@ export class GlobalNavbarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.isMobileMenuOpen = false;
     this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  onSearchTrack(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.searchError = '';
+    const trimmedId = this.searchLoanId.trim();
+    if (!trimmedId || trimmedId.length < 5 || !/^[A-Za-z0-9-]+$/.test(trimmedId)) {
+      this.searchError = 'Invalid ID format';
+      return;
+    }
+
+    // Attempt to fetch status to validate ownership
+    this.borrowerService.getLoanStatus(trimmedId).subscribe({
+      next: () => {
+        this.searchLoanId = '';
+        this.closeMobileMenu();
+        this.router.navigate(['/applicant/loan', trimmedId, 'tracking']);
+      },
+      error: (err) => {
+        if (err.status === 403 || err.status === 404) {
+          this.searchError = 'Invalid Loan ID or access denied';
+        } else {
+          this.searchError = 'Unable to track right now';
+        }
+      }
+    });
   }
 
   onApplyClick(event: Event): void {

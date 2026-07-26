@@ -147,6 +147,47 @@
   gap: 1rem;
 }
 
+/* ── SEARCH WIDGET ─────────────────────────────────────────────────────────── */
+.search-widget {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .search-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    input {
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      font-size: var(--font-size-sm);
+      outline: none;
+      transition: border-color 0.2s;
+      
+      &:focus {
+        border-color: var(--primary-color);
+      }
+    }
+  }
+
+  .search-error {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background: white;
+    color: var(--danger);
+    font-size: var(--font-size-xs);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--danger);
+    white-space: nowrap;
+    z-index: 100;
+  }
+}
+
 /* ── NOTIFICATIONS ─────────────────────────────────────────────────────────── */
 .notifications-wrapper, .profile-wrapper {
   position: relative;

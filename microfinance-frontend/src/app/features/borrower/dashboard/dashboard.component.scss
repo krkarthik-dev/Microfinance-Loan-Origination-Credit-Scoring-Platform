@@ -20,18 +20,21 @@
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
   gap: var(--spacing-lg);
-  background: var(--bg-white);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
   padding: 1.5rem 2rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--glass-border);
+  animation: fadeInUp 0.5s var(--transition-bounce) forwards;
 
   .welcome-text {
     h1 {
-      font-size: 2rem;
-      font-weight: 700;
+      font-size: 2.25rem;
+      font-weight: 800;
       color: var(--text-main);
       margin-bottom: 0.25rem;
+      letter-spacing: -0.03em;
 
       span { color: var(--primary-color); }
     }
@@ -52,26 +55,29 @@
 
 /* ── PROFILE ICON BUTTON ───────────────────────────────────────────────────── */
 .profile-icon-btn {
-  background: var(--bg-light);
-  border: 1.5px solid var(--border-color);
+  background: var(--bg-white);
+  border: 1px solid var(--primary-light);
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--primary-color);
-  transition: var(--transition-base);
+  transition: all var(--transition-bounce);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 
   &:hover {
-    background: var(--primary-light);
-    border-color: var(--primary-color);
-    transform: scale(1.05);
+    background: var(--primary-gradient);
+    color: #fff;
+    border-color: transparent;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
 
-  svg { width: 20px; height: 20px; }
+  svg { width: 22px; height: 22px; }
 }
 
 /* CTA area with relative positioning for dropdown */
@@ -174,17 +180,19 @@
 
 /* ── RECENT ACTIVITY SECTION ───────────────────────────────────────────────── */
 .recent-activity-section {
-  background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-  padding: var(--spacing-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--glass-border);
+  padding: var(--spacing-xl);
+  animation: fadeInUp 0.7s var(--transition-bounce) forwards;
 
   h2 {
     font-size: var(--font-size-xl);
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-main);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
   }
 
   .empty-state {

@@ -36,6 +36,46 @@ export interface KycUploadResponse {
   uploadedAt: string;
 }
 
+export interface ActiveLoan {
+  loanId: string;
+  principalAmount: number;
+  disbursedDate: string;
+  currentOutstandingBalance: number;
+  tenureMonths: number;
+  monthlyEmi: number;
+  interestRate: number;
+  purpose?: string;
+}
+
+export interface EmiScheduleItem {
+  id: number;
+  installmentNumber: number;
+  dueDate: string;
+  principalComponent: number;
+  interestComponent: number;
+  totalEmi: number;
+  remainingBalance: number;
+  status: string;
+  paidDate?: string;
+  paymentMethod?: string;
+  referenceNumber?: string;
+  collectedByUsername?: string;
+  isActionable?: boolean;
+}
+
+export interface RepaymentSchedule {
+  loanId: string;
+  borrowerName: string;
+  principalAmount: number;
+  interestRate: number;
+  tenureMonths: number;
+  nextEmiAmount: number;
+  nextEmiDueDate: string;
+  totalOutstandingBalance: number;
+  loanStatus: string;
+  schedule: EmiScheduleItem[];
+}
+
 export interface DashboardMetrics {
   activeLoans: number;
   totalOutstanding: number;
@@ -91,5 +131,39 @@ export class BorrowerService {
    */
   getLoanStatus(applicationNumber: string): Observable<{ status: string, isDirect?: boolean }> {
     return this.http.get<{ status: string, isDirect?: boolean }>(`${this.apiUrl}/loan/${applicationNumber}/status`);
+  }
+
+  getOfficerInfoRequestNotes(applicationNumber: string): Observable<{notes: string}> {
+    return this.http.get<{notes: string}>(`${this.apiUrl}/loan/${applicationNumber}/info-request`);
+  }
+
+  getCorrectionRequests(applicationNumber: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/loan/${applicationNumber}/correction-requests`);
+  }
+
+  submitCorrectionDocuments(applicationNumber: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/loan/${applicationNumber}/upload-correction`, formData);
+  }
+
+  getLoanAuditTrail(applicationNumber: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/loan/${applicationNumber}/audit-trail`);
+  }
+
+  resubmitCorrections(applicationNumber: string, formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/loan/${applicationNumber}/resubmit-corrections`, formData);
+  }
+
+  getActiveLoans(): Observable<ActiveLoan[]> {
+    return this.http.get<ActiveLoan[]>(`${this.apiUrl}/active-loans`);
+  }
+
+  getRepaymentSchedule(applicationNumber: string): Observable<RepaymentSchedule> {
+    return this.http.get<RepaymentSchedule>(`${this.apiUrl}/active-loans/${applicationNumber}/repayment-schedule`);
+  }
+
+  withdrawApplication(applicationNumber: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/loan/${applicationNumber}/withdraw`, {});
   }
 }

@@ -37,6 +37,16 @@ export interface PendingKyc {
   aadhaarDocumentId: number;
 }
 
+export interface OfficerDisbursedLoan {
+  loanId: string;
+  borrowerName: string;
+  totalDisbursed: number;
+  nextEmiDueDate: string;
+  nextEmiAmount: number;
+  status: string;
+  totalOutstanding: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -51,6 +61,20 @@ export class OfficerService {
    */
   getQueue(): Observable<ApplicationSummary[]> {
     return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/applications/queue`);
+  }
+
+  /**
+   * Fetches approved applications
+   */
+  getApprovedQueue(): Observable<ApplicationSummary[]> {
+    return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/applications/approved`);
+  }
+
+  /**
+   * Fetches rejected applications
+   */
+  getRejectedQueue(): Observable<ApplicationSummary[]> {
+    return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/applications/rejected`);
   }
 
   /**
@@ -77,7 +101,7 @@ export class OfficerService {
   /**
    * US20: Submit Loan Officer decision.
    */
-  submitDecision(applicationNumber: string, payload: { decision: string, rejectionReason?: string, internalNotes?: string }): Observable<any> {
+  submitDecision(applicationNumber: string, payload: { decision: string, rejectionReason?: string, internalNotes?: string, correctionRequests?: any[] }): Observable<any> {
     return this.http.put(`${this.apiUrl}/applications/${applicationNumber}/decision`, payload);
   }
 
@@ -109,5 +133,31 @@ export class OfficerService {
       observe: 'response',
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Initiates disbursement for an approved application
+   */
+  initiateDisbursement(applicationNumber: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/applications/${applicationNumber}/disburse`, {});
+  }
+
+  /**
+   * Fetches the audit trail for an application
+   */
+  getAuditTrail(applicationNumber: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/applications/${applicationNumber}/audit-trail`);
+  }
+
+  getDisbursedLoans(): Observable<OfficerDisbursedLoan[]> {
+    return this.http.get<OfficerDisbursedLoan[]>(`${this.apiUrl}/disbursed-loans`);
+  }
+
+  getOfficerRepaymentSchedule(applicationNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/loans/${applicationNumber}/repayment-schedule`);
+  }
+
+  collectInstallmentPayment(applicationNumber: string, installmentId: number, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/loans/${applicationNumber}/installments/${installmentId}/pay`, payload);
   }
 }

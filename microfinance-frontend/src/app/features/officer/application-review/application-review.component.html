@@ -1,90 +1,148 @@
 <div class="review-container fade-in">
   
-  <header class="review-header">
+  <header class="review-header glass-panel">
     <div class="title-area">
-      <button class="btn btn-ghost" (click)="goBack()">← Back to Queue</button>
-      <h2>Application Review: <span class="app-num">{{ applicationNumber }}</span></h2>
+      <button class="btn btn-ghost" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2001/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Queue
+      </button>
+      <h2>Application Review: <span class="app-num text-primary">{{ applicationNumber }}</span></h2>
     </div>
     
-    <div class="status-actions">
+    <div class="header-actions">
+      <!-- Status Badge -->
       <div class="verification-status" [ngClass]="{'all-verified': allVerified}">
+        <span class="status-dot"></span>
         {{ allVerified ? 'All Data Verified' : 'Verification Pending' }}
       </div>
-      <div class="action-buttons">
-            <!-- Officer View -->
-            <ng-container *ngIf="!isAdmin">
-              <button class="btn btn-outline mb-2 w-100" (click)="openModal('ESCALATE')">Escalate to Manager</button>
-              <button class="btn btn-warning mb-2 w-100" (click)="openModal('REQUEST_INFO')">Request Information</button>
-              <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-danger w-50" (click)="openModal('REJECT')">Reject</button>
-                <button class="btn btn-success w-50" [disabled]="!allVerified" (click)="openModal('APPROVE')">Approve Loan</button>
-              </div>
+
+      <!-- Header Decision Buttons -->
+      <div class="header-decision-buttons" *ngIf="details && !isLoading">
+        <!-- Officer View -->
+        <ng-container *ngIf="!isAdmin">
+          <div class="btn-group-row" *ngIf="details.status === 'SUBMITTED' || details.status === 'PENDING_KYC' || details.status === 'UNDER_REVIEW'">
+            
+            <ng-container *ngIf="!requiresDualApproval">
+              <button class="btn btn-success" (click)="openModal('APPROVE')">
+                <svg xmlns="http://www.w3.org/2001/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.25rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Approve
+              </button>
+              <button class="btn btn-outline" (click)="openModal('ESCALATE')">Escalate</button>
             </ng-container>
 
-            <!-- Admin View (US30) -->
-            <ng-container *ngIf="isAdmin && details.status === 'PENDING_MANAGER_APPROVAL'">
-              <p class="text-center text-muted mb-2">Final Adjudication Required</p>
-              <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-danger w-50" (click)="openModal('REJECT')">Reject</button>
-                <button class="btn btn-success w-50" (click)="openModal('APPROVE')">Approve</button>
-              </div>
+            <ng-container *ngIf="requiresDualApproval">
+              <button class="btn btn-success" (click)="openModal('RECOMMEND_APPROVAL')">
+                <svg xmlns="http://www.w3.org/2001/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.25rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Recommend Approval
+              </button>
             </ng-container>
-            <ng-container *ngIf="isAdmin && details.status !== 'ESCALATED'">
-               <p class="text-center text-muted mb-2">Application is currently {{details.status}}</p>
-            </ng-container>
+
+            <button class="btn btn-danger" (click)="openModal('REJECT')">
+              <svg xmlns="http://www.w3.org/2001/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.25rem;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+              Reject
+            </button>
+            
+            <button class="btn btn-warning" (click)="openModal('REQUEST_INFO')">Request Info</button>
           </div>
+          
+          <div class="btn-group-row" *ngIf="details.status === 'CLOSING' && !requiresDualApproval">
+            <button class="btn btn-primary" (click)="initiateDisbursement()">
+              Initiate Disbursement
+            </button>
+          </div>
+
+          <div class="read-only-badge" *ngIf="details.status === 'REJECTED' || details.status === 'ACTIVE_REPAYMENT' || (details.status === 'CLOSING' && requiresDualApproval)">
+             {{ details.status === 'CLOSING' ? 'PENDING MANAGER DISBURSEMENT' : details.status }}
+          </div>
+        </ng-container>
+
+        <!-- Admin View (US30) -->
+        <ng-container *ngIf="isAdmin && details.status === 'PENDING_MANAGER_APPROVAL'">
+          <div class="btn-group-row">
+            <button class="btn btn-success" (click)="openModal('APPROVE')">Final Approve</button>
+            <button class="btn btn-danger" (click)="openModal('REJECT')">Final Reject</button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="isAdmin && details.status === 'CLOSING'">
+          <div class="btn-group-row">
+            <button class="btn btn-primary" (click)="initiateDisbursement()">Mark as Disbursed</button>
+          </div>
+        </ng-container>
+        
+        <ng-container *ngIf="isAdmin && details.status !== 'ESCALATED' && details.status !== 'PENDING_MANAGER_APPROVAL' && details.status !== 'CLOSING'">
+           <div class="read-only-badge">
+             {{details.status}}
+           </div>
+        </ng-container>
+      </div>
     </div>
   </header>
 
-  <div class="loading-state" *ngIf="isLoading">
+  <!-- Maker-Checker Alert -->
+  <div class="maker-checker-alert fade-in" *ngIf="isAdmin && details?.status === 'PENDING_MANAGER_APPROVAL'">
+    <div class="alert-icon">
+      <svg xmlns="http://www.w3.org/2001/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    </div>
+    <div class="alert-content">
+      <h4>Maker-Checker Alert: High-Risk or High-Value Loan</h4>
+      <p>This application was escalated by the Loan Officer for mandatory dual-approval.</p>
+      <div class="officer-notes" *ngIf="officerJustification">
+        <strong>Officer's Justification:</strong>
+        <p>{{ officerJustification }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-danger fade-in" *ngIf="validationError">
+    <svg xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    {{ validationError }}
+  </div>
+
+  <div class="loading-state glass-panel" *ngIf="isLoading">
     <div class="spinner"></div>
     <p>Loading application data...</p>
   </div>
 
-  <div class="error-state" *ngIf="errorMessage && !isLoading">
+  <div class="error-state glass-panel" *ngIf="errorMessage && !isLoading">
+    <svg xmlns="http://www.w3.org/2001/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
     <p>{{ errorMessage }}</p>
-    <button class="btn btn-outline" (click)="loadDetails()">Retry</button>
+    <button class="btn btn-outline mt-3" (click)="loadDetails()">Retry</button>
   </div>
 
-  <!-- Dual Pane Layout -->
+  <!-- Full Page Grid Layout -->
   <main class="review-workspace" *ngIf="details && !isLoading">
     
-    <!-- LEFT PANE: Data & Verification Controls -->
-    <div class="data-pane">
+    <div class="data-pane cards-grid">
       
       <!-- Section A: Profile Data -->
-      <div class="review-section">
+      <div class="review-section glass-panel">
         <div class="section-header">
-          <h3>Borrower Profile</h3>
-          <button class="btn btn-sm" 
-                  [ngClass]="verifications.profile ? 'btn-outline-success' : 'btn-primary'"
-                  (click)="toggleVerification('profile')">
-            {{ verifications.profile ? 'Review' : 'Approve' }}
-          </button>
+          <h3>Borrower Profile <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('Profile Details')">Updated</span></h3>
         </div>
-        <div class="data-grid">
-          <div class="data-group"><label>Full Name</label><span>{{ details.firstName }} {{ details.lastName }}</span></div>
-          <div class="data-group"><label>DOB</label><span>{{ details.dateOfBirth | date }}</span></div>
-          <div class="data-group"><label>Gender</label><span>{{ details.gender }}</span></div>
-          <div class="data-group"><label>Phone</label><span>{{ details.phone }}</span></div>
-          <div class="data-group"><label>Email</label><span>{{ details.email }}</span></div>
-          <div class="data-group"><label>Address</label><span>{{ details.address }}</span></div>
-          <div class="data-group"><label>Employment</label><span>{{ details.employmentType }}</span></div>
-          <div class="data-group"><label>Monthly Income</label><span>&#8377;{{ details.monthlyIncome | number }}</span></div>
+        <div class="profile-layout">
+          <div class="data-grid flex-1">
+            <div class="data-group"><label>Full Name</label><span>{{ details.firstName }} {{ details.lastName }}</span></div>
+            <div class="data-group"><label>DOB</label><span>{{ details.dateOfBirth | date }}</span></div>
+            <div class="data-group"><label>Gender</label><span>{{ details.gender }}</span></div>
+            <div class="data-group"><label>Phone</label><span>{{ details.phone }}</span></div>
+            <div class="data-group"><label>Email</label><span>{{ details.email }}</span></div>
+            <div class="data-group"><label>Address</label><span>{{ details.address }}</span></div>
+            <div class="data-group"><label>Employment</label><span>{{ details.employmentType }}</span></div>
+            <div class="data-group"><label>Monthly Income</label><span>&#8377;{{ details.monthlyIncome | number }}</span></div>
+          </div>
+          <div class="profile-photo-box" *ngIf="profilePhotoUrl">
+            <img [src]="profilePhotoUrl" alt="Applicant Photo" />
+          </div>
         </div>
       </div>
 
       <!-- Section B: Loan Summary -->
-      <div class="review-section">
+      <div class="review-section glass-panel">
         <div class="section-header">
-          <h3>Loan Summary</h3>
-          <button class="btn btn-sm" 
-                  [ngClass]="verifications.loanInfo ? 'btn-outline-success' : 'btn-primary'"
-                  (click)="toggleVerification('loanInfo')">
-            {{ verifications.loanInfo ? 'Review' : 'Approve' }}
-          </button>
+          <h3>Loan Summary <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('Loan Configuration')">Updated</span></h3>
         </div>
-        <div class="data-grid bg-gray-50 p-3 rounded">
+        <div class="data-grid bg-gray-50">
           <div class="data-group"><label>Requested Principal</label><span class="font-bold">&#8377;{{ details.appliedAmount | number }}</span></div>
           <div class="data-group"><label>Tenure</label><span>{{ details.tenureMonths }} Months</span></div>
           <div class="data-group"><label>Interest Rate (p.a.)</label><span>{{ details.interestRate }}%</span></div>
@@ -95,18 +153,12 @@
       </div>
 
       <!-- Section C: ML Intelligence Panel -->
-      <div class="review-section ml-panel">
+      <div class="review-section ml-panel glass-panel">
         <div class="section-header ml-header">
-          <h3>🧠 ML Risk Intelligence</h3>
-          <button class="btn btn-sm" 
-                  [ngClass]="verifications.mlData ? 'btn-outline-success' : 'btn-primary'"
-                  (click)="toggleVerification('mlData')">
-            {{ verifications.mlData ? 'Review' : 'Approve' }}
-          </button>
+          <h3><span class="ml-icon">🧠</span> ML Risk Intelligence</h3>
         </div>
         
         <div class="ml-grid" *ngIf="details.creditScore; else noMlData">
-          <!-- Score Gauge -->
           <div class="ml-card score-card">
             <label>Credit Score</label>
             <div class="score-value" [style.color]="getScoreColor(details.creditScore)">
@@ -119,12 +171,11 @@
               </div>
             </div>
             <div class="score-labels">
-              <span>300 (High Risk)</span>
-              <span>900 (Low Risk)</span>
+              <span>300 (High)</span>
+              <span>900 (Low)</span>
             </div>
           </div>
 
-          <!-- Risk Tier & PoD -->
           <div class="ml-card tier-card">
             <label>Risk Tier</label>
             <div class="tier-badge" [ngClass]="'tier-' + (details.riskTier | lowercase)">
@@ -145,9 +196,9 @@
       </div>
 
       <!-- Guarantor Details -->
-      <div class="review-section">
+      <div class="review-section glass-panel">
         <div class="section-header">
-          <h3>Guarantor Details</h3>
+          <h3>Guarantor Details <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('Guarantor Details')">Updated</span></h3>
           <button class="btn btn-sm" 
                   [ngClass]="verifications.guarantor ? 'btn-outline-success' : 'btn-primary'"
                   (click)="toggleVerification('guarantor')">
@@ -162,22 +213,24 @@
         </div>
       </div>
 
-      <!-- Documents Section -->
-      <div class="review-section">
+    </div> <!-- End Top Grid Layout -->
+
+    <!-- Document Review Split Pane -->
+    <div class="document-review-pane">
+      <!-- Left: Document List -->
+      <div class="review-section glass-panel">
         <div class="section-header">
           <h3>Document Verification</h3>
         </div>
-        
         <div class="document-list">
           
-          <!-- PAN Card -->
           <div class="document-item">
             <div class="doc-info">
-              <span class="doc-title">PAN Card</span>
-              <span class="doc-meta">Declared: {{ details.panNumber }}</span>
+              <span class="doc-title">PAN Card <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('PAN Card')">Updated</span></span>
+              <span class="doc-meta" *ngIf="details.panNumber">Declared: {{ details.panNumber }}</span>
             </div>
             <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">👁 View</button>
+              <button class="btn btn-sm btn-ghost text-primary" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">👁 View</button>
               <button class="btn btn-sm" 
                       [ngClass]="verifications.panCard ? 'btn-outline-success' : 'btn-primary'"
                       (click)="toggleVerification('panCard')">
@@ -186,14 +239,13 @@
             </div>
           </div>
 
-          <!-- Aadhaar Card -->
           <div class="document-item">
             <div class="doc-info">
-              <span class="doc-title">Aadhaar Card</span>
-              <span class="doc-meta">Declared: {{ details.aadhaarNumber }}</span>
+              <span class="doc-title">Aadhaar Card <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('Aadhaar Card')">Updated</span></span>
+              <span class="doc-meta" *ngIf="details.aadhaarNumber">Declared: {{ details.aadhaarNumber }}</span>
             </div>
             <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewKycDocument(details.aadhaarDocumentId, 'Aadhaar Card')">👁 View</button>
+              <button class="btn btn-sm btn-ghost text-primary" (click)="viewKycDocument(details.aadhaarDocumentId, 'Aadhaar Card')">👁 View</button>
               <button class="btn btn-sm" 
                       [ngClass]="verifications.aadhaarCard ? 'btn-outline-success' : 'btn-primary'"
                       (click)="toggleVerification('aadhaarCard')">
@@ -202,13 +254,12 @@
             </div>
           </div>
 
-          <!-- Income Certificate -->
           <div class="document-item">
             <div class="doc-info">
-              <span class="doc-title">Income Certificate</span>
+              <span class="doc-title">Income Certificate <span class="badge badge-success" style="font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; margin-left: 8px;" *ngIf="isSectionUpdated('Income Certificate')">Updated</span></span>
             </div>
             <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.incomeDocumentId, 'Income Certificate')">👁 View</button>
+              <button class="btn btn-sm btn-ghost text-primary" (click)="viewLoanDocument(details.incomeDocumentId, 'Income Certificate')">👁 View</button>
               <button class="btn btn-sm" 
                       [ngClass]="verifications.incomeCert ? 'btn-outline-success' : 'btn-primary'"
                       (click)="toggleVerification('incomeCert')">
@@ -217,29 +268,15 @@
             </div>
           </div>
 
-          <!-- Photograph -->
-          <div class="document-item">
-            <div class="doc-info">
-              <span class="doc-title">Applicant Photograph</span>
-            </div>
-            <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.photoDocumentId, 'Photograph')">👁 View</button>
-              <button class="btn btn-sm" 
-                      [ngClass]="verifications.photo ? 'btn-outline-success' : 'btn-primary'"
-                      (click)="toggleVerification('photo')">
-                {{ verifications.photo ? 'Review' : 'Approve' }}
-              </button>
-            </div>
-          </div>
 
-          <!-- Guarantor ID -->
+
           <div class="document-item">
             <div class="doc-info">
               <span class="doc-title">Guarantor ID</span>
-              <span class="doc-meta">Aadhaar: {{ details.guarantorAadhaar }} | PAN: {{ details.guarantorPan }}</span>
+              <span class="doc-meta" *ngIf="details.guarantorAadhaar">Aadhaar: {{ details.guarantorAadhaar }} | PAN: {{ details.guarantorPan }}</span>
             </div>
             <div class="doc-actions">
-              <button class="btn btn-sm btn-ghost text-indigo" (click)="viewLoanDocument(details.guarantorIdDocumentId, 'Guarantor ID')">👁 View</button>
+              <button class="btn btn-sm btn-ghost text-primary" (click)="viewLoanDocument(details.guarantorIdDocumentId, 'Guarantor ID')">👁 View</button>
               <button class="btn btn-sm" 
                       [ngClass]="verifications.guarantorId ? 'btn-outline-success' : 'btn-primary'"
                       (click)="toggleVerification('guarantorId')">
@@ -249,96 +286,141 @@
           </div>
 
         </div>
+      </div> <!-- End Document List -->
+
+      <!-- Right: Document Viewer -->
+      <div class="viewer-section glass-panel">
+        <app-document-viewer
+          class="viewer-pane-container"
+          [title]="activeDocumentTitle"
+          [documentUrl]="activeDocumentUrl">
+        </app-document-viewer>
       </div>
-
-    </div>
-
-    <!-- RIGHT PANE: Document Viewer -->
-    <app-document-viewer
-      class="viewer-pane-container"
-      [title]="activeDocumentTitle"
-      [documentUrl]="activeDocumentUrl">
-    </app-document-viewer>
+      
+    </div> <!-- End Document Review Pane -->
 
   </main>
 </div>
 
 <!-- APPROVE MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'APPROVE'">
-  <div class="modal-content">
-    <h3>Confirm Approval</h3>
-    <p>Are you sure you want to approve application <strong>{{ applicationNumber }}</strong>? This action will formally record your underwriting decision.</p>
-    <div class="modal-actions">
+<div class="modal-overlay" *ngIf="activeModal === 'APPROVE' || activeModal === 'RECOMMEND_APPROVAL'">
+  <div class="modal-content glass-panel">
+    <div class="modal-header">
+      <h3>
+        <ng-container *ngIf="activeModal === 'RECOMMEND_APPROVAL'">Recommend Approval</ng-container>
+        <ng-container *ngIf="activeModal === 'APPROVE' && isAdmin">Final Approve</ng-container>
+        <ng-container *ngIf="activeModal === 'APPROVE' && !isAdmin">Confirm Approval</ng-container>
+      </h3>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="activeModal === 'APPROVE' && !isAdmin">Are you sure you want to approve application <strong>{{ applicationNumber }}</strong>? This action will formally record your underwriting decision.</p>
+      
+      <p *ngIf="activeModal === 'RECOMMEND_APPROVAL'">This application requires mandatory dual-approval. Please provide your justification below.</p>
+      <p *ngIf="activeModal === 'APPROVE' && isAdmin">Please provide your executive sign-off notes for this high-risk/high-value application.</p>
+      
+      <div class="form-group mt-3" *ngIf="activeModal === 'RECOMMEND_APPROVAL' || (activeModal === 'APPROVE' && isAdmin)">
+        <label>
+          <ng-container *ngIf="activeModal === 'RECOMMEND_APPROVAL'">Approval Justification *</ng-container>
+          <ng-container *ngIf="isAdmin">Executive Sign-Off Notes *</ng-container>
+        </label>
+        <textarea class="form-control" rows="4" [(ngModel)]="internalNotes" placeholder="Type your detailed notes here..."></textarea>
+      </div>
+
+    </div>
+    <div class="modal-actions mt-4">
       <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
-      <button class="btn btn-success" (click)="submitDecision()" [disabled]="isSubmitting">
-        {{ isSubmitting ? 'Processing...' : 'Confirm Approval' }}
+      <button class="btn btn-success" (click)="submitDecision()" [disabled]="isSubmitting || ((activeModal === 'RECOMMEND_APPROVAL' || (activeModal === 'APPROVE' && isAdmin)) && !internalNotes.trim())">
+        {{ isSubmitting ? 'Processing...' : 'Confirm' }}
       </button>
     </div>
   </div>
 </div>
 
 <!-- REJECT MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'REJECT'">
-  <div class="modal-content">
-    <h3>Reject Application</h3>
-    <p>Please select the primary reason for rejecting application <strong>{{ applicationNumber }}</strong>.</p>
-    
-    <div class="form-group">
-      <label>Rejection Reason *</label>
-      <select class="form-control" [(ngModel)]="rejectionReason">
-        <option value="" disabled selected>Select a reason</option>
-        <option value="High Credit Risk">High Credit Risk (Poor ML Score)</option>
-        <option value="Invalid KYC">Invalid or Mismatched KYC Documents</option>
-        <option value="Insufficient Income">Insufficient Income / High DTI</option>
-        <option value="Document Forgery Suspected">Document Forgery Suspected</option>
-        <option value="Policy Violation">General Policy Violation</option>
-      </select>
+<div class="modal-overlay" *ngIf="activeModal === 'REJECT'">
+  <div class="modal-content glass-panel">
+    <div class="modal-header">
+      <h3>Reject Application</h3>
     </div>
-
-    <div class="modal-actions">
+    <div class="modal-body">
+      <p>Please select the primary reason for rejecting application <strong>{{ applicationNumber }}</strong>.</p>
+      
+      <div class="form-group mt-3">
+        <label>Rejection Reason *</label>
+        <select class="form-control" [(ngModel)]="rejectionReason">
+          <option value="" disabled selected>Select a reason</option>
+          <option value="High Credit Risk">High Credit Risk (Poor ML Score)</option>
+          <option value="Invalid KYC">Invalid or Mismatched KYC Documents</option>
+          <option value="Insufficient Income">Insufficient Income / High DTI</option>
+          <option value="Fraudulent Details">Suspected Fraudulent Details</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions mt-4">
       <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
       <button class="btn btn-danger" (click)="submitDecision()" [disabled]="!rejectionReason || isSubmitting">
-        {{ isSubmitting ? 'Processing...' : 'Submit Rejection' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- REQUEST INFORMATION MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'REQUEST_INFO'">
-  <div class="modal-content">
-    <h3>Request Information</h3>
-    <p>Specify the blurry or missing documents for application <strong>{{ applicationNumber }}</strong>.</p>
-    <div class="form-group">
-      <label>Documents Needed *</label>
-      <textarea class="form-control" rows="4" [(ngModel)]="internalNotes"
-                placeholder="Example: Re-upload a clearer Aadhaar and the latest income certificate."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
-      <button class="btn btn-warning" (click)="submitDecision()" [disabled]="!internalNotes.trim() || isSubmitting">
-        {{ isSubmitting ? 'Processing...' : 'Request Documents' }}
+        {{ isSubmitting ? 'Processing...' : 'Confirm Rejection' }}
       </button>
     </div>
   </div>
 </div>
 
 <!-- ESCALATE MODAL -->
-<div class="modal-backdrop" *ngIf="activeModal === 'ESCALATE'">
-  <div class="modal-content">
-    <h3>Escalate to Manager</h3>
-    <p>Escalating will move application <strong>{{ applicationNumber }}</strong> out of your queue and flag it for Manager review.</p>
-    
-    <div class="form-group">
-      <label>Internal Notes / Justification *</label>
-      <textarea class="form-control" rows="4" [(ngModel)]="internalNotes" 
-                placeholder="Explain why this requires escalation (e.g., borderline risk, unverified employer...)"></textarea>
+<div class="modal-overlay" *ngIf="activeModal === 'ESCALATE'">
+  <div class="modal-content glass-panel">
+    <div class="modal-header">
+      <h3>Escalate to Manager</h3>
     </div>
-
-    <div class="modal-actions">
+    <div class="modal-body">
+      <p>Please provide notes on why this application requires management review.</p>
+      
+      <div class="form-group mt-3">
+        <label>Notes / Remarks *</label>
+        <textarea class="form-control" rows="4" [(ngModel)]="internalNotes" placeholder="Type here..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions mt-4">
       <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
-      <button class="btn btn-primary" (click)="submitDecision()" [disabled]="!internalNotes.trim() || isSubmitting">
-        {{ isSubmitting ? 'Processing...' : 'Submit Escalation' }}
+      <button class="btn btn-outline" (click)="submitDecision()" [disabled]="!internalNotes.trim() || isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Submit' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- US53: CORRECTION REQUEST MODAL -->
+<div class="modal-overlay" *ngIf="activeModal === 'REQUEST_INFO'">
+  <div class="modal-content glass-panel modal-lg">
+    <div class="modal-header">
+      <h3>Request Borrower Corrections</h3>
+    </div>
+    <div class="modal-body">
+      <p class="text-muted mb-4">Select the specific sections or documents that require correction and provide detailed instructions.</p>
+      
+      <div class="correction-list">
+        <div class="correction-item" *ngFor="let item of correctionChecklist; let i = index">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="item.selected" />
+            <span class="checkbox-text">{{ item.section }}</span>
+          </label>
+          
+          <div class="correction-textarea-wrapper" *ngIf="item.selected">
+            <textarea 
+              class="form-control mt-2" 
+              rows="2" 
+              [(ngModel)]="item.comments" 
+              placeholder="Explain exactly what needs to be fixed for {{ item.section }}..."
+              [required]="item.selected">
+            </textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions mt-4">
+      <button class="btn btn-ghost" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-warning" (click)="submitDecision()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Send to Borrower' }}
       </button>
     </div>
   </div>

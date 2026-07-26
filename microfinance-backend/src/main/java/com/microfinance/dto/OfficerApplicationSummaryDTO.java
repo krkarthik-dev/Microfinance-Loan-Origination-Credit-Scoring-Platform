@@ -31,11 +31,12 @@ public class OfficerApplicationSummaryDTO {
     private Integer creditScore;
     private RiskTier riskTier;
 
-    public OfficerApplicationSummaryDTO(String applicationNumber, String applicantFirstName,
+    public OfficerApplicationSummaryDTO(Long applicationId, String applicationNumber, String applicantFirstName,
                                         String applicantLastName, BigDecimal appliedAmount,
                                         Integer tenureMonths, String purpose,
                                         LocalDateTime submittedAt, Integer creditScore,
-                                        RiskTier riskTier) {
+                                        RiskTier riskTier, com.microfinance.enums.ApplicationStatus applicationStatus) {
+        this.applicationId = applicationId;
         this.applicationNumber = applicationNumber;
         this.applicantFirstName = applicantFirstName;
         this.applicantLastName = applicantLastName;
@@ -45,5 +46,7 @@ public class OfficerApplicationSummaryDTO {
         this.submittedAt = submittedAt;
         this.creditScore = creditScore;
         this.riskTier = riskTier;
+        this.status = applicationStatus != null ? applicationStatus.name() : null;
+        this.applicantName = applicantFirstName + " " + applicantLastName;
     }
 }

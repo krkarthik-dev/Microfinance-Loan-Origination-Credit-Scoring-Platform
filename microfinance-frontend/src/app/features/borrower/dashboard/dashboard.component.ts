@@ -35,7 +35,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
 
   activityColumns: TableColumn[] = [
-    { key: 'loanId', label: 'Loan ID', class: 'font-medium' },
+    { key: 'loanId', label: 'Loan ID', format: 'link', class: 'font-medium' },
     { key: 'requestedAmount', label: 'Requested Amount', format: 'currency' },
     { key: 'dateApplied', label: 'Date Applied', format: 'date' },
     { key: 'status', label: 'Current Status', format: 'badge' }
@@ -86,5 +86,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     
     this.router.navigate(['/applicant/apply']);
+  }
+
+  onLinkClick(event: {row: any, col: TableColumn}) {
+    if (event.col.key === 'loanId' && event.row.loanId) {
+      this.router.navigate(['/applicant/loan', event.row.loanId, 'tracking']);
+    }
+  }
+
+  navigateToActiveLoans(): void {
+    this.router.navigate(['/applicant/active-loans']);
   }
 }

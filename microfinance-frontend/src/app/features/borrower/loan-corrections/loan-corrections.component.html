@@ -1,0 +1,257 @@
+<div class="corrections-container">
+  <!-- Header -->
+  <div class="header-card">
+    <div class="header-content">
+      <div>
+        <span class="badge badge-warning">Action Required</span>
+        <h1>Targeted Correction Workspace</h1>
+        <p class="subtitle">Loan Application: <strong>{{ applicationNumber }}</strong></p>
+      </div>
+      <button class="btn btn-secondary" (click)="cancel()">Back to Tracker</button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading correction requests...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger">
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <div *ngIf="!isLoading && correctionRequests.length > 0" class="form-workspace">
+    <div class="info-banner">
+      <p>The Loan Officer reviewed your application and requested specific changes. Please review the officer notes below and provide updated details or replacement documents.</p>
+    </div>
+
+    <!-- Profile Details Section -->
+    <div *ngIf="showProfile" class="section-card">
+      <div class="section-header">
+        <h2>Profile Details</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ profileComment }}</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="text" [(ngModel)]="phone" class="form-control" placeholder="10-digit phone number">
+        </div>
+        <div class="form-group col-span-2">
+          <label>Address Line 1 *</label>
+          <input type="text" [(ngModel)]="addressLine1" class="form-control" placeholder="Street address">
+        </div>
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" [(ngModel)]="city" class="form-control" placeholder="City">
+        </div>
+        <div class="form-group">
+          <label>State *</label>
+          <input type="text" [(ngModel)]="state" class="form-control" placeholder="State">
+        </div>
+        <div class="form-group">
+          <label>Pincode *</label>
+          <input type="text" [(ngModel)]="pincode" class="form-control" placeholder="6-digit pincode">
+        </div>
+      </div>
+    </div>
+
+    <!-- Guarantor Details Section -->
+    <div *ngIf="showGuarantor" class="section-card">
+      <div class="section-header">
+        <h2>Guarantor Details</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ guarantorComment }}</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group col-span-2">
+          <label>Guarantor Full Name *</label>
+          <input type="text" [(ngModel)]="guarantorName" class="form-control" placeholder="Enter guarantor's full name">
+        </div>
+        <div class="form-group col-span-2">
+          <label>Guarantor Address *</label>
+          <input type="text" [(ngModel)]="guarantorAddress" class="form-control" placeholder="Street address">
+        </div>
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" [(ngModel)]="guarantorCity" class="form-control" placeholder="City">
+        </div>
+        <div class="form-group">
+          <label>Pincode / Zip *</label>
+          <input type="text" [(ngModel)]="guarantorZip" class="form-control" placeholder="Pincode">
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Configuration Section -->
+    <div *ngIf="showLoanConfig" class="section-card">
+      <div class="section-header">
+        <h2>Loan Configuration</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ loanConfigComment }}</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Applied Amount (₹) *</label>
+          <input type="number" [(ngModel)]="appliedAmount" class="form-control" min="1000">
+        </div>
+        <div class="form-group">
+          <label>Tenure (Months) *</label>
+          <input type="number" [(ngModel)]="tenureMonths" class="form-control" min="6" max="60">
+        </div>
+        <div class="form-group col-span-2">
+          <label>Loan Purpose *</label>
+          <textarea [(ngModel)]="purpose" class="form-control" rows="3" placeholder="Explain the primary purpose of this loan"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAN Card Section -->
+    <div *ngIf="showPan" class="section-card">
+      <div class="section-header">
+        <h2>PAN Card Document</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ panComment }}</p>
+      </div>
+      <div class="upload-zone" (drop)="onFileDropped($event, 'pan')" (dragover)="onDragOver($event)">
+        <input type="file" #panInput (change)="onFileSelected($event, 'pan')" style="display: none" accept=".pdf,.png,.jpg,.jpeg">
+        <div class="upload-content" *ngIf="!panFile">
+          <div class="upload-icon">📁</div>
+          <p>Drag and drop your replacement PAN Card here, or <a href="javascript:void(0)" (click)="panInput.click()">browse</a></p>
+          <span class="hint">Supported formats: PDF, PNG, JPG (max 10MB)</span>
+        </div>
+        <div class="file-selected" *ngIf="panFile">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <strong>{{ panFile.name }}</strong>
+            <span>{{ (panFile.size / 1024).toFixed(1) }} KB</span>
+          </div>
+          <button class="btn-remove" (click)="panFile = null">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aadhaar Card Section -->
+    <div *ngIf="showAadhaar" class="section-card">
+      <div class="section-header">
+        <h2>Aadhaar Card Document</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ aadhaarComment }}</p>
+      </div>
+      <div class="upload-zone" (drop)="onFileDropped($event, 'aadhaar')" (dragover)="onDragOver($event)">
+        <input type="file" #aadhaarInput (change)="onFileSelected($event, 'aadhaar')" style="display: none" accept=".pdf,.png,.jpg,.jpeg">
+        <div class="upload-content" *ngIf="!aadhaarFile">
+          <div class="upload-icon">📁</div>
+          <p>Drag and drop your replacement Aadhaar Card here, or <a href="javascript:void(0)" (click)="aadhaarInput.click()">browse</a></p>
+          <span class="hint">Supported formats: PDF, PNG, JPG (max 10MB)</span>
+        </div>
+        <div class="file-selected" *ngIf="aadhaarFile">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <strong>{{ aadhaarFile.name }}</strong>
+            <span>{{ (aadhaarFile.size / 1024).toFixed(1) }} KB</span>
+          </div>
+          <button class="btn-remove" (click)="aadhaarFile = null">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Income Certificate Section -->
+    <div *ngIf="showIncome" class="section-card">
+      <div class="section-header">
+        <h2>Income Certificate Document</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ incomeComment }}</p>
+      </div>
+      <div class="upload-zone" (drop)="onFileDropped($event, 'income')" (dragover)="onDragOver($event)">
+        <input type="file" #incomeInput (change)="onFileSelected($event, 'income')" style="display: none" accept=".pdf,.png,.jpg,.jpeg">
+        <div class="upload-content" *ngIf="!incomeCertFile">
+          <div class="upload-icon">📁</div>
+          <p>Drag and drop your replacement Income Certificate here, or <a href="javascript:void(0)" (click)="incomeInput.click()">browse</a></p>
+          <span class="hint">Supported formats: PDF, PNG, JPG (max 10MB)</span>
+        </div>
+        <div class="file-selected" *ngIf="incomeCertFile">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <strong>{{ incomeCertFile.name }}</strong>
+            <span>{{ (incomeCertFile.size / 1024).toFixed(1) }} KB</span>
+          </div>
+          <button class="btn-remove" (click)="incomeCertFile = null">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photograph Section -->
+    <div *ngIf="showPhoto" class="section-card">
+      <div class="section-header">
+        <h2>Photograph Document</h2>
+        <span class="badge badge-flagged">Flagged for Correction</span>
+      </div>
+      <div class="officer-note-box">
+        <div class="note-header">
+          <strong>⚠️ Loan Officer Note:</strong>
+        </div>
+        <p>{{ photoComment }}</p>
+      </div>
+      <div class="upload-zone" (drop)="onFileDropped($event, 'photo')" (dragover)="onDragOver($event)">
+        <input type="file" #photoInput (change)="onFileSelected($event, 'photo')" style="display: none" accept=".pdf,.png,.jpg,.jpeg">
+        <div class="upload-content" *ngIf="!photoFile">
+          <div class="upload-icon">📁</div>
+          <p>Drag and drop your replacement Photograph here, or <a href="javascript:void(0)" (click)="photoInput.click()">browse</a></p>
+          <span class="hint">Supported formats: PDF, PNG, JPG (max 10MB)</span>
+        </div>
+        <div class="file-selected" *ngIf="photoFile">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <strong>{{ photoFile.name }}</strong>
+            <span>{{ (photoFile.size / 1024).toFixed(1) }} KB</span>
+          </div>
+          <button class="btn-remove" (click)="photoFile = null">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="footer-actions">
+      <button class="btn btn-secondary" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+      <button class="btn btn-primary" (click)="submitCorrections()" [disabled]="!isFormValid() || isSubmitting">
+        <span *ngIf="!isSubmitting">Submit Corrections & Re-apply</span>
+        <span *ngIf="isSubmitting">Submitting...</span>
+      </button>
+    </div>
+  </div>
+</div>

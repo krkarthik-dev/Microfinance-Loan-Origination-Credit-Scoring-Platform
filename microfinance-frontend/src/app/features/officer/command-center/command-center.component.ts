@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { OfficerService, ApplicationSummary, PendingKyc } from '../officer.service';
+import { OfficerService, ApplicationSummary, PendingKyc, OfficerDisbursedLoan } from '../officer.service';
 import { Subscription } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -17,6 +17,8 @@ import { DataTableComponent, TableColumn } from '../../../shared/components/data
 })
 export class CommandCenterComponent implements OnInit, OnDestroy {
   queue: ApplicationSummary[] = [];
+  approvedQueue: ApplicationSummary[] = [];
+  rejectedQueue: ApplicationSummary[] = [];
   isLoading = true;
   errorMessage = '';
 
@@ -48,10 +50,25 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     { key: 'action', label: 'Action', format: 'action' }
   ];
 
+  // Disbursed Loans Queue (US56 Officer)
+  disbursedQueue: OfficerDisbursedLoan[] = [];
+  isDisbursedLoading = false;
+  disbursedErrorMessage = '';
+  disbursedColumns: TableColumn[] = [
+    { key: 'loanId', label: 'Loan ID', class: 'font-mono text-indigo', sortable: true },
+    { key: 'borrowerName', label: 'Borrower Name', class: 'font-bold', sortable: true },
+    { key: 'totalDisbursed', label: 'Total Disbursed', format: 'rupee', sortable: true },
+    { key: 'nextEmiDueDate', label: 'Next EMI Due Date', format: 'date', sortable: true },
+    { key: 'nextEmiAmount', label: 'Next EMI Amount', format: 'rupee', sortable: true },
+    { key: 'status', label: 'Status', format: 'badge', sortable: true }
+  ];
+
   // Tabs
-  activeTab: 'LOANS' | 'KYC' = 'LOANS';
+  activeTab: 'LOANS' | 'KYC' | 'APPROVED' | 'REJECTED' | 'DISBURSED' = 'LOANS';
 
   private queueSub?: Subscription;
+  private approvedSub?: Subscription;
+  private rejectedSub?: Subscription;
 
   // Direct Application Modal
   showDirectApplicationModal = false;
@@ -81,6 +98,9 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadQueue();
+    this.loadApprovedQueue();
+    this.loadRejectedQueue();
+    this.loadDisbursedQueue();
     this.fetchPendingKyc();
 
     // Listen to fragments for navigation commands
@@ -96,6 +116,12 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.queueSub) {
       this.queueSub.unsubscribe();
+    }
+    if (this.approvedSub) {
+      this.approvedSub.unsubscribe();
+    }
+    if (this.rejectedSub) {
+      this.rejectedSub.unsubscribe();
     }
   }
 
@@ -160,6 +186,44 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
 
   goToReview(applicationNumber: string): void {
     this.router.navigate(['/officer/loan', applicationNumber, 'review']);
+  }
+
+  loadApprovedQueue(): void {
+    this.approvedSub = this.officerService.getApprovedQueue().subscribe({
+      next: (data) => {
+        this.approvedQueue = data;
+      },
+      error: (err) => console.error('Error fetching approved queue', err)
+    });
+  }
+
+  loadRejectedQueue(): void {
+    this.rejectedSub = this.officerService.getRejectedQueue().subscribe({
+      next: (data) => {
+        this.rejectedQueue = data;
+      },
+      error: (err) => console.error('Error fetching rejected queue', err)
+    });
+  }
+
+  loadDisbursedQueue(): void {
+    this.isDisbursedLoading = true;
+    this.disbursedErrorMessage = '';
+    this.officerService.getDisbursedLoans().subscribe({
+      next: (data) => {
+        this.disbursedQueue = data;
+        this.isDisbursedLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load disbursed queue', err);
+        this.disbursedErrorMessage = 'Could not load disbursed loans.';
+        this.isDisbursedLoading = false;
+      }
+    });
+  }
+
+  goToRepaymentManagement(loanId: string): void {
+    this.router.navigate(['/officer/loan', loanId, 'repayment']);
   }
 
   // --- KYC QUEUE ---

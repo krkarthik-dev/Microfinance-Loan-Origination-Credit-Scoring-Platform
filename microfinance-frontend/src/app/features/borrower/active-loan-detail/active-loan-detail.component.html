@@ -1,0 +1,138 @@
+<div class="repayment-dashboard-container">
+  <!-- Top Navigation & Title -->
+  <div class="nav-header">
+    <button class="btn btn-outline back-btn" (click)="goBack()">
+      ← Back to Active Loans
+    </button>
+    <div class="header-titles">
+      <h1>Repayment Dashboard</h1>
+      <p class="subtitle" *ngIf="scheduleData">Loan Account: <strong>{{ scheduleData.loanId }}</strong></p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="state-card loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <h3>Loading Amortization Schedule...</h3>
+    <p>Please wait while we retrieve your EMI details and payment ledger.</p>
+  </div>
+
+  <!-- Error / Access Denied State (AC4) -->
+  <div class="state-card error-state" *ngIf="!isLoading && errorMessage">
+    <div class="error-icon">⚠</div>
+    <h3>Access Restricted or Unavailable</h3>
+    <p>{{ errorMessage }}</p>
+    <div class="error-actions">
+      <button class="btn btn-primary" (click)="goBack()">Return to Active Loans</button>
+      <button class="btn btn-secondary" routerLink="/applicant/dashboard">Go to Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Main Content when loaded -->
+  <div class="dashboard-content" *ngIf="!isLoading && !errorMessage && scheduleData">
+    
+    <!-- Hero Metrics Section (AC2) -->
+    <div class="hero-metrics-grid">
+      
+      <!-- Metric 1: Next EMI Amount -->
+      <div class="metric-card primary-card">
+        <div class="metric-icon">💵</div>
+        <div class="metric-details">
+          <span class="metric-label">Next EMI Amount</span>
+          <span class="metric-value currency-value">{{ scheduleData.nextEmiAmount | currency:'INR':'symbol':'1.2-2' }}</span>
+          <span class="metric-subtext">Regular monthly installment</span>
+        </div>
+      </div>
+
+      <!-- Metric 2: Next EMI Due Date (with warning highlight) -->
+      <div class="metric-card" [class.highlight-warning]="scheduleData.nextEmiDueDate && isDueSoonOrOverdue(scheduleData.nextEmiDueDate)">
+        <div class="metric-icon">📅</div>
+        <div class="metric-details">
+          <span class="metric-label">Next EMI Due Date</span>
+          <div class="date-value-wrapper">
+            <span class="metric-value" [class.text-danger]="scheduleData.nextEmiDueDate && isDueSoonOrOverdue(scheduleData.nextEmiDueDate)">
+              {{ scheduleData.nextEmiDueDate ? (scheduleData.nextEmiDueDate | date:'dd MMM yyyy') : 'No Pending EMI' }}
+            </span>
+            <span class="warning-badge" *ngIf="scheduleData.nextEmiDueDate && isDueSoonOrOverdue(scheduleData.nextEmiDueDate)">
+              ⚠ Due Soon / Overdue
+            </span>
+          </div>
+          <span class="metric-subtext">Keep sufficient balance in your bank account</span>
+        </div>
+      </div>
+
+      <!-- Metric 3: Total Outstanding Balance -->
+      <div class="metric-card outstanding-card">
+        <div class="metric-icon">🏦</div>
+        <div class="metric-details">
+          <span class="metric-label">Total Outstanding Balance</span>
+          <span class="metric-value currency-value">{{ scheduleData.totalOutstandingBalance | currency:'INR':'symbol':'1.2-2' }}</span>
+          <span class="metric-subtext">Principal: {{ scheduleData.principalAmount | currency:'INR':'symbol':'1.0-0' }} @ {{ scheduleData.interestRate }}% p.a.</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Amortization / EMI Schedule Table (AC3) -->
+    <div class="schedule-table-card">
+      <div class="card-header">
+        <div class="header-left">
+          <h2>Amortization / EMI Schedule</h2>
+          <p>Complete monthly breakdown of principal and interest components across {{ scheduleData.tenureMonths }} months.</p>
+        </div>
+        <div class="header-right">
+          <span class="status-pill" [ngClass]="'status-' + scheduleData.loanStatus.toLowerCase()">
+            {{ scheduleData.loanStatus }}
+          </span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Due Date</th>
+              <th>Principal</th>
+              <th>Interest</th>
+              <th>Total EMI</th>
+              <th>Remaining Balance</th>
+              <th>Status</th>
+              <th>Payment Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of scheduleData.schedule; let i = index" [class.active-row]="item.isActionable">
+              <td class="col-num"><strong>{{ item.installmentNumber }}</strong></td>
+              <td class="col-date">
+                {{ item.dueDate | date:'dd MMM yyyy' }}
+                <span class="tag-next" *ngIf="item.isActionable">NEXT DUE</span>
+              </td>
+              <td class="col-mono">{{ item.principalComponent | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="col-mono text-muted">{{ item.interestComponent | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="col-mono font-bold">{{ item.totalEmi | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="col-mono">{{ item.remainingBalance | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-success': item.status === 'PAID',
+                  'badge-warning': item.status === 'PENDING',
+                  'badge-danger': item.status === 'OVERDUE'
+                }">
+                  {{ item.status }}
+                </span>
+              </td>
+              <td class="col-details">
+                <div *ngIf="item.status === 'PAID'" class="paid-info">
+                  <span class="paid-date">Paid on {{ item.paidDate | date:'dd/MM/yy' }}</span>
+                  <span class="paid-ref" *ngIf="item.referenceNumber">{{ item.referenceNumber }}</span>
+                </div>
+                <span *ngIf="item.status !== 'PAID'" class="text-subtle">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

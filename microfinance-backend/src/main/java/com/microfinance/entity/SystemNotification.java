@@ -27,6 +27,7 @@ public class SystemNotification {
     private String linkUrl;
 
     @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private boolean isRead = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)

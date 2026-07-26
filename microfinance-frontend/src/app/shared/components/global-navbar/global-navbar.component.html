@@ -56,6 +56,15 @@
 
     <!-- USER CONTROLS (Right) -->
     <div class="navbar-controls">
+
+      <!-- Track Application Widget (Borrowers only) -->
+      <div class="search-widget" *ngIf="role === 'ROLE_APPLICANT'">
+        <form (ngSubmit)="onSearchTrack($event)" class="search-form">
+          <input type="text" [(ngModel)]="searchLoanId" name="searchLoanId" placeholder="Enter Loan ID..." autocomplete="off">
+          <button type="submit" class="btn btn-sm btn-primary" [disabled]="!searchLoanId || searchLoanId.length < 5">Track</button>
+        </form>
+        <div class="search-error" *ngIf="searchError">{{ searchError }}</div>
+      </div>
       
       <!-- Notification Bell (Borrowers only for now based on US37/US31 logic, but can be global) -->
       <div class="notifications-wrapper" *ngIf="role === 'ROLE_APPLICANT'">

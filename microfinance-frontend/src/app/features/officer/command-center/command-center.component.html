@@ -6,8 +6,11 @@
         <h2>Command Center</h2>
     
     <div class="tabs">
-      <button class="tab-btn" [ngClass]="{'active': activeTab === 'LOANS'}" (click)="activeTab = 'LOANS'">Loan Applications</button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'LOANS'}" (click)="activeTab = 'LOANS'">Pending Review</button>
       <button class="tab-btn" [ngClass]="{'active': activeTab === 'KYC'}" (click)="activeTab = 'KYC'">Pending KYC <span class="badge" *ngIf="pendingKyc.length">{{pendingKyc.length}}</span></button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'APPROVED'}" (click)="activeTab = 'APPROVED'">Approved Loans</button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'REJECTED'}" (click)="activeTab = 'REJECTED'">Rejected Loans</button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'DISBURSED'}" (click)="activeTab = 'DISBURSED'">Disbursed Loans <span class="badge" *ngIf="disbursedQueue.length">{{disbursedQueue.length}}</span></button>
     </div>
 
     <div class="actions-area">
@@ -65,6 +68,52 @@
       <div class="error-state" *ngIf="kycErrorMessage">
         <p>{{ kycErrorMessage }}</p>
         <button class="btn btn-primary" (click)="fetchPendingKyc()">Retry</button>
+      </div>
+    </ng-container>
+
+    <!-- APPROVED TAB -->
+    <ng-container *ngIf="activeTab === 'APPROVED'">
+      <app-data-table
+        [columns]="loanColumns"
+        [data]="approvedQueue"
+        [isRowClickable]="true"
+        (rowClick)="goToReview($event.applicationNumber)"
+        (sort)="sortBy($event)"
+        emptyMessage="No approved applications.">
+      </app-data-table>
+    </ng-container>
+
+    <!-- REJECTED TAB -->
+    <ng-container *ngIf="activeTab === 'REJECTED'">
+      <app-data-table
+        [columns]="loanColumns"
+        [data]="rejectedQueue"
+        [isRowClickable]="true"
+        (rowClick)="goToReview($event.applicationNumber)"
+        (sort)="sortBy($event)"
+        emptyMessage="No rejected applications.">
+      </app-data-table>
+    </ng-container>
+
+    <!-- DISBURSED TAB (US56 Officer) -->
+    <ng-container *ngIf="activeTab === 'DISBURSED'">
+      <app-data-table
+        *ngIf="!isDisbursedLoading && !disbursedErrorMessage"
+        [columns]="disbursedColumns"
+        [data]="disbursedQueue"
+        [isRowClickable]="true"
+        (rowClick)="goToRepaymentManagement($event.loanId)"
+        emptyMessage="No active disbursed accounts in repayment phase.">
+      </app-data-table>
+
+      <div class="loading-state" *ngIf="isDisbursedLoading">
+        <div class="spinner"></div>
+        <p>Loading disbursed accounts...</p>
+      </div>
+
+      <div class="error-state" *ngIf="disbursedErrorMessage">
+        <p>{{ disbursedErrorMessage }}</p>
+        <button class="btn btn-primary" (click)="loadDisbursedQueue()">Retry</button>
       </div>
     </ng-container>
 

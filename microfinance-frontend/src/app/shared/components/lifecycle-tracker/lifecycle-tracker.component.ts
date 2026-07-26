@@ -18,7 +18,7 @@ interface TrackerStep {
            [class.failed]="isStepFailed(i)"
            [class.warning]="isStepWarning(i)"
            [class.terminal]="isStepTerminal(i)"
-           [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i)">
+           [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">
         
         <div class="step-circle">
           <span *ngIf="isStepCompleted(i)">✓</span>
@@ -28,6 +28,14 @@ interface TrackerStep {
           <span *ngIf="!isStepCompleted(i) && !isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">{{ i + 1 }}</span>
         </div>
         <div class="step-label">{{ step.label }}</div>
+        
+        <!-- AC2: Tracker Node Timestamps / AC4: Pending Estimates -->
+        <div class="step-meta" *ngIf="isStepCompleted(i)">
+          {{ getStepTimestamp(step.key) | date:'MMM d, h:mm a' }}
+        </div>
+        <div class="step-meta pending-sla" *ngIf="isStepCurrent(i) && !isStepWarning(i)">
+          Typically takes 1-2 business days
+        </div>
         
         <!-- Connecting Line -->
         <div class="step-line" *ngIf="i < STEPS.length - 1"></div>
@@ -78,6 +86,20 @@ interface TrackerStep {
       max-width: 100px;
     }
 
+    .step-meta {
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-align: center;
+      max-width: 110px;
+      line-height: 1.2;
+    }
+    
+    .step-meta.pending-sla {
+      color: var(--primary-color);
+      font-style: italic;
+    }
+
     .step-line {
       position: absolute;
       top: 20px;
@@ -92,53 +114,68 @@ interface TrackerStep {
     /* States */
     .step.completed {
       .step-circle {
-        background-color: var(--secondary-color, #10b981);
-        border-color: var(--secondary-color, #10b981);
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
         color: white;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
       }
       .step-label {
-        color: var(--text-main, #111827);
-        font-weight: 600;
+        color: var(--text-main);
+        font-weight: 700;
       }
       .step-line {
-        background-color: var(--secondary-color, #10b981);
+        background-color: var(--secondary-color);
       }
     }
 
     .step.active {
       .step-circle {
-        border-color: var(--primary-color, #4f46e5);
-        color: var(--primary-color, #4f46e5);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
         border-width: 3px;
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        background-color: var(--bg-white);
+        animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
       }
       .step-label {
-        color: var(--primary-color, #4f46e5);
-        font-weight: 700;
+        color: var(--primary-color);
+        font-weight: 800;
       }
     }
 
-    .step.failed,
-    .step.terminal {
+    .step.failed {
       .step-circle {
-        background-color: var(--danger, #ef4444);
-        border-color: var(--danger, #ef4444);
+        background-color: var(--danger);
+        border-color: var(--danger);
         color: white;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
       }
       .step-label {
-        color: var(--danger, #ef4444);
-        font-weight: 700;
+        color: var(--danger);
+        font-weight: 800;
       }
     }
 
     .step.warning {
       .step-circle {
-        background-color: #f59e0b;
-        border-color: #f59e0b;
+        background-color: var(--warning);
+        border-color: var(--warning);
+        color: white;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+      }
+      .step-label {
+        color: var(--warning);
+        font-weight: 800;
+      }
+    }
+
+    .step.terminal {
+      .step-circle {
+        background-color: var(--text-muted);
+        border-color: var(--text-muted);
         color: white;
       }
       .step-label {
-        color: #b45309;
+        color: var(--text-muted);
         font-weight: 700;
       }
     }
@@ -183,6 +220,7 @@ export class LifecycleTrackerComponent implements OnChanges {
   @Input() currentStatus: string = 'DRAFT';
   @Input() isRejected: boolean = false;
   @Input() isDirect: boolean = false;
+  @Input() auditTrail: any[] = [];
 
   readonly STEPS: TrackerStep[] = [
     { key: 'draft', label: 'Draft' },
@@ -239,5 +277,26 @@ export class LifecycleTrackerComponent implements OnChanges {
 
   isStepTerminal(index: number): boolean {
     return this.currentStatus === 'WITHDRAWN' && index === this.currentStepIndex;
+  }
+
+  getStepTimestamp(stepKey: string): string | null {
+    if (!this.auditTrail || this.auditTrail.length === 0) return null;
+    
+    // Mapping frontend tracker keys to backend ApplicationStatus names
+    let backendAction = '';
+    switch (stepKey) {
+      case 'draft': return null; // Created date is usually available, but we track from Submitted
+      case 'submitted': backendAction = 'SUBMITTED'; break;
+      case 'kyc': backendAction = 'PENDING_KYC'; break;
+      case 'review': backendAction = 'UNDER_REVIEW'; break;
+      case 'approval': backendAction = 'PENDING_MANAGER_APPROVAL'; break;
+      case 'closing': backendAction = 'CLOSING'; break;
+      case 'repayment': backendAction = 'ACTIVE_REPAYMENT'; break;
+      default: return null;
+    }
+
+    // Find the first instance this state was entered
+    const log = this.auditTrail.find(a => a.action === backendAction || a.newValue === backendAction);
+    return log ? log.createdAt : null;
   }
 }

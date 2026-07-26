@@ -12,4 +12,7 @@ public class OfficerDecisionRequestDTO {
     
     /** Internal notes for ESCALATED or REQUEST_INFO, or context for REJECTED */
     private String internalNotes;
+    
+    /** Specific granular correction requests if decision is REQUEST_INFO */
+    private java.util.List<CorrectionRequestDTO> correctionRequests;
 }

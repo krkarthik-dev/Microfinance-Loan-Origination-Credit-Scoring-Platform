@@ -29,6 +29,7 @@ public class ApplicantDashboardService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final KycDocumentRepository kycDocumentRepository;
+    private final com.microfinance.repository.DisbursementQueueRepository disbursementQueueRepository;
 
     /**
      * Calculates the borrower dashboard metrics.
@@ -97,5 +98,57 @@ public class ApplicantDashboardService {
                 .profileComplete(profileComplete)
                 .recentActivity(recentActivity)
                 .build();
+    }
+
+    /**
+     * US56: Retrieves all active loans for the authenticated borrower.
+     */
+    @Transactional(readOnly = true)
+    public List<com.microfinance.dto.ActiveLoanDto> getActiveLoans(String username) {
+        log.info("Fetching active loans for user: {}", username);
+        User applicant = userRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        Long applicantId = applicant.getId();
+
+        List<LoanApplication> applications = loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(applicantId);
+        return applications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.ACTIVE_REPAYMENT)
+                .map(app -> {
+                    BigDecimal principal = app.getApprovedAmount() != null ? app.getApprovedAmount() : app.getAppliedAmount();
+                    BigDecimal interestRate = app.getLoanProduct() != null && app.getLoanProduct().getInterestRatePa() != null 
+                            ? app.getLoanProduct().getInterestRatePa() : new BigDecimal("12.0");
+                    int tenure = app.getTenureMonths() != null ? app.getTenureMonths() : 12;
+                    
+                    double p = principal.doubleValue();
+                    double r = interestRate.doubleValue() / 12 / 100;
+                    BigDecimal monthlyEmi = BigDecimal.ZERO;
+                    BigDecimal totalPayable = principal;
+                    if (r > 0 && tenure > 0) {
+                        double emiVal = (p * r * Math.pow(1 + r, tenure)) / (Math.pow(1 + r, tenure) - 1);
+                        monthlyEmi = BigDecimal.valueOf(emiVal).setScale(2, java.math.RoundingMode.HALF_UP);
+                        totalPayable = monthlyEmi.multiply(BigDecimal.valueOf(tenure));
+                    } else if (tenure > 0) {
+                        monthlyEmi = principal.divide(BigDecimal.valueOf(tenure), 2, java.math.RoundingMode.HALF_UP);
+                    }
+
+                    java.time.LocalDateTime disbursedDate = disbursementQueueRepository.findAll().stream()
+                            .filter(q -> q.getLoanApplication() != null && q.getLoanApplication().getId().equals(app.getId()) && "COMPLETED".equals(q.getStatus()))
+                            .map(com.microfinance.entity.DisbursementQueue::getProcessedAt)
+                            .filter(java.util.Objects::nonNull)
+                            .findFirst()
+                            .orElse(app.getUpdatedAt() != null ? app.getUpdatedAt() : (app.getSubmittedAt() != null ? app.getSubmittedAt() : app.getCreatedAt()));
+
+                    return com.microfinance.dto.ActiveLoanDto.builder()
+                            .loanId(app.getApplicationNumber())
+                            .principalAmount(principal)
+                            .disbursedDate(disbursedDate)
+                            .currentOutstandingBalance(totalPayable)
+                            .tenureMonths(tenure)
+                            .monthlyEmi(monthlyEmi)
+                            .interestRate(interestRate)
+                            .purpose(app.getPurpose())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

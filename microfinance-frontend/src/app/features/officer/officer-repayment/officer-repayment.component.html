@@ -1,0 +1,195 @@
+<div class="officer-repayment-container">
+  <!-- Top Navigation & Title -->
+  <div class="nav-header">
+    <button class="btn btn-outline back-btn" (click)="goBack()">
+      ← Back to Disbursed Queue
+    </button>
+    <div class="header-titles">
+      <h1>Repayment Collection & Ledger</h1>
+      <p class="subtitle" *ngIf="scheduleData">Loan Account: <strong>{{ scheduleData.loanId }}</strong> | Borrower: <strong>{{ scheduleData.borrowerName }}</strong></p>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  <div class="alert alert-success fade-in" *ngIf="successMessage">
+    <span>✓ {{ successMessage }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div class="state-card loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <h3>Loading Amortization Ledger...</h3>
+    <p>Retrieving installment records and collection status.</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="state-card error-state" *ngIf="!isLoading && errorMessage">
+    <div class="error-icon">⚠</div>
+    <h3>Unable to Load Ledger</h3>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="goBack()">Return to Command Center</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="ledger-content" *ngIf="!isLoading && !errorMessage && scheduleData">
+    
+    <!-- Hero Summary Bar -->
+    <div class="summary-bar">
+      <div class="summary-item">
+        <span class="label">Total Disbursed</span>
+        <span class="value">{{ scheduleData.principalAmount | currency:'INR':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Interest Rate</span>
+        <span class="value">{{ scheduleData.interestRate }}% p.a.</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Total Outstanding</span>
+        <span class="value text-primary">{{ scheduleData.totalOutstandingBalance | currency:'INR':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Account Status</span>
+        <span class="status-pill" [ngClass]="'status-' + scheduleData.loanStatus.toLowerCase()">
+          {{ scheduleData.loanStatus }}
+        </span>
+      </div>
+    </div>
+
+    <!-- US58 Terminal State Notice Banner -->
+    <div class="completion-banner fade-in" *ngIf="scheduleData.loanStatus === 'COMPLETED' || scheduleData.loanStatus === 'CLOSED_PAID_IN_FULL'">
+      <div class="banner-icon">🎉</div>
+      <div class="banner-text">
+        <h3>Loan Fully Settled & Completed</h3>
+        <p>All EMI installments have been collected in full. The No Dues Certificate has been generated and dispatched to the borrower.</p>
+      </div>
+    </div>
+
+    <!-- Amortization Schedule & Collection Actions Table -->
+    <div class="table-card">
+      <div class="card-header">
+        <div class="header-left">
+          <h2>Installment Collection Ledger</h2>
+          <p>Sequential payment enforcement active: EMIs must be settled in strict chronological order.</p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Due Date</th>
+              <th>Principal</th>
+              <th>Interest</th>
+              <th>Total EMI</th>
+              <th>Status</th>
+              <th>Collection Details</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of scheduleData.schedule" [class.active-action-row]="item.isActionable">
+              <td class="col-num"><strong>{{ item.installmentNumber }}</strong></td>
+              <td class="col-date">{{ item.dueDate | date:'dd MMM yyyy' }}</td>
+              <td class="col-mono">{{ item.principalComponent | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="col-mono text-muted">{{ item.interestComponent | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="col-mono font-bold">{{ item.totalEmi | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-success': item.status === 'PAID',
+                  'badge-warning': item.status === 'PENDING',
+                  'badge-danger': item.status === 'OVERDUE'
+                }">
+                  {{ item.status }}
+                </span>
+              </td>
+              <td class="col-details">
+                <div *ngIf="item.status === 'PAID'" class="paid-info">
+                  <span class="paid-date">Collected {{ item.paidDate | date:'dd/MM/yy' }}</span>
+                  <span class="paid-meta">{{ item.paymentMethod }} | Ref: {{ item.referenceNumber }}</span>
+                </div>
+                <span *ngIf="item.status !== 'PAID'" class="text-subtle">Unpaid</span>
+              </td>
+              <td class="col-action">
+                <button *ngIf="item.status !== 'PAID' && item.isActionable" 
+                        class="btn btn-sm btn-action-pay pulse-animation"
+                        (click)="openPaymentModal(item)">
+                  💵 Mark as Paid
+                </button>
+                <button *ngIf="item.status !== 'PAID' && !item.isActionable" 
+                        class="btn btn-sm btn-disabled"
+                        disabled
+                        title="Sequential Enforcement: Preceding EMIs must be settled first">
+                  🔒 Locked
+                </button>
+                <span *ngIf="item.status === 'PAID'" class="text-success font-semibold">✓ Settled</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Payment Collection Modal (AC2) -->
+  <div class="modal-overlay" *ngIf="showPaymentModal">
+    <div class="modal-content payment-modal fade-in">
+      <div class="modal-header">
+        <h3>Collect Payment - Installment #{{ selectedInstallment?.installmentNumber }}</h3>
+        <button class="close-btn" (click)="closePaymentModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="installment-summary-box">
+          <div class="box-row">
+            <span>Due Date:</span>
+            <strong>{{ selectedInstallment?.dueDate | date:'dd MMM yyyy' }}</strong>
+          </div>
+          <div class="box-row">
+            <span>Total Amount Due:</span>
+            <strong class="amount-highlight">{{ selectedInstallment?.totalEmi | currency:'INR':'symbol':'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+          
+          <div class="form-group">
+            <label>Payment Collection Date <span class="req">*</span></label>
+            <input type="date" formControlName="paidDate" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Payment Method <span class="req">*</span></label>
+            <select formControlName="paymentMethod" class="form-control">
+              <option value="Cash">Cash</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
+              <option value="UPI">UPI / Digital Payment</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Transaction / Reference Number <span class="req">*</span></label>
+            <input type="text" formControlName="referenceNumber" class="form-control" placeholder="e.g. TXN9876543210 or CHQ-102938" />
+          </div>
+
+          <div class="form-group">
+            <label>Officer Comments / Notes (Optional)</label>
+            <textarea formControlName="notes" class="form-control" rows="2" placeholder="Add any relevant verification notes..."></textarea>
+          </div>
+
+          <div class="alert alert-danger" *ngIf="modalError">{{ modalError }}</div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="closePaymentModal()" [disabled]="isSubmitting">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="paymentForm.invalid || isSubmitting">
+              {{ isSubmitting ? 'Recording Payment...' : 'Confirm & Record Payment' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>

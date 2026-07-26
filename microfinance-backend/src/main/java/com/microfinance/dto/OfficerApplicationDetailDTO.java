@@ -64,6 +64,7 @@ public class OfficerApplicationDetailDTO {
     private Long photoDocumentId;
     private Long guarantorIdDocumentId;
     private List<DocumentSummaryDTO> otherDocuments;
+    private List<String> recentlyCorrectedSections;
     
     @Data
     @AllArgsConstructor

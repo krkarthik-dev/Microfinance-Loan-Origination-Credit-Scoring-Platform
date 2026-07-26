@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 export interface TableColumn {
   key: string;
   label: string;
-  format?: 'currency' | 'date' | 'badge' | 'text' | 'score' | 'rupee' | 'action';
+  format?: 'currency' | 'date' | 'badge' | 'text' | 'score' | 'rupee' | 'action' | 'link';
   sortable?: boolean;
   class?: string;
   // If we need custom concatenation or nested object access (optional):
@@ -38,6 +38,13 @@ export interface TableColumn {
               <!-- Regular Text -->
               <ng-container *ngIf="!col.format || col.format === 'text'">
                 {{ getCellValue(row, col) }}
+              </ng-container>
+
+              <!-- Link -->
+              <ng-container *ngIf="col.format === 'link'">
+                <a href="javascript:void(0)" class="table-link" (click)="onLinkClick($event, row, col)">
+                  {{ getCellValue(row, col) }}
+                </a>
               </ng-container>
 
               <!-- Currency USD -->
@@ -187,20 +194,33 @@ export interface TableColumn {
     .text-indigo { color: #4f46e5; }
     
     .empty-state {
-      padding: 3rem 1.5rem !important;
-      color: #6b7280 !important;
+      padding: 3rem 1rem !important;
+      color: #6b7280;
       font-style: italic;
+    }
+
+    .table-link {
+      color: var(--primary-color, #2563eb);
+      text-decoration: none;
+      font-weight: 500;
+      transition: text-decoration 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .table-link:hover {
+      text-decoration: underline;
     }
   `]
 })
 export class DataTableComponent {
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
-  @Input() emptyMessage: string = 'No data available.';
-  @Input() isRowClickable: boolean = false;
+  @Input() isRowClickable = false;
+  @Input() emptyMessage = 'No data available';
   
   @Output() rowClick = new EventEmitter<any>();
   @Output() actionClick = new EventEmitter<any>();
+  @Output() linkClick = new EventEmitter<{row: any, col: TableColumn}>();
   @Output() sort = new EventEmitter<string>();
 
   sortKey: string = '';
@@ -213,15 +233,20 @@ export class DataTableComponent {
     return row[col.key];
   }
 
-  onRowClick(row: any): void {
+  onRowClick(row: any) {
     if (this.isRowClickable) {
       this.rowClick.emit(row);
     }
   }
   
-  onActionClick(event: Event, row: any): void {
+  onActionClick(event: Event, row: any) {
     event.stopPropagation();
     this.actionClick.emit(row);
+  }
+
+  onLinkClick(event: Event, row: any, col: TableColumn) {
+    event.stopPropagation();
+    this.linkClick.emit({row, col});
   }
 
   onSort(col: TableColumn): void {

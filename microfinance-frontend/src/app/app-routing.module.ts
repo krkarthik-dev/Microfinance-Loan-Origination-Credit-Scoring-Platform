@@ -59,11 +59,42 @@ const routes: Routes = [
     title: 'Loan Application | Microfinance'
   },
   {
+    path: 'applicant/active-loans',
+    loadComponent: () => import('./features/borrower/active-loans/active-loans.component').then(m => m.ActiveLoansComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Active Loans | Microfinance'
+  },
+  {
+    path: 'borrower/active-loans',
+    redirectTo: 'applicant/active-loans',
+    pathMatch: 'full'
+  },
+  {
+    path: 'applicant/active-loans/:loanId',
+    loadComponent: () => import('./features/borrower/active-loan-detail/active-loan-detail.component').then(m => m.ActiveLoanDetailComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Repayment Dashboard | Microfinance'
+  },
+  {
+    path: 'borrower/active-loans/:loanId',
+    redirectTo: 'applicant/active-loans/:loanId',
+    pathMatch: 'full'
+  },
+  {
     path: 'applicant/loan/:id/tracking',
     loadComponent: () => import('./features/borrower/loan-tracking/loan-tracking.component').then(m => m.LoanTrackingComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ROLE_APPLICANT'] },
     title: 'Loan Tracking | Microfinance'
+  },
+  {
+    path: 'applicant/loan/:id/corrections',
+    loadComponent: () => import('./features/borrower/loan-corrections/loan-corrections.component').then(m => m.LoanCorrectionsComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_APPLICANT'] },
+    title: 'Correction Workspace | Microfinance'
   },
   {
     path: 'applicant/profile',
@@ -85,6 +116,13 @@ const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] },
     title: 'Review Application | Microfinance'
+  },
+  {
+    path: 'officer/loan/:id/repayment',
+    loadComponent: () => import('./features/officer/officer-repayment/officer-repayment.component').then(m => m.OfficerRepaymentComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_OFFICER', 'ROLE_ADMIN'] },
+    title: 'Repayment Collection | Microfinance'
   },
   {
     path: 'officer/kyc/:id',
