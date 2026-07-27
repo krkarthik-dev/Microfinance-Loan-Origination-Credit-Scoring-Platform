@@ -7,6 +7,7 @@ export interface TableColumn {
   format?: 'currency' | 'date' | 'badge' | 'text' | 'score' | 'rupee' | 'action' | 'link';
   sortable?: boolean;
   class?: string;
+  actionLabel?: string;
   // If we need custom concatenation or nested object access (optional):
   valueGetter?: (row: any) => any;
 }
@@ -78,7 +79,7 @@ export interface TableColumn {
               
               <!-- Action Button -->
               <ng-container *ngIf="col.format === 'action'">
-                 <button class="btn btn-sm btn-primary" (click)="onActionClick($event, row)">Review</button>
+                 <button class="btn btn-sm btn-primary" (click)="onActionClick($event, row)">{{ col.actionLabel || 'Review' }}</button>
               </ng-container>
 
             </td>

@@ -1,10 +1,13 @@
 package com.microfinance.controller;
 
 import com.microfinance.dto.ChangePasswordRequestDTO;
+import com.microfinance.dto.ForgotPasswordRequestDTO;
+import com.microfinance.dto.ForgotPasswordResponseDTO;
 import com.microfinance.dto.LoginRequest;
 import com.microfinance.dto.LoginResponse;
 import com.microfinance.dto.SignupRequestDTO;
 import com.microfinance.service.AuthService;
+import com.microfinance.service.PasswordResetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
     /**
      * AC1: /api/auth/login endpoint issuing a JWT.
@@ -45,5 +49,14 @@ public class AuthController {
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request) {
         authService.changePassword(request);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Trigger forgot password request, generating RT-XXXXXX request ID.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponseDTO> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
+        ForgotPasswordResponseDTO response = passwordResetService.createResetRequest(request);
+        return ResponseEntity.ok(response);
     }
 }

@@ -76,4 +76,42 @@ export class LoginComponent implements OnInit {
         this.router.navigate(['/']);
     }
   }
+
+  showForgotPasswordModal = false;
+  forgotPasswordEmail = '';
+  isForgotSubmitting = false;
+  forgotPasswordMessage = '';
+  forgotPasswordError = '';
+
+  openForgotPassword(): void {
+    this.showForgotPasswordModal = true;
+    this.forgotPasswordEmail = this.loginForm.get('email')?.value || '';
+    this.forgotPasswordMessage = '';
+    this.forgotPasswordError = '';
+  }
+
+  closeForgotPassword(): void {
+    this.showForgotPasswordModal = false;
+  }
+
+  submitForgotPassword(): void {
+    if (!this.forgotPasswordEmail || !this.forgotPasswordEmail.trim()) {
+      this.forgotPasswordError = 'Please enter your registered email address.';
+      return;
+    }
+    this.isForgotSubmitting = true;
+    this.forgotPasswordError = '';
+    this.forgotPasswordMessage = '';
+
+    this.authService.forgotPassword(this.forgotPasswordEmail.trim()).subscribe({
+      next: (res) => {
+        this.isForgotSubmitting = false;
+        this.forgotPasswordMessage = res.message || `Contact bank with this request id ${res.requestId} for temp password`;
+      },
+      error: (err) => {
+        this.isForgotSubmitting = false;
+        this.forgotPasswordError = err.error?.message || 'Failed to submit forgot password request. Please verify your email.';
+      }
+    });
+  }
 }

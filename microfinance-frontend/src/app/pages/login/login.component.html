@@ -35,6 +35,9 @@
         <div class="validation-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
           Password must be at least 6 characters long.
         </div>
+        <div style="text-align: right; margin-top: 6px;">
+          <a href="javascript:void(0)" (click)="openForgotPassword()" class="link-primary" style="font-size: 0.85rem; text-decoration: none;">Forgot Password?</a>
+        </div>
       </div>
 
       <button type="submit" class="submit-btn" [disabled]="loginForm.invalid || isLoading">
@@ -46,5 +49,41 @@
         <p>Don't have an account? <a routerLink="/register" class="link-primary">Sign Up</a></p>
       </div>
     </form>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal-backdrop" *ngIf="showForgotPasswordModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+    <div class="glass-panel" style="max-width: 420px; width: 90%; background: #ffffff; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: #1f2937;">Forgot Password</h3>
+      <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">Enter your email address below to generate a password reset request ID.</p>
+      
+      <div class="alert alert-success" *ngIf="forgotPasswordMessage" style="background: #ecfdf5; border: 1px solid #10b981; color: #065f46; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; font-weight: 500;">
+        <p style="margin: 0; font-size: 1rem;">{{ forgotPasswordMessage }}</p>
+      </div>
+
+      <div class="alert alert-danger" *ngIf="forgotPasswordError" style="background: #fef2f2; border: 1px solid #ef4444; color: #991b1b; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
+        {{ forgotPasswordError }}
+      </div>
+
+      <div class="form-group" *ngIf="!forgotPasswordMessage">
+        <label for="forgot-email" style="display: block; font-weight: 500; margin-bottom: 0.5rem; color: #374151;">Email Address</label>
+        <input 
+          type="email" 
+          id="forgot-email" 
+          [(ngModel)]="forgotPasswordEmail" 
+          placeholder="name@example.com"
+          style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" (click)="closeForgotPassword()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; background: #f3f4f6; border-radius: 6px; cursor: pointer;">
+          {{ forgotPasswordMessage ? 'Close' : 'Cancel' }}
+        </button>
+        <button type="button" class="btn btn-primary submit-btn" (click)="submitForgotPassword()" [disabled]="isForgotSubmitting" *ngIf="!forgotPasswordMessage" style="padding: 0.5rem 1.25rem; background: #2563eb; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+          <span *ngIf="!isForgotSubmitting">Submit Request</span>
+          <span *ngIf="isForgotSubmitting">Submitting...</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

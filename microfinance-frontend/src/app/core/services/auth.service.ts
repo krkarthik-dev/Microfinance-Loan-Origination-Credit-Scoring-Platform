@@ -46,6 +46,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/change-password`, payload);
   }
 
+  forgotPassword(email: string): Observable<{ requestId: string; message: string }> {
+    return this.http.post<{ requestId: string; message: string }>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
   saveSession(response: LoginResponse): void {
     if (response && response.token) {
       this.tokenService.setToken(response.token);

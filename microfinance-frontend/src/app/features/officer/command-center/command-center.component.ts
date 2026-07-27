@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { OfficerService, ApplicationSummary, PendingKyc, OfficerDisbursedLoan } from '../officer.service';
+import { OfficerService, ApplicationSummary, PendingKyc, OfficerDisbursedLoan, PasswordResetSummary } from '../officer.service';
 import { Subscription } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -63,8 +63,23 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     { key: 'status', label: 'Status', format: 'badge', sortable: true }
   ];
 
+  // Password Resets Queue
+  pendingPasswordResets: PasswordResetSummary[] = [];
+  isPasswordResetsLoading = false;
+  passwordResetsErrorMessage = '';
+  passwordResetsSuccessMessage = '';
+  passwordResetsColumns: TableColumn[] = [
+    { key: 'requestId', label: 'Request ID', class: 'font-mono text-indigo font-bold', sortable: true },
+    { key: 'fullName', label: 'Applicant Name', class: 'font-bold', valueGetter: (row: any) => `${row.firstName || ''} ${row.lastName || ''}`.trim() || 'N/A' },
+    { key: 'email', label: 'Email' },
+    { key: 'createdAt', label: 'Requested Date', format: 'date', sortable: true },
+    { key: 'status', label: 'Status', format: 'badge', sortable: true },
+    { key: 'tempPassword', label: 'Temp Password', class: 'font-mono font-bold text-green', valueGetter: (row: any) => row.tempPassword || '---' },
+    { key: 'action', label: 'Action', format: 'action', actionLabel: 'Approve' }
+  ];
+
   // Tabs
-  activeTab: 'LOANS' | 'KYC' | 'APPROVED' | 'REJECTED' | 'DISBURSED' = 'LOANS';
+  activeTab: 'LOANS' | 'KYC' | 'APPROVED' | 'REJECTED' | 'DISBURSED' | 'PASSWORD_RESETS' = 'LOANS';
 
   private queueSub?: Subscription;
   private approvedSub?: Subscription;
@@ -102,6 +117,7 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
     this.loadRejectedQueue();
     this.loadDisbursedQueue();
     this.fetchPendingKyc();
+    this.loadPasswordResetsQueue();
 
     // Listen to fragments for navigation commands
     this.route.fragment.subscribe(fragment => {
@@ -109,6 +125,8 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
         this.openDirectApplicationModal();
       } else if (fragment === 'pending-kyc') {
         this.activeTab = 'KYC';
+      } else if (fragment === 'password-resets') {
+        this.activeTab = 'PASSWORD_RESETS';
       }
     });
   }
@@ -287,6 +305,40 @@ export class CommandCenterComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.isSubmittingDirectApp = false;
         this.directAppError = err.error || 'Failed to create application.';
+      }
+    });
+  }
+
+  loadPasswordResetsQueue(): void {
+    this.isPasswordResetsLoading = true;
+    this.passwordResetsErrorMessage = '';
+    this.officerService.getPasswordResetRequests().subscribe({
+      next: (data) => {
+        this.pendingPasswordResets = data;
+        this.isPasswordResetsLoading = false;
+      },
+      error: (err) => {
+        this.isPasswordResetsLoading = false;
+        this.passwordResetsErrorMessage = 'Failed to load password reset requests.';
+      }
+    });
+  }
+
+  approvePasswordReset(row: PasswordResetSummary): void {
+    if (row.status !== 'PENDING') {
+      alert(`Request ${row.requestId} is already ${row.status}. Temp Password: ${row.tempPassword || 'N/A'}`);
+      return;
+    }
+    if (!confirm(`Are you sure you want to approve password reset request ${row.requestId} for ${row.email}? This will generate a temporary password and force password change on next login.`)) {
+      return;
+    }
+    this.officerService.approvePasswordResetRequest(row.requestId).subscribe({
+      next: (res) => {
+        this.passwordResetsSuccessMessage = res.message;
+        this.loadPasswordResetsQueue();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Failed to approve password reset request.');
       }
     });
   }

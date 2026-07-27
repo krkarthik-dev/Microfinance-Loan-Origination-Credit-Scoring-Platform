@@ -11,6 +11,7 @@
       <button class="tab-btn" [ngClass]="{'active': activeTab === 'APPROVED'}" (click)="activeTab = 'APPROVED'">Approved Loans</button>
       <button class="tab-btn" [ngClass]="{'active': activeTab === 'REJECTED'}" (click)="activeTab = 'REJECTED'">Rejected Loans</button>
       <button class="tab-btn" [ngClass]="{'active': activeTab === 'DISBURSED'}" (click)="activeTab = 'DISBURSED'">Disbursed Loans <span class="badge" *ngIf="disbursedQueue.length">{{disbursedQueue.length}}</span></button>
+      <button class="tab-btn" [ngClass]="{'active': activeTab === 'PASSWORD_RESETS'}" (click)="activeTab = 'PASSWORD_RESETS'">Password Resets <span class="badge" *ngIf="pendingPasswordResets.length">{{pendingPasswordResets.length}}</span></button>
     </div>
 
     <div class="actions-area">
@@ -114,6 +115,32 @@
       <div class="error-state" *ngIf="disbursedErrorMessage">
         <p>{{ disbursedErrorMessage }}</p>
         <button class="btn btn-primary" (click)="loadDisbursedQueue()">Retry</button>
+      </div>
+    </ng-container>
+
+    <!-- PASSWORD RESETS TAB -->
+    <ng-container *ngIf="activeTab === 'PASSWORD_RESETS'">
+      <div class="alert alert-success" *ngIf="passwordResetsSuccessMessage" style="background: #ecfdf5; border: 1px solid #10b981; color: #065f46; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; font-weight: 500;">
+        <p style="margin: 0;">{{ passwordResetsSuccessMessage }}</p>
+      </div>
+
+      <app-data-table
+        *ngIf="!isPasswordResetsLoading && !passwordResetsErrorMessage"
+        [columns]="passwordResetsColumns"
+        [data]="pendingPasswordResets"
+        [isRowClickable]="false"
+        (actionClick)="approvePasswordReset($event)"
+        emptyMessage="No password reset requests pending review.">
+      </app-data-table>
+
+      <div class="loading-state" *ngIf="isPasswordResetsLoading">
+        <div class="spinner"></div>
+        <p>Loading password reset requests...</p>
+      </div>
+
+      <div class="error-state" *ngIf="passwordResetsErrorMessage">
+        <p>{{ passwordResetsErrorMessage }}</p>
+        <button class="btn btn-primary" (click)="loadPasswordResetsQueue()">Retry</button>
       </div>
     </ng-container>
 

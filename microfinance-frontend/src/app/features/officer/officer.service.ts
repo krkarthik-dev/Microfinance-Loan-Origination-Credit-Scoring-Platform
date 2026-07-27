@@ -47,6 +47,18 @@ export interface OfficerDisbursedLoan {
   totalOutstanding: number;
 }
 
+export interface PasswordResetSummary {
+  id: number;
+  requestId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  tempPassword?: string;
+  createdAt: string;
+  resolvedAt?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -159,5 +171,17 @@ export class OfficerService {
 
   collectInstallmentPayment(applicationNumber: string, installmentId: number, payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/loans/${applicationNumber}/installments/${installmentId}/pay`, payload);
+  }
+
+  getPasswordResetRequests(): Observable<PasswordResetSummary[]> {
+    return this.http.get<PasswordResetSummary[]>(`${this.apiUrl}/password-resets`);
+  }
+
+  getPendingPasswordResetRequests(): Observable<PasswordResetSummary[]> {
+    return this.http.get<PasswordResetSummary[]>(`${this.apiUrl}/password-resets/pending`);
+  }
+
+  approvePasswordResetRequest(requestId: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/password-resets/${requestId}/approve`, {});
   }
 }
