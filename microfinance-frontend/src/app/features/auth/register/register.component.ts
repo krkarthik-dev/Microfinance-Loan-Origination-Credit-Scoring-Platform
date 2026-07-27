@@ -15,6 +15,7 @@ export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   isSubmitting = false;
   errorMessage = '';
+  isUserExistsError = false;
 
   constructor(
     private fb: FormBuilder,
@@ -62,6 +63,7 @@ export class RegisterComponent implements OnInit {
 
     this.isSubmitting = true;
     this.errorMessage = '';
+    this.isUserExistsError = false;
 
     const payload = {
       firstName: this.registerForm.value.firstName,
@@ -77,7 +79,14 @@ export class RegisterComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMessage = err.error?.message || 'Registration failed. Please try again.';
+        const msg = err.error?.message || '';
+        if (err.status === 409 || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already in use')) {
+          this.errorMessage = 'User already exists. Please sign in.';
+          this.isUserExistsError = true;
+        } else {
+          this.errorMessage = msg || 'Registration failed. Please try again.';
+          this.isUserExistsError = false;
+        }
       }
     });
   }

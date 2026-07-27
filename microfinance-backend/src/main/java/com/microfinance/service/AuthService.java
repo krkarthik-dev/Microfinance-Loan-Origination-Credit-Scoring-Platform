@@ -78,8 +78,9 @@ public class AuthService {
     public LoginResponse register(SignupRequestDTO request) {
         log.info("Registering new user with email: {}", request.getEmail());
         
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+        if (userRepository.findByEmail(request.getEmail()).isPresent() ||
+            userRepository.findByUsername(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("User already exists. Please sign in.");
         }
 
         User user = User.builder()

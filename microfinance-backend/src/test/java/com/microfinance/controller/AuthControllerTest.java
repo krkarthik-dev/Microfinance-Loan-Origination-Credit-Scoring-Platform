@@ -112,4 +112,19 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void shouldReturnConflictWhenRegisteringExistingEmail() throws Exception {
+        com.microfinance.dto.SignupRequestDTO signupRequest = new com.microfinance.dto.SignupRequestDTO();
+        signupRequest.setFirstName("Test");
+        signupRequest.setLastName("Applicant");
+        signupRequest.setEmail("applicant@test.com"); // already registered in setUp
+        signupRequest.setPassword("Password@123!");
+
+        mockMvc.perform(post("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(signupRequest)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("User already exists. Please sign in."));
+    }
 }
