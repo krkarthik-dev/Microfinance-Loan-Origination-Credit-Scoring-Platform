@@ -80,6 +80,30 @@ export class ApplicationReviewComponent implements OnInit, OnDestroy {
     if (this.sub) this.sub.unsubscribe();
   }
 
+  get isKycPending(): boolean {
+    if (!this.details) return false;
+    return !this.details.kycVerified && (this.details.status === 'PENDING_KYC' || this.details.kycStatus === 'PENDING');
+  }
+
+  isApprovingKyc = false;
+
+  onApproveKycGateway(): void {
+    if (!this.details?.applicantId) return;
+    this.isApprovingKyc = true;
+    this.officerService.submitKycDecision(this.details.applicantId, { decision: 'APPROVE' }).subscribe({
+      next: () => {
+        this.isApprovingKyc = false;
+        alert('KYC Verified successfully. Transitioning to Underwriting Screen.');
+        this.loadDetails();
+      },
+      error: (err) => {
+        console.error('Failed to approve KYC', err);
+        this.isApprovingKyc = false;
+        alert('Failed to verify KYC. Please try again.');
+      }
+    });
+  }
+
   get requiresDualApproval(): boolean {
     if (!this.details) return false;
     const isHighAmount = this.details.appliedAmount > 1000000;

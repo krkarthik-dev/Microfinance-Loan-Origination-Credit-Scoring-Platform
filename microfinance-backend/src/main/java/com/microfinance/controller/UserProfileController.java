@@ -32,4 +32,11 @@ public class UserProfileController {
         UserProfileDto updatedProfile = userProfileService.updateProfile(authentication.getName(), dto);
         return ResponseEntity.ok(updatedProfile);
     }
+
+    @PostMapping("/submit-kyc")
+    @PreAuthorize("hasRole('APPLICANT')")
+    public ResponseEntity<UserProfileDto> submitKyc(Authentication authentication) {
+        UserProfileDto updatedProfile = userProfileService.submitKyc(authentication.getName());
+        return ResponseEntity.ok(updatedProfile);
+    }
 }

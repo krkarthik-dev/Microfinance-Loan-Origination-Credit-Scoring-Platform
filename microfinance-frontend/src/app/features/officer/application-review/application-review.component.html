@@ -17,7 +17,7 @@
       </div>
 
       <!-- Header Decision Buttons -->
-      <div class="header-decision-buttons" *ngIf="details && !isLoading">
+      <div class="header-decision-buttons" *ngIf="details && !isLoading && !isKycPending">
         <!-- Officer View -->
         <ng-container *ngIf="!isAdmin">
           <div class="btn-group-row" *ngIf="details.status === 'SUBMITTED' || details.status === 'PENDING_KYC' || details.status === 'UNDER_REVIEW'">
@@ -113,7 +113,61 @@
   <!-- Full Page Grid Layout -->
   <main class="review-workspace" *ngIf="details && !isLoading">
     
-    <div class="data-pane cards-grid">
+    <!-- AC3: Dedicated KYC Gateway Screen -->
+    <div class="kyc-gateway-screen cards-grid" *ngIf="isKycPending" style="width: 100%; grid-column: 1 / -1;">
+      <div class="review-section glass-panel" style="border-left: 4px solid var(--warning, #f59e0b);">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <svg xmlns="http://www.w3.org/2001/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <h3 style="margin: 0; color: #b45309;">KYC Verification Gateway</h3>
+          </div>
+          <span class="badge badge-warning" style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-weight: 600;">Underwriting Screen Locked</span>
+        </div>
+        <p style="margin: 1rem 0; color: #4b5563; line-height: 1.5;">
+          The borrower's global Master Profile KYC is currently <strong>PENDING</strong> verification. According to compliance guardrails, financial loan underwriting and credit risk evaluation screens are locked until identity verification is completed.
+        </p>
+
+        <!-- Borrower Identity Overview -->
+        <div class="data-grid" style="margin-top: 1.5rem; background: #f9fafb; padding: 1.25rem; border-radius: 8px; border: 1px solid #e5e7eb; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="data-group"><label style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Borrower Name</label><span style="font-weight: 600; font-size: 1rem;">{{ details.firstName }} {{ details.lastName }}</span></div>
+          <div class="data-group"><label style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">PAN Card Number</label><span style="font-weight: 600; font-size: 1rem;">{{ details.panNumber || 'Not Provided' }}</span></div>
+          <div class="data-group"><label style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Aadhaar Number</label><span style="font-weight: 600; font-size: 1rem;">{{ details.aadhaarNumber || 'Not Provided' }}</span></div>
+        </div>
+
+        <!-- Identity Documents Inspection -->
+        <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: #1f2937;">Required Identity Documents</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+          <button class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem;" *ngIf="details.panDocumentId" (click)="viewKycDocument(details.panDocumentId, 'PAN Card')">
+            <svg xmlns="http://www.w3.org/2001/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Inspect PAN Card Document
+          </button>
+          <button class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem;" *ngIf="details.aadhaarDocumentId" (click)="viewKycDocument(details.aadhaarDocumentId, 'Aadhaar Card')">
+            <svg xmlns="http://www.w3.org/2001/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Inspect Aadhaar Card Document
+          </button>
+        </div>
+
+        <div class="viewer-section glass-panel" *ngIf="activeDocumentUrl" style="margin-top: 1rem; height: 500px;">
+          <app-document-viewer
+            class="viewer-pane-container"
+            [title]="activeDocumentTitle"
+            [documentUrl]="activeDocumentUrl">
+          </app-document-viewer>
+        </div>
+
+        <!-- Gateway Actions -->
+        <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 1rem;">
+          <button class="btn btn-success" style="padding: 0.75rem 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;" [disabled]="isApprovingKyc" (click)="onApproveKycGateway()">
+            <svg *ngIf="!isApprovingKyc" xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span *ngIf="isApprovingKyc" class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span>
+            {{ isApprovingKyc ? 'Verifying & Unlocking...' : 'Approve KYC & Unlock Underwriting' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="underwriting-workspace" *ngIf="!isKycPending" style="display: contents;">
+      <div class="data-pane cards-grid">
       
       <!-- Section A: Profile Data -->
       <div class="review-section glass-panel">
@@ -298,6 +352,7 @@
       </div>
       
     </div> <!-- End Document Review Pane -->
+    </div> <!-- End underwriting-workspace -->
 
   </main>
 </div>

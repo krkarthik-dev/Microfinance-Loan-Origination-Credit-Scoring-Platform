@@ -57,4 +57,7 @@ public class UserProfileDto {
     @NotNull(message = "Monthly income is required")
     @Min(value = 0, message = "Monthly income must be a positive value")
     private BigDecimal monthlyIncome;
+
+    private boolean kycVerified;
+    private String kycStatus;
 }

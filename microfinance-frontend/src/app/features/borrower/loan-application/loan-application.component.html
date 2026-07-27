@@ -60,8 +60,8 @@
                  placeholder="e.g. 50000">
           <div class="invalid-feedback" *ngIf="isReqInvalid('principalAmount')">
             <span *ngIf="reqF['principalAmount'].errors?.['required']">Amount is required.</span>
-            <span *ngIf="reqF['principalAmount'].errors?.['min']">Minimum amount is &#8377;1,000.</span>
-            <span *ngIf="reqF['principalAmount'].errors?.['max']">Maximum amount is &#8377;50,00,000.</span>
+            <span *ngIf="reqF['principalAmount'].errors?.['min']">Minimum amount is &#8377;{{ selectedMinAmount | number }}.</span>
+            <span *ngIf="reqF['principalAmount'].errors?.['max']">Maximum amount is &#8377;{{ selectedMaxAmount | number }}.</span>
           </div>
         </div>
 
@@ -69,12 +69,12 @@
           <label for="tenureMonths">Loan Tenure *</label>
           <div class="slider-container">
             <input type="range" id="tenureMonths" formControlName="tenureMonths"
-                   min="3" max="24" step="3" class="form-range">
+                   [min]="selectedMinTenure" [max]="selectedMaxTenure" step="1" class="form-range">
             <div class="slider-value">{{ loanRequirementsForm.get('tenureMonths')?.value }} Months</div>
           </div>
-          <div class="slider-labels">
-            <span>3m</span><span>6m</span><span>9m</span><span>12m</span>
-            <span>15m</span><span>18m</span><span>21m</span><span>24m</span>
+          <div class="slider-labels d-flex justify-content-between">
+            <span>Min: {{ selectedMinTenure }}m</span>
+            <span>Max: {{ selectedMaxTenure }}m</span>
           </div>
         </div>
 

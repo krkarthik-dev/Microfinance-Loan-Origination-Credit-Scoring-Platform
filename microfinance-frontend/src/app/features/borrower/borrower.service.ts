@@ -25,6 +25,8 @@ export interface UserProfile {
   aadhaarNumber?: string;
   employmentType: string;
   monthlyIncome: number;
+  kycVerified?: boolean;
+  kycStatus?: string;
 }
 
 export interface KycUploadResponse {
@@ -81,6 +83,8 @@ export interface DashboardMetrics {
   totalOutstanding: number;
   pendingApplications: number;
   profileComplete: boolean;
+  kycVerified?: boolean;
+  kycStatus?: string;
   recentActivity: LoanActivity[];
 }
 
@@ -102,6 +106,10 @@ export class BorrowerService {
 
   updateProfile(profile: UserProfile): Observable<UserProfile> {
     return this.http.put<UserProfile>(`${this.apiUrl}/profile`, profile);
+  }
+
+  submitKycVerification(): Observable<UserProfile> {
+    return this.http.post<UserProfile>(`${this.apiUrl}/profile/submit-kyc`, {});
   }
 
   uploadKycDocument(file: File, documentType: string): Observable<KycUploadResponse> {

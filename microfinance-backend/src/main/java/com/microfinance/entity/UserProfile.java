@@ -80,4 +80,8 @@ public class UserProfile extends BaseEntity {
     @Builder.Default
     private boolean kycVerified = false;
 
+    @Column(name = "kyc_status", length = 20)
+    @Builder.Default
+    private String kycStatus = "MISSING";
+
 }

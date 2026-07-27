@@ -17,7 +17,7 @@
       <div class="cta-actions">
         <!-- AC3: Primary CTA with dynamic lock -->
         <button class="btn btn-primary" 
-                [class.locked-btn]="metrics && !metrics.profileComplete"
+                [class.locked-btn]="metrics && (metrics.kycStatus === 'MISSING' || (!metrics.profileComplete && metrics.kycStatus !== 'PENDING' && metrics.kycStatus !== 'APPROVED'))"
                 (click)="onApplyClick()">
           Apply for a New Loan
         </button>

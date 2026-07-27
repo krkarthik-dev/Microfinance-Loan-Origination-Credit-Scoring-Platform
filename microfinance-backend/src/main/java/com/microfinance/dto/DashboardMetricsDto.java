@@ -20,5 +20,7 @@ public class DashboardMetricsDto {
     private BigDecimal totalOutstanding;
     private int pendingApplications;
     private boolean profileComplete;
+    private boolean kycVerified;
+    private String kycStatus;
     private List<LoanActivityDto> recentActivity;
 }

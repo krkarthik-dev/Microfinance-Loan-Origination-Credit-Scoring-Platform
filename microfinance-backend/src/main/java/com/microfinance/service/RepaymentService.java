@@ -107,7 +107,7 @@ public class RepaymentService {
         return BigDecimal.valueOf(emi).setScale(2, RoundingMode.HALF_UP);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public RepaymentScheduleDto getBorrowerRepaymentSchedule(String username, String applicationNumber) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -149,7 +149,7 @@ public class RepaymentService {
                         .collectedByUsername(i.getCollectedBy() != null ? i.getCollectedBy().getEmail() : null)
                         .isActionable(oldestUnpaid != null && i.getId().equals(oldestUnpaid.getId()))
                         .build())
-                .collect(Collectors.toList());
+                        .collect(Collectors.toList());
 
         BigDecimal totalOutstanding = installments.stream()
                 .filter(i -> !i.getStatus().equals("PAID"))
@@ -175,10 +175,12 @@ public class RepaymentService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<OfficerDisbursedLoanDto> getOfficerDisbursedLoans(String officerUsername) {
         List<LoanApplication> activeLoans = loanApplicationRepository.findAll().stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.ACTIVE_REPAYMENT)
+                .filter(app -> app.getStatus() == ApplicationStatus.ACTIVE_REPAYMENT ||
+                               app.getStatus() == ApplicationStatus.COMPLETED ||
+                               app.getStatus() == ApplicationStatus.CLOSED_PAID_IN_FULL)
                 .collect(Collectors.toList());
 
         List<OfficerDisbursedLoanDto> dtos = new ArrayList<>();
@@ -223,7 +225,7 @@ public class RepaymentService {
         return dtos;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public RepaymentScheduleDto getOfficerRepaymentSchedule(String applicationNumber) {
         LoanApplication app = loanApplicationRepository.findByApplicationNumber(applicationNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Loan application not found"));

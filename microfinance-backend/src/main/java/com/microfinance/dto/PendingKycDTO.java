@@ -18,4 +18,5 @@ public class PendingKycDTO {
     // IDs for the documents to view
     private Long panDocumentId;
     private Long aadhaarDocumentId;
+    private String kycStatus;
 }

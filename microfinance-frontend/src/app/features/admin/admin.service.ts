@@ -46,6 +46,22 @@ export class AdminService {
     return this.http.put<any>(`${this.apiUrl}/products/${id}/apr`, { interestRatePa });
   }
 
+  createProduct(productData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/products`, productData);
+  }
+
+  updateProduct(id: number, productData: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/products/${id}`, productData);
+  }
+
+  toggleProductStatus(id: number, active: boolean): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/products/${id}/status`, { active });
+  }
+
+  deleteProduct(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/products/${id}`);
+  }
+
   getAllStaff(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/staff`);
   }

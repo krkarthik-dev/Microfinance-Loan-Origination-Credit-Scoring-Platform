@@ -19,9 +19,12 @@ public class OfficerApplicationDetailDTO {
     
     // Application Basic
     private Long applicationId;
+    private Long applicantId;
     private String applicationNumber;
     private String status;
     private LocalDateTime submittedAt;
+    private boolean kycVerified;
+    private String kycStatus;
     
     // Profile Data (Section A)
     private String firstName;

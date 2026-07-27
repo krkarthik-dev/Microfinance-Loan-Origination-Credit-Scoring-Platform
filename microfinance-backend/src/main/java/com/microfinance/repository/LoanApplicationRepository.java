@@ -34,6 +34,9 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     /** Count applications per status — used for manager dashboard metrics. */
     long countByStatus(ApplicationStatus status);
 
+    /** US66: Check if any historical application references this loan product. */
+    boolean existsByLoanProductId(Long loanProductId);
+
     // US06: Borrower Dashboard Metrics
     int countByApplicantIdAndStatusIn(Long applicantId, List<ApplicationStatus> statuses);
 

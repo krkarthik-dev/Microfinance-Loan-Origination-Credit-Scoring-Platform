@@ -9,6 +9,9 @@ import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.repository.LoanDocumentRepository;
 import com.microfinance.repository.LoanProductRepository;
 import com.microfinance.repository.UserRepository;
+import com.microfinance.repository.UserProfileRepository;
+import com.microfinance.repository.KycDocumentRepository;
+import com.microfinance.entity.UserProfile;
 import com.microfinance.event.LoanSubmittedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,17 +36,12 @@ public class LoanSubmissionService {
     private final LoanDocumentRepository    loanDocumentRepo;
     private final LoanProductRepository     loanProductRepo;
     private final UserRepository            userRepo;
+    private final UserProfileRepository     userProfileRepo;
+    private final KycDocumentRepository     kycDocumentRepo;
     private final PdfGenerationService      pdfGenerationService;
     private final DocumentStorageService    documentStorageService;
     private final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * Generates a sequential application number in format MF-YYYY-NNNNN.
-     */
-    private String generateApplicationNumber() {
-        long count = loanApplicationRepo.count() + 1;
-        return String.format("MF-%d-%05d", LocalDateTime.now().getYear(), count);
-    }
+    private final LoanIdGeneratorService    loanIdGeneratorService;
 
     /**
      * Submits a complete loan application including documents and signature.
@@ -82,9 +80,23 @@ public class LoanSubmissionService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No active loan product configured."));
 
-        // 3. Build and save the LoanApplication entity
+        // 3. Evaluate KYC Status (US67)
+        UserProfile profile = userProfileRepo.findByUserId(applicant.getId()).orElse(null);
+        boolean kycVerified = profile != null && profile.isKycVerified();
+        String kycStatus = profile != null && profile.getKycStatus() != null ? profile.getKycStatus() : "MISSING";
+        
+        boolean hasPanDocument = kycDocumentRepo.findByUserIdAndDocumentType(applicant.getId(), com.microfinance.enums.DocumentType.PAN).isPresent();
+        boolean hasAadhaarDocument = kycDocumentRepo.findByUserIdAndDocumentType(applicant.getId(), com.microfinance.enums.DocumentType.AADHAAR).isPresent();
+        
+        if (!hasPanDocument && !hasAadhaarDocument && "MISSING".equals(kycStatus)) {
+            throw new IllegalStateException("Cannot submit loan application without uploading KYC documents in your profile first.");
+        }
+        
+        ApplicationStatus initialStatus = kycVerified ? ApplicationStatus.SUBMITTED : ApplicationStatus.PENDING_KYC;
+
+        // 4. Build and save the LoanApplication entity
         LoanApplication app = LoanApplication.builder()
-                .applicationNumber(generateApplicationNumber())
+                .applicationNumber(loanIdGeneratorService.generateNextLoanId())
                 .applicant(applicant)
                 .loanProduct(product)
                 .appliedAmount(principalAmount)
@@ -97,7 +109,7 @@ public class LoanSubmissionService {
                 .guarantorAadhaar(guarantorAadhaar)
                 .guarantorPan(guarantorPan)
                 .termsAccepted(true)
-                .status(ApplicationStatus.SUBMITTED)
+                .status(initialStatus)
                 .submittedAt(LocalDateTime.now())
                 .build();
 

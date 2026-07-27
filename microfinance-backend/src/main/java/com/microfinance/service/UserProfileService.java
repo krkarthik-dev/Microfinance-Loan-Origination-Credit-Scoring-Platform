@@ -58,6 +58,22 @@ public class UserProfileService {
         return mapToDto(savedProfile);
     }
 
+    @Transactional
+    public UserProfileDto submitKyc(String username) {
+        log.info("Submitting Profile KYC for verification for user: {}", username);
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        UserProfile profile = userProfileRepository.findByUserId(user.getId())
+                .orElseGet(() -> UserProfile.builder().user(user).build());
+
+        if (!profile.isKycVerified()) {
+            profile.setKycStatus("PENDING");
+            userProfileRepository.save(profile);
+        }
+        return mapToDto(profile);
+    }
+
     private UserProfileDto mapToDto(UserProfile profile) {
         return UserProfileDto.builder()
                 .firstName(profile.getFirstName())
@@ -74,6 +90,8 @@ public class UserProfileService {
                 .aadhaarNumber(profile.getAadhaarNumber())
                 .employmentType(profile.getEmploymentType())
                 .monthlyIncome(profile.getMonthlyIncome())
+                .kycVerified(profile.isKycVerified())
+                .kycStatus(profile.getKycStatus())
                 .build();
     }
 }

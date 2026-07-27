@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import com.microfinance.repository.LoanApplicationRepository;
 import com.microfinance.entity.LoanApplication;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @SpringBootTest
@@ -14,6 +15,7 @@ public class TestQuery {
     private LoanApplicationRepository repo;
 
     @Test
+    @Transactional
     public void test() {
         System.out.println("====== TEST QUERY ======");
         Optional<LoanApplication> app = repo.findByApplicationNumber("MF-2026-00007");

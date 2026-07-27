@@ -47,4 +47,9 @@ public class User extends BaseEntity {
     @Column(name = "must_change_password", nullable = false)
     @Builder.Default
     private boolean mustChangePassword = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private UserProfile profile;
 }

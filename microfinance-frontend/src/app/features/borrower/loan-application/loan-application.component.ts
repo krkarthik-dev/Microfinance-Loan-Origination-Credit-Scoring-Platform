@@ -92,6 +92,10 @@ export class LoanApplicationComponent implements OnInit {
       next: (products) => {
         this.loanProducts = products;
         this.isLoadingProducts = false;
+        const currentPurpose = this.loanRequirementsForm.get('purpose')?.value;
+        if (currentPurpose) {
+          this.onPurposeChange(currentPurpose);
+        }
       },
       error: (err) => {
         console.error('Failed to fetch loan products', err);
@@ -114,6 +118,46 @@ export class LoanApplicationComponent implements OnInit {
       aadhaarNumber: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
       panNumber:     ['', [Validators.required, Validators.pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)]]
     });
+
+    this.loanRequirementsForm.get('purpose')?.valueChanges.subscribe(purpose => {
+      this.onPurposeChange(purpose);
+    });
+  }
+
+  onPurposeChange(purpose: string): void {
+    const selected = this.loanProducts.find(p => p.productName === purpose);
+    const amountCtrl = this.loanRequirementsForm.get('principalAmount');
+    const tenureCtrl = this.loanRequirementsForm.get('tenureMonths');
+
+    if (selected && amountCtrl && tenureCtrl) {
+      amountCtrl.setValidators([
+        Validators.required,
+        Validators.min(selected.minAmount),
+        Validators.max(selected.maxAmount)
+      ]);
+      tenureCtrl.setValidators([
+        Validators.required,
+        Validators.min(selected.minTenureMonths),
+        Validators.max(selected.maxTenureMonths)
+      ]);
+
+      const currentAmount = amountCtrl.value;
+      if (currentAmount && currentAmount < selected.minAmount) {
+        amountCtrl.setValue(selected.minAmount, { emitEvent: false });
+      } else if (currentAmount && currentAmount > selected.maxAmount) {
+        amountCtrl.setValue(selected.maxAmount, { emitEvent: false });
+      }
+
+      const currentTenure = tenureCtrl.value;
+      if (currentTenure && currentTenure < selected.minTenureMonths) {
+        tenureCtrl.setValue(selected.minTenureMonths, { emitEvent: false });
+      } else if (currentTenure && currentTenure > selected.maxTenureMonths) {
+        tenureCtrl.setValue(selected.maxTenureMonths, { emitEvent: false });
+      }
+
+      amountCtrl.updateValueAndValidity();
+      tenureCtrl.updateValueAndValidity();
+    }
   }
 
   // ── Step 1 ──
@@ -121,6 +165,27 @@ export class LoanApplicationComponent implements OnInit {
   isReqInvalid(f: string): boolean {
     const c = this.loanRequirementsForm.get(f);
     return !!(c && c.invalid && (c.dirty || c.touched));
+  }
+
+  get selectedProduct(): any {
+    const purpose = this.loanRequirementsForm.get('purpose')?.value;
+    return this.loanProducts.find(p => p.productName === purpose) || null;
+  }
+
+  get selectedMinAmount(): number {
+    return this.selectedProduct ? this.selectedProduct.minAmount : 1000;
+  }
+
+  get selectedMaxAmount(): number {
+    return this.selectedProduct ? this.selectedProduct.maxAmount : 5000000;
+  }
+
+  get selectedMinTenure(): number {
+    return this.selectedProduct ? this.selectedProduct.minTenureMonths : 3;
+  }
+
+  get selectedMaxTenure(): number {
+    return this.selectedProduct ? this.selectedProduct.maxTenureMonths : 24;
   }
 
   get estimatedEmi(): number | null {

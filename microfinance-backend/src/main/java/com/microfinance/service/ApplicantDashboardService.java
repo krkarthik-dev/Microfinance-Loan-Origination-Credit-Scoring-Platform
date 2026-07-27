@@ -78,16 +78,22 @@ public class ApplicantDashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 5. KYC Status Evaluation (US08 & US10)
-        // Profile is complete if text profile is filled AND both PAN and Aadhaar are uploaded
-        boolean hasTextProfile = userProfileRepository.findByUserId(applicantId)
-                .map(profile -> profile.getPanNumber() != null && !profile.getPanNumber().trim().isEmpty() &&
-                                profile.getAadhaarNumber() != null && !profile.getAadhaarNumber().trim().isEmpty() &&
-                                profile.isKycVerified())
-                .orElse(false);
+        // 5. KYC Status Evaluation (US08, US10 & US67)
+        UserProfile userProfile = userProfileRepository.findByUserId(applicantId).orElse(null);
+        boolean kycVerified = userProfile != null && userProfile.isKycVerified();
+        String kycStatus = userProfile != null && userProfile.getKycStatus() != null ? userProfile.getKycStatus() : "MISSING";
 
         boolean hasPanDocument = kycDocumentRepository.findByUserIdAndDocumentType(applicantId, com.microfinance.enums.DocumentType.PAN).isPresent();
         boolean hasAadhaarDocument = kycDocumentRepository.findByUserIdAndDocumentType(applicantId, com.microfinance.enums.DocumentType.AADHAAR).isPresent();
+
+        if (userProfile != null && !kycVerified && (hasPanDocument || hasAadhaarDocument) && "MISSING".equals(kycStatus)) {
+            kycStatus = "PENDING";
+        }
+
+        boolean hasTextProfile = userProfile != null &&
+                userProfile.getPanNumber() != null && !userProfile.getPanNumber().trim().isEmpty() &&
+                userProfile.getAadhaarNumber() != null && !userProfile.getAadhaarNumber().trim().isEmpty() &&
+                kycVerified;
 
         boolean profileComplete = hasTextProfile && hasPanDocument && hasAadhaarDocument;
 
@@ -96,6 +102,8 @@ public class ApplicantDashboardService {
                 .totalOutstanding(totalOutstanding)
                 .pendingApplications(pendingApplications)
                 .profileComplete(profileComplete)
+                .kycVerified(kycVerified)
+                .kycStatus(kycStatus)
                 .recentActivity(recentActivity)
                 .build();
     }
@@ -112,7 +120,9 @@ public class ApplicantDashboardService {
 
         List<LoanApplication> applications = loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(applicantId);
         return applications.stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.ACTIVE_REPAYMENT)
+                .filter(app -> app.getStatus() == ApplicationStatus.ACTIVE_REPAYMENT ||
+                               app.getStatus() == ApplicationStatus.COMPLETED ||
+                               app.getStatus() == ApplicationStatus.CLOSED_PAID_IN_FULL)
                 .map(app -> {
                     BigDecimal principal = app.getApprovedAmount() != null ? app.getApprovedAmount() : app.getAppliedAmount();
                     BigDecimal interestRate = app.getLoanProduct() != null && app.getLoanProduct().getInterestRatePa() != null 

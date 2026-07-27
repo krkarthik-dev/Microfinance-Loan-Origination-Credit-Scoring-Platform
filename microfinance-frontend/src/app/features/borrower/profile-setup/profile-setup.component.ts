@@ -376,8 +376,17 @@ export class ProfileSetupComponent implements OnInit {
   }
 
   onSaveAndVerify(): void {
-    // In the future, this can call an API to mark KYC as "pending officer review".
-    // For now, it just acts as a confirmation and returns to dashboard.
-    this.router.navigate(['/applicant']);
+    this.isSaving = true;
+    this.borrowerService.submitKycVerification().subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.router.navigate(['/applicant']);
+      },
+      error: (err) => {
+        console.error('Error submitting KYC verification:', err);
+        this.isSaving = false;
+        this.router.navigate(['/applicant']);
+      }
+    });
   }
 }

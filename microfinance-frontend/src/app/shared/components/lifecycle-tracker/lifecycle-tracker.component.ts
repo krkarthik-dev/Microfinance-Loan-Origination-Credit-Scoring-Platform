@@ -21,11 +21,10 @@ interface TrackerStep {
            [class.locked]="!isStepCompleted(i) && !isStepCurrent(i) && !isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">
         
         <div class="step-circle">
-          <span *ngIf="isStepCompleted(i)">✓</span>
           <span *ngIf="isStepFailed(i)">✕</span>
           <span *ngIf="isStepWarning(i)">!</span>
           <span *ngIf="isStepTerminal(i)">—</span>
-          <span *ngIf="!isStepCompleted(i) && !isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">{{ i + 1 }}</span>
+          <span *ngIf="!isStepFailed(i) && !isStepWarning(i) && !isStepTerminal(i)">{{ i + 1 }}</span>
         </div>
         <div class="step-label">{{ step.label }}</div>
         
@@ -103,12 +102,11 @@ interface TrackerStep {
     .step-line {
       position: absolute;
       top: 20px;
-      left: calc(50% + 20px);
-      width: calc(100% - 40px);
-      height: 3px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
       background-color: #e5e7eb;
       z-index: 1;
-      transition: all 0.3s ease;
     }
 
     /* States */

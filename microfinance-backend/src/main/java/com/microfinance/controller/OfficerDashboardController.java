@@ -159,9 +159,12 @@ public class OfficerDashboardController {
 
         OfficerApplicationDetailDTO dto = OfficerApplicationDetailDTO.builder()
                 .applicationId(app.getId())
+                .applicantId(app.getApplicant().getId())
                 .applicationNumber(app.getApplicationNumber())
                 .status(app.getStatus().name())
                 .submittedAt(app.getSubmittedAt())
+                .kycVerified(profile.isKycVerified())
+                .kycStatus(profile.getKycStatus())
                 .firstName(profile.getFirstName())
                 .lastName(profile.getLastName())
                 .dateOfBirth(profile.getDateOfBirth())
@@ -197,7 +200,7 @@ public class OfficerDashboardController {
                 .recentlyCorrectedSections(recentlyCorrected)
                 .build();
 
-        if (app.getStatus() == ApplicationStatus.SUBMITTED || app.getStatus() == ApplicationStatus.PENDING_KYC) {
+        if (app.getStatus() == ApplicationStatus.SUBMITTED) {
             app.setStatus(ApplicationStatus.UNDER_REVIEW);
             loanApplicationRepository.save(app);
             
@@ -472,6 +475,7 @@ public class OfficerDashboardController {
                     .profileCreatedAt(profile.getCreatedAt())
                     .panDocumentId(panDocId)
                     .aadhaarDocumentId(aadhaarDocId)
+                    .kycStatus(profile.getKycStatus())
                     .build();
         }).filter(dto -> dto != null).collect(Collectors.toList());
 
@@ -500,6 +504,7 @@ public class OfficerDashboardController {
         
         if (isApproved) {
             profile.setKycVerified(true);
+            profile.setKycStatus("APPROVED");
             userProfileRepository.save(profile);
             
             // Also mark the specific documents as verified
@@ -510,6 +515,30 @@ public class OfficerDashboardController {
                 doc.setVerifiedAt(LocalDateTime.now());
                 kycDocumentRepository.save(doc);
             }
+
+            // AC4: Automatically transition any active loan applications tied to that user from PENDING_KYC to UNDER_REVIEW
+            List<LoanApplication> pendingKycApps = loanApplicationRepository.findByApplicantIdOrderByCreatedAtDesc(userId).stream()
+                    .filter(app -> app.getStatus() == ApplicationStatus.PENDING_KYC)
+                    .collect(Collectors.toList());
+            for (LoanApplication app : pendingKycApps) {
+                app.setStatus(ApplicationStatus.UNDER_REVIEW);
+                app.setUpdatedAt(LocalDateTime.now());
+                loanApplicationRepository.save(app);
+
+                AuditLog appAudit = AuditLog.builder()
+                        .entityType("LOAN_APPLICATION")
+                        .entityId(app.getId())
+                        .action("UNDER_REVIEW")
+                        .performedBy(officer)
+                        .oldValue("PENDING_KYC")
+                        .newValue("UNDER_REVIEW")
+                        .build();
+                auditLogRepository.save(appAudit);
+            }
+        } else {
+            profile.setKycVerified(false);
+            profile.setKycStatus("REJECTED");
+            userProfileRepository.save(profile);
         }
 
         // Audit Logging
@@ -524,8 +553,8 @@ public class OfficerDashboardController {
                 .entityId(profile.getId())
                 .action(action)
                 .performedBy(officer)
-                .oldValue("kycVerified=false")
-                .newValue("{\"kycVerified\":" + isApproved + ", \"details\":\"" + noteDetails + "\"}")
+                .oldValue("kycVerified=" + !isApproved)
+                .newValue("{\"kycVerified\":" + isApproved + ", \"kycStatus\":\"" + profile.getKycStatus() + "\", \"details\":\"" + noteDetails + "\"}")
                 .build();
         
         auditLogRepository.save(audit);

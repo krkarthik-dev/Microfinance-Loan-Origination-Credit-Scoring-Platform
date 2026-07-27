@@ -76,8 +76,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onApplyClick(): void {
-    if (this.metrics && !this.metrics.profileComplete) {
-      this.validationMessage = 'Please complete your KYC Profile (PAN & Aadhaar) before applying for a new loan.';
+    if (this.metrics && (this.metrics.kycStatus === 'MISSING' || (!this.metrics.profileComplete && this.metrics.kycStatus !== 'PENDING' && this.metrics.kycStatus !== 'APPROVED'))) {
+      this.validationMessage = 'Please upload your KYC documents in your profile first.';
       // Auto-hide the message after 5 seconds
       setTimeout(() => {
         this.validationMessage = '';
