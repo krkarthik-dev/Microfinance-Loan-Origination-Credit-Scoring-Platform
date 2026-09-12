@@ -52,6 +52,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     this.userName = user?.sub?.split('@')[0] || 'Borrower';
     this.fetchMetrics();
+    this.fetchProfile();
+  }
+
+  fetchProfile(): void {
+    this.borrowerService.getProfile().subscribe({
+      next: (profile) => {
+        if (profile && profile.lastName) {
+          this.userName = profile.lastName;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load profile for last name', err);
+      }
+    });
   }
 
   ngOnDestroy(): void {
